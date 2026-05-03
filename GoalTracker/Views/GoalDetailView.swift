@@ -10,7 +10,9 @@ import SwiftUI
 struct GoalDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
-    @Binding var goal: Goal
+    @Binding private var goal: Goal
+
+    @State private var displayedGoal: Goal
 
     @State private var isEditing = false
 
@@ -21,6 +23,12 @@ struct GoalDetailView: View {
     @State private var editedIsCompleted = false
 
     let onDelete: () -> Void
+
+    init(goal: Binding<Goal>, onDelete: @escaping () -> Void) {
+        _goal = goal
+        _displayedGoal = State(initialValue: goal.wrappedValue)
+        self.onDelete = onDelete
+    }
 
     private var trimmedEditedName: String {
         editedName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -36,7 +44,7 @@ struct GoalDetailView: View {
                 if isEditing {
                     TextField("Goal name", text: $editedName)
                 } else {
-                    Text(goal.name)
+                    Text(displayedGoal.name)
                 }
             }
             Section("Description") {
@@ -48,7 +56,7 @@ struct GoalDetailView: View {
                     )
                     .lineLimit(1 ... 6)
                 } else {
-                    if let description = goal.description, !description.isEmpty {
+                    if let description = displayedGoal.description, !description.isEmpty {
                         Text(description)
                     } else {
                         Text("No description")
@@ -64,8 +72,8 @@ struct GoalDetailView: View {
                     }
                     .pickerStyle(.menu)
                 } else {
-                    Text(goal.isCompleted ? "Completed" : "Not Completed")
-                        .foregroundStyle(goal.isCompleted ? .blue : .secondary)
+                    Text(displayedGoal.isCompleted ? "Completed" : "Pending")
+                        .foregroundStyle(displayedGoal.isCompleted ? .blue : .secondary)
                 }
             }
         }
@@ -108,16 +116,17 @@ struct GoalDetailView: View {
         .safeAreaInset(edge: .bottom) {
             if !isEditing {
                 Button {
-                    goal.isCompleted = true
+                    displayedGoal.isCompleted = true
+                    goal = displayedGoal
                     dismiss()
                 } label: {
-                    Text(goal.isCompleted ? "Completed" : "Complete")
+                    Text(displayedGoal.isCompleted ? "Completed" : "Complete")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(goal.isCompleted)
+                .disabled(displayedGoal.isCompleted)
                 .padding(.horizontal)
                 .padding(.bottom, 8)
             }
@@ -125,23 +134,24 @@ struct GoalDetailView: View {
     }
 
     private func startEditing() {
-        editedName = goal.name
-        editedDescription = goal.description ?? ""
-        editedIsCompleted = goal.isCompleted
+        editedName = displayedGoal.name
+        editedDescription = displayedGoal.description ?? ""
+        editedIsCompleted = displayedGoal.isCompleted
         isEditing = true
     }
 
     private func cancelEditing() {
-        editedName = goal.name
-        editedDescription = goal.description ?? ""
-        editedIsCompleted = goal.isCompleted
+        editedName = displayedGoal.name
+        editedDescription = displayedGoal.description ?? ""
+        editedIsCompleted = displayedGoal.isCompleted
         isEditing = false
     }
 
     private func saveEdits() {
-        goal.name = trimmedEditedName
-        goal.description = trimmedEditedDescription.isEmpty ? nil : trimmedEditedDescription
-        goal.isCompleted = editedIsCompleted
+        displayedGoal.name = trimmedEditedName
+        displayedGoal.description = trimmedEditedDescription.isEmpty ? nil : trimmedEditedDescription
+        displayedGoal.isCompleted = editedIsCompleted
+        goal = displayedGoal
         isEditing = false
     }
 }

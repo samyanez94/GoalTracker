@@ -18,13 +18,13 @@ struct GoalListView: View {
         NavigationStack {
             List {
                 Section("Pending") {
-                    ForEach(pendingGoals) { goal in
-                        goalRow(for: goal)
+                    ForEach(pendingGoalIndices, id: \.self) { index in
+                        goalRow(at: index)
                     }
                 }
                 Section("Completed") {
-                    ForEach(completedGoals) { goal in
-                        goalRow(for: goal)
+                    ForEach(completedGoalIndices, id: \.self) { index in
+                        goalRow(at: index)
                     }
                 }
             }
@@ -47,29 +47,31 @@ struct GoalListView: View {
         }
     }
 
-    private var pendingGoals: [Goal] {
-        goals.filter { !$0.isCompleted }
+    private var pendingGoalIndices: [Int] {
+        goals.indices.filter { !goals[$0].isCompleted }
     }
 
-    private var completedGoals: [Goal] {
-        goals.filter(\.isCompleted)
+    private var completedGoalIndices: [Int] {
+        goals.indices.filter { goals[$0].isCompleted }
     }
 
     @ViewBuilder
-    private func goalRow(for goal: Goal) -> some View {
-        if let index = goals.firstIndex(where: { $0.id == goal.id }) {
+    private func goalRow(at index: Int) -> some View {
+        if goals.indices.contains(index) {
+            let goalID = goals[index].id
+
             NavigationLink {
                 GoalDetailView(goal: $goals[index]) {
-                    deleteGoal(goal)
+                    deleteGoal(id: goalID)
                 }
             } label: {
-                Text(goal.name)
+                Text(goals[index].name)
             }
         }
     }
 
-    private func deleteGoal(_ goal: Goal) {
-        goals.removeAll { $0.id == goal.id }
+    private func deleteGoal(id: Goal.ID) {
+        goals.removeAll { $0.id == id }
     }
 }
 
