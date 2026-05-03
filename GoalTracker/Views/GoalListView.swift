@@ -58,14 +58,20 @@ struct GoalListView: View {
     @ViewBuilder
     private func goalRow(at index: Int) -> some View {
         if goals.indices.contains(index) {
-            let goalID = goals[index].id
-
+            let goalId = goals[index].id
             NavigationLink {
                 GoalDetailView(goal: $goals[index]) {
-                    deleteGoal(id: goalID)
+                    deleteGoal(id: goalId)
                 }
             } label: {
                 Text(goals[index].name)
+            }
+            .swipeActions {
+                Button(role: .destructive) {
+                    deleteGoal(id: goalId)
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
             }
         }
     }
