@@ -83,5 +83,5 @@ private struct AddGoalButton: View {
 }
 
 #Preview {
-    GoalListView(goalStore: GoalStore())
+    GoalListView(goalStore: GoalStore(goals: []))
 }
