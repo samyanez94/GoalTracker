@@ -14,7 +14,11 @@ struct CreateGoalView: View {
 
     @State private var description = ""
 
-    let onSave: (_ name: String, _ description: String?) -> Void
+    @State private var initialValue = ""
+
+    @State private var targetValue = ""
+
+    let onSave: (_ name: String, _ description: String?, _ progress: Goal.Progress) -> Void
 
     private var trimmedName: String {
         name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -24,9 +28,25 @@ struct CreateGoalView: View {
         description.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var parsedInitialValue: Double? {
+        Double(initialValue)
+    }
+
+    private var parsedTargetValue: Double? {
+        Double(targetValue)
+    }
+
+    private var isSaveDisabled: Bool {
+        guard parsedInitialValue != nil,
+                let parsedTargetValue else {
+            return true
+        }
+        return trimmedName.isEmpty || parsedTargetValue <= 0
+    }
+
     var body: some View {
         Form {
-            Section {
+            Section("Details") {
                 TextField("Goal name", text: $name)
                 TextField(
                     "Description (optional)",
@@ -34,6 +54,22 @@ struct CreateGoalView: View {
                     axis: .vertical,
                 )
                 .lineLimit(3 ... 6)
+            }
+            Section("Progress") {
+                HStack {
+                    Text("Initial value")
+                        .foregroundStyle(.secondary)
+                    TextField("0", text: $initialValue)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                }
+                HStack {
+                    Text("Target value")
+                        .foregroundStyle(.secondary)
+                    TextField("100", text: $targetValue)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                }
             }
         }
         .navigationTitle("New Goal")
@@ -48,19 +84,27 @@ struct CreateGoalView: View {
                 Button("Save") {
                     saveGoal()
                 }
-                .disabled(trimmedName.isEmpty)
+                .disabled(isSaveDisabled)
             }
         }
     }
 
     private func saveGoal() {
-        onSave(trimmedName, trimmedDescription.isEmpty ? nil : trimmedDescription)
+        guard let parsedInitialValue,
+                let parsedTargetValue else {
+            return
+        }
+        let progress = Goal.Progress(
+            currentValue: parsedInitialValue,
+            targetValue: parsedTargetValue,
+        )
+        onSave(trimmedName, trimmedDescription.isEmpty ? nil : trimmedDescription, progress)
         dismiss()
     }
 }
 
 #Preview {
     NavigationStack {
-        CreateGoalView { _, _ in }
+        CreateGoalView { _, _, _ in }
     }
 }

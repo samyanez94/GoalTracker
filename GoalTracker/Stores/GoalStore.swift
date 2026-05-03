@@ -22,7 +22,7 @@ final class GoalStore {
     var completedGoals: [Goal] {
         goals.filter(\.isCompleted)
     }
-    
+
     private static var defaultFileURL: URL {
         FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -35,12 +35,12 @@ final class GoalStore {
         self.goals = goals ?? Self.loadGoals(from: self.fileURL)
     }
 
-    func addGoal(name: String, description: String?) {
+    func addGoal(name: String, description: String?, progress: Goal.Progress) {
         let goal = Goal(
             name: name,
             description: description,
             createdAt: Date(),
-            isCompleted: false,
+            progress: progress,
         )
         goals.append(goal)
         saveGoals()

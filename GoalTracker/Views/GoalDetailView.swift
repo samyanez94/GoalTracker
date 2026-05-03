@@ -18,7 +18,9 @@ struct GoalDetailView: View {
 
     @State private var editedDescription = ""
 
-    @State private var editedIsCompleted = false
+    @State private var editedCurrentValue = 0.0
+
+    @State private var editedTargetValue = 1.0
 
     let onSave: (Goal) -> Void
 
@@ -36,6 +38,10 @@ struct GoalDetailView: View {
 
     private var trimmedEditedDescription: String {
         editedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var isSaveDisabled: Bool {
+        trimmedEditedName.isEmpty || editedTargetValue <= 0
     }
 
     var body: some View {
@@ -65,15 +71,28 @@ struct GoalDetailView: View {
                 }
             }
             Section("Status") {
+                Text(goal.isCompleted ? "Completed" : "Pending")
+                    .foregroundStyle(goal.isCompleted ? .blue : .secondary)
+            }
+            Section("Progress") {
                 if isEditing {
-                    Picker("Status", selection: $editedIsCompleted) {
-                        Text("Pending").tag(false)
-                        Text("Completed").tag(true)
-                    }
-                    .pickerStyle(.menu)
+                    progressTextFieldRow(
+                        label: "Current value",
+                        value: $editedCurrentValue,
+                    )
+                    progressTextFieldRow(
+                        label: "Target value",
+                        value: $editedTargetValue,
+                    )
                 } else {
-                    Text(goal.isCompleted ? "Completed" : "Pending")
-                        .foregroundStyle(goal.isCompleted ? .blue : .secondary)
+                    progressTextRow(
+                        label: "Current value",
+                        value: goal.progress.currentValue,
+                    )
+                    progressTextRow(
+                        label: "Target value",
+                        value: goal.progress.targetValue,
+                    )
                 }
             }
         }
@@ -85,7 +104,7 @@ struct GoalDetailView: View {
                     Button("Done") {
                         saveEdits()
                     }
-                    .disabled(trimmedEditedName.isEmpty)
+                    .disabled(isSaveDisabled)
                 } else {
                     Menu {
                         Button {
@@ -116,7 +135,7 @@ struct GoalDetailView: View {
         .safeAreaInset(edge: .bottom) {
             if !isEditing {
                 Button {
-                    goal.isCompleted = true
+                    goal.progress.currentValue = goal.progress.targetValue
                     onSave(goal)
                     dismiss()
                 } label: {
@@ -133,24 +152,50 @@ struct GoalDetailView: View {
         }
     }
 
+    private func progressTextRow(label: String, value: Double) -> some View {
+        HStack {
+            Text(label)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value.formatted())
+                .multilineTextAlignment(.trailing)
+        }
+    }
+
+    private func progressTextFieldRow(label: String, value: Binding<Double>) -> some View {
+        HStack {
+            Text(label)
+                .foregroundStyle(.secondary)
+            Spacer()
+            TextField("0", value: value, format: .number)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+        }
+    }
+
     private func startEditing() {
         editedName = goal.name
         editedDescription = goal.description ?? ""
-        editedIsCompleted = goal.isCompleted
+        editedCurrentValue = goal.progress.currentValue
+        editedTargetValue = goal.progress.targetValue
         isEditing = true
     }
 
     private func cancelEditing() {
         editedName = goal.name
         editedDescription = goal.description ?? ""
-        editedIsCompleted = goal.isCompleted
+        editedCurrentValue = goal.progress.currentValue
+        editedTargetValue = goal.progress.targetValue
         isEditing = false
     }
 
     private func saveEdits() {
         goal.name = trimmedEditedName
         goal.description = trimmedEditedDescription.isEmpty ? nil : trimmedEditedDescription
-        goal.isCompleted = editedIsCompleted
+        goal.progress = Goal.Progress(
+            currentValue: editedCurrentValue,
+            targetValue: editedTargetValue,
+        )
         onSave(goal)
         isEditing = false
     }
@@ -163,7 +208,7 @@ struct GoalDetailView: View {
                 name: "Run a 5K",
                 description: "Build up endurance with three runs per week.",
                 createdAt: Date(),
-                isCompleted: false,
+                progress: Goal.Progress(currentValue: 1, targetValue: 5),
             ),
             onSave: { _ in },
             onDelete: {},
@@ -178,7 +223,7 @@ struct GoalDetailView: View {
                 name: "Read every night",
                 description: "Read for at least 20 minutes before bed.",
                 createdAt: Date(),
-                isCompleted: true,
+                progress: Goal.Progress(currentValue: 20, targetValue: 20),
             ),
             onSave: { _ in },
             onDelete: {},
