@@ -12,6 +12,7 @@ struct Goal: Identifiable, Codable {
     var name: String
     var description: String?
     let createdAt: Date
+    var kind: Kind
     var progress: Progress
 
     var isCompleted: Bool {
@@ -23,15 +24,22 @@ struct Goal: Identifiable, Codable {
         name: String,
         description: String?,
         createdAt: Date,
+        kind: Kind,
         progress: Progress,
     ) {
         self.id = id
         self.name = name
         self.description = description
         self.createdAt = createdAt
+        self.kind = kind
         self.progress = progress
     }
     
+    enum Kind: String, Codable {
+        case quantified
+        case outcome
+    }
+
     struct Progress: Codable {
         var currentValue: Double
         var targetValue: Double

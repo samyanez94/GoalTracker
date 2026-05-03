@@ -18,6 +18,8 @@ struct GoalDetailView: View {
 
     @State private var editedDescription = ""
 
+    @State private var editedIsQuantified = false
+
     @State private var editedCurrentValue = 0.0
 
     @State private var editedTargetValue = 1.0
@@ -41,7 +43,11 @@ struct GoalDetailView: View {
     }
 
     private var isSaveDisabled: Bool {
-        trimmedEditedName.isEmpty || editedTargetValue <= 0
+        if !editedIsQuantified {
+            return trimmedEditedName.isEmpty
+        }
+
+        return trimmedEditedName.isEmpty || editedTargetValue <= 0
     }
 
     var body: some View {
@@ -76,23 +82,36 @@ struct GoalDetailView: View {
             }
             Section("Progress") {
                 if isEditing {
-                    progressTextFieldRow(
-                        label: "Current value",
-                        value: $editedCurrentValue,
-                    )
-                    progressTextFieldRow(
-                        label: "Target value",
-                        value: $editedTargetValue,
-                    )
+                    Toggle("Progress-based goal", isOn: $editedIsQuantified)
+
+                    Text("A goal you complete over time by making measurable progress.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+
+                    if editedIsQuantified {
+                        progressTextFieldRow(
+                            label: "Current value",
+                            value: $editedCurrentValue,
+                        )
+                        progressTextFieldRow(
+                            label: "Target value",
+                            value: $editedTargetValue,
+                        )
+                    }
                 } else {
-                    progressTextRow(
-                        label: "Current value",
-                        value: goal.progress.currentValue,
-                    )
-                    progressTextRow(
-                        label: "Target value",
-                        value: goal.progress.targetValue,
-                    )
+                    if goal.kind == .quantified {
+                        progressTextRow(
+                            label: "Current value",
+                            value: goal.progress.currentValue,
+                        )
+                        progressTextRow(
+                            label: "Target value",
+                            value: goal.progress.targetValue,
+                        )
+                    } else {
+                        Text("No measurable progress")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }
@@ -176,6 +195,7 @@ struct GoalDetailView: View {
     private func startEditing() {
         editedName = goal.name
         editedDescription = goal.description ?? ""
+        editedIsQuantified = goal.kind == .quantified
         editedCurrentValue = goal.progress.currentValue
         editedTargetValue = goal.progress.targetValue
         isEditing = true
@@ -184,6 +204,7 @@ struct GoalDetailView: View {
     private func cancelEditing() {
         editedName = goal.name
         editedDescription = goal.description ?? ""
+        editedIsQuantified = goal.kind == .quantified
         editedCurrentValue = goal.progress.currentValue
         editedTargetValue = goal.progress.targetValue
         isEditing = false
@@ -192,10 +213,19 @@ struct GoalDetailView: View {
     private func saveEdits() {
         goal.name = trimmedEditedName
         goal.description = trimmedEditedDescription.isEmpty ? nil : trimmedEditedDescription
-        goal.progress = Goal.Progress(
-            currentValue: editedCurrentValue,
-            targetValue: editedTargetValue,
-        )
+        if editedIsQuantified {
+            goal.kind = .quantified
+            goal.progress = Goal.Progress(
+                currentValue: editedCurrentValue,
+                targetValue: editedTargetValue,
+            )
+        } else {
+            goal.kind = .outcome
+            goal.progress = Goal.Progress(
+                currentValue: goal.isCompleted ? 1 : 0,
+                targetValue: 1,
+            )
+        }
         onSave(goal)
         isEditing = false
     }
@@ -208,6 +238,7 @@ struct GoalDetailView: View {
                 name: "Run a 5K",
                 description: "Build up endurance with three runs per week.",
                 createdAt: Date(),
+                kind: .quantified,
                 progress: Goal.Progress(currentValue: 1, targetValue: 5),
             ),
             onSave: { _ in },
@@ -223,7 +254,24 @@ struct GoalDetailView: View {
                 name: "Read every night",
                 description: "Read for at least 20 minutes before bed.",
                 createdAt: Date(),
+                kind: .quantified,
                 progress: Goal.Progress(currentValue: 20, targetValue: 20),
+            ),
+            onSave: { _ in },
+            onDelete: {},
+        )
+    }
+}
+
+#Preview("One-off Goal") {
+    NavigationStack {
+        GoalDetailView(
+            goal: Goal(
+                name: "Travel to Japan",
+                description: "Plan and take the trip.",
+                createdAt: Date(),
+                kind: .outcome,
+                progress: Goal.Progress(currentValue: 0, targetValue: 1),
             ),
             onSave: { _ in },
             onDelete: {},

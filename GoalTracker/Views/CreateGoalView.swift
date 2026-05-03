@@ -14,11 +14,13 @@ struct CreateGoalView: View {
 
     @State private var description = ""
 
+    @State private var isQuantified = false
+
     @State private var initialValue = ""
 
     @State private var targetValue = ""
 
-    let onSave: (_ name: String, _ description: String?, _ progress: Goal.Progress) -> Void
+    let onSave: (_ name: String, _ description: String?, _ kind: Goal.Kind, _ progress: Goal.Progress) -> Void
 
     private var trimmedName: String {
         name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -37,8 +39,10 @@ struct CreateGoalView: View {
     }
 
     private var isSaveDisabled: Bool {
-        guard parsedInitialValue != nil,
-                let parsedTargetValue else {
+        if !isQuantified {
+            return trimmedName.isEmpty
+        }
+        guard parsedInitialValue != nil, let parsedTargetValue else {
             return true
         }
         return trimmedName.isEmpty || parsedTargetValue <= 0
@@ -53,22 +57,30 @@ struct CreateGoalView: View {
                     text: $description,
                     axis: .vertical,
                 )
-                .lineLimit(3 ... 6)
+                .lineLimit(1 ... 6)
             }
             Section("Progress") {
-                HStack {
-                    Text("Initial value")
-                        .foregroundStyle(.secondary)
-                    TextField("0", text: $initialValue)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                }
-                HStack {
-                    Text("Target value")
-                        .foregroundStyle(.secondary)
-                    TextField("100", text: $targetValue)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
+                Toggle("Progress-based goal", isOn: $isQuantified)
+
+                Text("A goal you complete over time by making measurable progress.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+
+                if isQuantified {
+                    HStack {
+                        Text("Initial value")
+                            .foregroundStyle(.secondary)
+                        TextField("0", text: $initialValue)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    HStack {
+                        Text("Target value")
+                            .foregroundStyle(.secondary)
+                        TextField("100", text: $targetValue)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                    }
                 }
             }
         }
@@ -90,21 +102,37 @@ struct CreateGoalView: View {
     }
 
     private func saveGoal() {
-        guard let parsedInitialValue,
-                let parsedTargetValue else {
-            return
+        let kind: Goal.Kind
+        let progress: Goal.Progress
+
+        if isQuantified {
+            guard let parsedInitialValue,
+                    let parsedTargetValue else {
+                return
+            }
+            kind = .quantified
+            progress = Goal.Progress(
+                currentValue: parsedInitialValue,
+                targetValue: parsedTargetValue,
+            )
+        } else {
+            kind = .outcome
+            progress = Goal.Progress(
+                currentValue: 0,
+                targetValue: 1,
+            )
         }
-        let progress = Goal.Progress(
-            currentValue: parsedInitialValue,
-            targetValue: parsedTargetValue,
+        onSave(
+            trimmedName,
+            trimmedDescription.isEmpty ? nil : trimmedDescription,
+            kind, progress
         )
-        onSave(trimmedName, trimmedDescription.isEmpty ? nil : trimmedDescription, progress)
         dismiss()
     }
 }
 
 #Preview {
     NavigationStack {
-        CreateGoalView { _, _, _ in }
+        CreateGoalView { _, _, _, _ in }
     }
 }

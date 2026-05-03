@@ -38,8 +38,13 @@ struct GoalListView: View {
                 }
             }
             .navigationDestination(isPresented: $isPresentingCreateGoalView) {
-                CreateGoalView { name, description, progress in
-                    goalStore.addGoal(name: name, description: description, progress: progress)
+                CreateGoalView { name, description, kind, progress in
+                    goalStore.addGoal(
+                        name: name,
+                        description: description,
+                        kind: kind,
+                        progress: progress,
+                    )
                 }
             }
         }

@@ -35,11 +35,12 @@ final class GoalStore {
         self.goals = goals ?? Self.loadGoals(from: self.fileURL)
     }
 
-    func addGoal(name: String, description: String?, progress: Goal.Progress) {
+    func addGoal(name: String, description: String?, kind: Goal.Kind, progress: Goal.Progress) {
         let goal = Goal(
             name: name,
             description: description,
             createdAt: Date(),
+            kind: kind,
             progress: progress,
         )
         goals.append(goal)
