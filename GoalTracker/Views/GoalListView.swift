@@ -8,9 +8,7 @@
 import SwiftUI
 
 struct GoalListView: View {
-    @State var goals: [Goal] = [
-        Goal(name: "First", description: nil, createdAt: Date(), isCompleted: false),
-    ]
+    let goalStore: GoalStore
 
     @State private var isPresentingCreateGoalView = false
 
@@ -18,13 +16,13 @@ struct GoalListView: View {
         NavigationStack {
             List {
                 Section("Pending") {
-                    ForEach(pendingGoalIndices, id: \.self) { index in
-                        goalRow(at: index)
+                    ForEach(goalStore.pendingGoals) { goal in
+                        goalRow(for: goal)
                     }
                 }
                 Section("Completed") {
-                    ForEach(completedGoalIndices, id: \.self) { index in
-                        goalRow(at: index)
+                    ForEach(goalStore.completedGoals) { goal in
+                        goalRow(for: goal)
                     }
                 }
             }
@@ -40,44 +38,32 @@ struct GoalListView: View {
                 }
             }
             .navigationDestination(isPresented: $isPresentingCreateGoalView) {
-                CreateGoalView { goal in
-                    goals.append(goal)
+                CreateGoalView { name, description in
+                    goalStore.addGoal(name: name, description: description)
                 }
             }
         }
     }
 
-    private var pendingGoalIndices: [Int] {
-        goals.indices.filter { !goals[$0].isCompleted }
-    }
-
-    private var completedGoalIndices: [Int] {
-        goals.indices.filter { goals[$0].isCompleted }
-    }
-
-    @ViewBuilder
-    private func goalRow(at index: Int) -> some View {
-        if goals.indices.contains(index) {
-            let goalId = goals[index].id
-            NavigationLink {
-                GoalDetailView(goal: $goals[index]) {
-                    deleteGoal(id: goalId)
-                }
+    private func goalRow(for goal: Goal) -> some View {
+        NavigationLink {
+            GoalDetailView(
+                goal: goal,
+                onSave: goalStore.updateGoal,
+                onDelete: {
+                    goalStore.deleteGoal(id: goal.id)
+                },
+            )
+        } label: {
+            Text(goal.name)
+        }
+        .swipeActions {
+            Button(role: .destructive) {
+                goalStore.deleteGoal(id: goal.id)
             } label: {
-                Text(goals[index].name)
-            }
-            .swipeActions {
-                Button(role: .destructive) {
-                    deleteGoal(id: goalId)
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                }
+                Label("Delete", systemImage: "trash")
             }
         }
-    }
-
-    private func deleteGoal(id: Goal.ID) {
-        goals.removeAll { $0.id == id }
     }
 }
 
@@ -97,5 +83,5 @@ private struct AddGoalButton: View {
 }
 
 #Preview {
-    GoalListView()
+    GoalListView(goalStore: GoalStore())
 }

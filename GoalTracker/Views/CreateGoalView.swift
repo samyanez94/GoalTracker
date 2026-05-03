@@ -14,7 +14,7 @@ struct CreateGoalView: View {
 
     @State private var description = ""
 
-    let onSave: (Goal) -> Void
+    let onSave: (_ name: String, _ description: String?) -> Void
 
     private var trimmedName: String {
         name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -54,19 +54,13 @@ struct CreateGoalView: View {
     }
 
     private func saveGoal() {
-        let goal = Goal(
-            name: trimmedName,
-            description: trimmedDescription.isEmpty ? nil : trimmedDescription,
-            createdAt: Date(),
-            isCompleted: false,
-        )
-        onSave(goal)
+        onSave(trimmedName, trimmedDescription.isEmpty ? nil : trimmedDescription)
         dismiss()
     }
 }
 
 #Preview {
     NavigationStack {
-        CreateGoalView { _ in }
+        CreateGoalView { _, _ in }
     }
 }

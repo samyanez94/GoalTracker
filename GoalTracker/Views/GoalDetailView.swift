@@ -10,9 +10,7 @@ import SwiftUI
 struct GoalDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
-    @Binding private var goal: Goal
-
-    @State private var displayedGoal: Goal
+    @State private var goal: Goal
 
     @State private var isEditing = false
 
@@ -22,11 +20,13 @@ struct GoalDetailView: View {
 
     @State private var editedIsCompleted = false
 
+    let onSave: (Goal) -> Void
+
     let onDelete: () -> Void
 
-    init(goal: Binding<Goal>, onDelete: @escaping () -> Void) {
-        _goal = goal
-        _displayedGoal = State(initialValue: goal.wrappedValue)
+    init(goal: Goal, onSave: @escaping (Goal) -> Void, onDelete: @escaping () -> Void) {
+        _goal = State(initialValue: goal)
+        self.onSave = onSave
         self.onDelete = onDelete
     }
 
@@ -44,7 +44,7 @@ struct GoalDetailView: View {
                 if isEditing {
                     TextField("Goal name", text: $editedName)
                 } else {
-                    Text(displayedGoal.name)
+                    Text(goal.name)
                 }
             }
             Section("Description") {
@@ -56,7 +56,7 @@ struct GoalDetailView: View {
                     )
                     .lineLimit(1 ... 6)
                 } else {
-                    if let description = displayedGoal.description, !description.isEmpty {
+                    if let description = goal.description, !description.isEmpty {
                         Text(description)
                     } else {
                         Text("No description")
@@ -72,8 +72,8 @@ struct GoalDetailView: View {
                     }
                     .pickerStyle(.menu)
                 } else {
-                    Text(displayedGoal.isCompleted ? "Completed" : "Pending")
-                        .foregroundStyle(displayedGoal.isCompleted ? .blue : .secondary)
+                    Text(goal.isCompleted ? "Completed" : "Pending")
+                        .foregroundStyle(goal.isCompleted ? .blue : .secondary)
                 }
             }
         }
@@ -116,17 +116,17 @@ struct GoalDetailView: View {
         .safeAreaInset(edge: .bottom) {
             if !isEditing {
                 Button {
-                    displayedGoal.isCompleted = true
-                    goal = displayedGoal
+                    goal.isCompleted = true
+                    onSave(goal)
                     dismiss()
                 } label: {
-                    Text(displayedGoal.isCompleted ? "Completed" : "Complete")
+                    Text(goal.isCompleted ? "Completed" : "Complete")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(displayedGoal.isCompleted)
+                .disabled(goal.isCompleted)
                 .padding(.horizontal)
                 .padding(.bottom, 8)
             }
@@ -134,24 +134,24 @@ struct GoalDetailView: View {
     }
 
     private func startEditing() {
-        editedName = displayedGoal.name
-        editedDescription = displayedGoal.description ?? ""
-        editedIsCompleted = displayedGoal.isCompleted
+        editedName = goal.name
+        editedDescription = goal.description ?? ""
+        editedIsCompleted = goal.isCompleted
         isEditing = true
     }
 
     private func cancelEditing() {
-        editedName = displayedGoal.name
-        editedDescription = displayedGoal.description ?? ""
-        editedIsCompleted = displayedGoal.isCompleted
+        editedName = goal.name
+        editedDescription = goal.description ?? ""
+        editedIsCompleted = goal.isCompleted
         isEditing = false
     }
 
     private func saveEdits() {
-        displayedGoal.name = trimmedEditedName
-        displayedGoal.description = trimmedEditedDescription.isEmpty ? nil : trimmedEditedDescription
-        displayedGoal.isCompleted = editedIsCompleted
-        goal = displayedGoal
+        goal.name = trimmedEditedName
+        goal.description = trimmedEditedDescription.isEmpty ? nil : trimmedEditedDescription
+        goal.isCompleted = editedIsCompleted
+        onSave(goal)
         isEditing = false
     }
 }
@@ -159,12 +159,13 @@ struct GoalDetailView: View {
 #Preview("Incomplete Goal") {
     NavigationStack {
         GoalDetailView(
-            goal: .constant(Goal(
+            goal: Goal(
                 name: "Run a 5K",
                 description: "Build up endurance with three runs per week.",
                 createdAt: Date(),
                 isCompleted: false,
-            )),
+            ),
+            onSave: { _ in },
             onDelete: {},
         )
     }
@@ -173,12 +174,13 @@ struct GoalDetailView: View {
 #Preview("Completed Goal") {
     NavigationStack {
         GoalDetailView(
-            goal: .constant(Goal(
+            goal: Goal(
                 name: "Read every night",
                 description: "Read for at least 20 minutes before bed.",
                 createdAt: Date(),
                 isCompleted: true,
-            )),
+            ),
+            onSave: { _ in },
             onDelete: {},
         )
     }

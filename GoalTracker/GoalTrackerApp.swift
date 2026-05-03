@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct GoalTrackerApp: App {
+    @State private var goalStore = GoalStore()
+
     var body: some Scene {
         WindowGroup {
-            GoalListView()
+            GoalListView(goalStore: goalStore)
         }
     }
 }
