@@ -110,7 +110,7 @@ struct GoalDetailView: View {
                 "Update current value",
                 value: currentProgressBinding,
                 in: 0 ... currentProgressUpperBound,
-                step: 1,
+                step: currentProgressStep,
             )
             .labelsHidden()
         }
@@ -129,7 +129,11 @@ struct GoalDetailView: View {
     }
 
     private var currentProgressUpperBound: Double {
-        max(0, goal.progress.currentValue, goal.progress.targetValue)
+        max(0, goal.progress.targetValue)
+    }
+
+    private var currentProgressStep: Double {
+        max(1, goal.progress.incrementValue)
     }
 
     private func saveEdits(_ data: GoalFormData) {

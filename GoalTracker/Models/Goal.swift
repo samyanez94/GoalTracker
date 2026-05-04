@@ -46,9 +46,27 @@ struct Goal: Identifiable, Codable {
     struct Progress: Codable {
         var currentValue: Double
         var targetValue: Double
+        var incrementValue: Double
 
         var isCompleted: Bool {
             currentValue >= targetValue
+        }
+
+        init(
+            currentValue: Double,
+            targetValue: Double,
+            incrementValue: Double = 1,
+        ) {
+            self.currentValue = currentValue
+            self.targetValue = targetValue
+            self.incrementValue = incrementValue
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            currentValue = try container.decode(Double.self, forKey: .currentValue)
+            targetValue = try container.decode(Double.self, forKey: .targetValue)
+            incrementValue = try container.decodeIfPresent(Double.self, forKey: .incrementValue) ?? 1
         }
     }
 }
