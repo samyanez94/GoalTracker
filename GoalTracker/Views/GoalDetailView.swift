@@ -197,13 +197,13 @@ private struct ProgressStepperControl: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            button(
+            RepeatingStepperButton(
                 systemName: "minus",
                 accessibilityLabel: "Decrease progress",
                 action: onDecrement,
             )
             .disabled(!canDecrement)
-            button(
+            RepeatingStepperButton(
                 systemName: "plus",
                 accessibilityLabel: "Increase progress",
                 action: onIncrement,
@@ -213,12 +213,16 @@ private struct ProgressStepperControl: View {
         .padding(.horizontal)
         .padding(.bottom, 8)
     }
+}
 
-    private func button(
-        systemName: String,
-        accessibilityLabel: String,
-        action: @escaping () -> Void,
-    ) -> some View {
+private struct RepeatingStepperButton: View {
+    let systemName: String
+    let accessibilityLabel: String
+    let action: () -> Void
+
+    @State private var repeatTask: Task<Void, Never>?
+
+    var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.title3.weight(.semibold))
@@ -229,6 +233,38 @@ private struct ProgressStepperControl: View {
         .buttonStyle(.glassProminent)
         .buttonBorderShape(.capsule)
         .accessibilityLabel(accessibilityLabel)
+        .onLongPressGesture(
+            minimumDuration: 0.35,
+            perform: {},
+            onPressingChanged: { isPressing in
+                if isPressing {
+                    startRepeating()
+                } else {
+                    stopRepeating()
+                }
+            },
+        )
+        .onDisappear {
+            stopRepeating()
+        }
+    }
+
+    private func startRepeating() {
+        guard repeatTask == nil else {
+            return
+        }
+        repeatTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            while !Task.isCancelled {
+                action()
+                try? await Task.sleep(for: .milliseconds(120))
+            }
+        }
+    }
+
+    private func stopRepeating() {
+        repeatTask?.cancel()
+        repeatTask = nil
     }
 }
 
