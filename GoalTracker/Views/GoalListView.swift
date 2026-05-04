@@ -11,33 +11,51 @@ struct GoalListView: View {
     let goalStore: GoalStore
 
     @State private var isPresentingGoalFormView = false
+    @State private var isPendingSectionExpanded = true
+    @State private var isCompletedSectionExpanded = true
 
     var body: some View {
         NavigationStack {
             List {
-                Section("Pending") {
-                    ForEach(goalStore.pendingGoals) { goal in
-                        GoalRowView(
-                            goal: goal,
-                            onSave: { goal in goalStore.updateGoal(goal)
-                            },
-                            onDelete: { goal in
-                                goalStore.deleteGoal(id: goal.id)
-                            }
-                        )
+                Section {
+                    if isPendingSectionExpanded {
+                        ForEach(goalStore.pendingGoals) { goal in
+                            GoalRowView(
+                                goal: goal,
+                                onSave: { goal in
+                                    goalStore.updateGoal(goal)
+                                },
+                                onDelete: { goal in
+                                    goalStore.deleteGoal(id: goal.id)
+                                }
+                            )
+                        }
                     }
+                } header: {
+                    CollapsibleSectionHeader(
+                        title: "Pending",
+                        isExpanded: $isPendingSectionExpanded,
+                    )
                 }
-                Section("Completed") {
-                    ForEach(goalStore.completedGoals) { goal in
-                        GoalRowView(
-                            goal: goal,
-                            onSave: { goal in goalStore.updateGoal(goal)
-                            },
-                            onDelete: { goal in
-                                goalStore.deleteGoal(id: goal.id)
-                            }
-                        )
+                Section {
+                    if isCompletedSectionExpanded {
+                        ForEach(goalStore.completedGoals) { goal in
+                            GoalRowView(
+                                goal: goal,
+                                onSave: { goal in
+                                    goalStore.updateGoal(goal)
+                                },
+                                onDelete: { goal in
+                                    goalStore.deleteGoal(id: goal.id)
+                                }
+                            )
+                        }
                     }
+                } header: {
+                    CollapsibleSectionHeader(
+                        title: "Completed",
+                        isExpanded: $isCompletedSectionExpanded,
+                    )
                 }
             }
             .navigationTitle("Goals")
@@ -64,6 +82,30 @@ struct GoalListView: View {
                 }
             }
         }
+    }
+}
+
+private struct CollapsibleSectionHeader: View {
+    let title: String
+    
+    @Binding var isExpanded: Bool
+
+    var body: some View {
+        Button {
+            isExpanded.toggle()
+        } label: {
+            HStack(spacing: 6) {
+                Text(title)
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
     }
 }
 

@@ -14,6 +14,10 @@ struct GoalRowView: View {
 
     let onDelete: (Goal) -> Void
 
+    private var rowTint: Color {
+        goal.isCompleted ? .secondary : .blue
+    }
+
     var body: some View {
         NavigationLink {
             GoalDetailView(
@@ -28,6 +32,7 @@ struct GoalRowView: View {
                 )
                 .frame(width: 24, height: 24)
                 Text(goal.name)
+                    .foregroundStyle(goal.isCompleted ? .secondary : .primary)
             }
         }
         .swipeActions {
