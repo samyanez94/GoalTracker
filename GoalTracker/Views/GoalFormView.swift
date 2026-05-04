@@ -71,7 +71,7 @@ struct GoalFormView: View {
         self.onSave = onSave
         _name = State(initialValue: initialData.name)
         _description = State(initialValue: initialData.description)
-        if case .progress(let progress) = initialData.completion {
+        if case let .progress(progress) = initialData.completion {
             _isProgressBased = State(initialValue: true)
             _currentValue = State(initialValue: Self.text(for: progress.currentValue))
             _targetValue = State(initialValue: Self.text(for: progress.targetValue))

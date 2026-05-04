@@ -42,9 +42,9 @@ struct Goal: Identifiable, Codable {
         /// Whether the goal has reached its completion condition.
         var isCompleted: Bool {
             switch self {
-            case .progress(let progress):
+            case let .progress(progress):
                 progress.isCompleted
-            case .outcome(let isCompleted):
+            case let .outcome(isCompleted):
                 isCompleted
             }
         }
@@ -52,9 +52,9 @@ struct Goal: Identifiable, Codable {
         /// The goal's completion amount represented from 0 to 1.
         var fractionCompleted: Double {
             switch self {
-            case .progress(let progress):
+            case let .progress(progress):
                 progress.fractionCompleted
-            case .outcome(let isCompleted):
+            case let .outcome(isCompleted):
                 isCompleted ? 1 : 0
             }
         }
@@ -99,5 +99,4 @@ struct Goal: Identifiable, Codable {
             incrementValue = try container.decodeIfPresent(Double.self, forKey: .incrementValue) ?? 1
         }
     }
-
 }

@@ -64,6 +64,16 @@ struct GoalDetailView: View {
                     } label: {
                         Label("Edit", systemImage: "pencil")
                     }
+                    if let outcomeIsCompleted {
+                        Button {
+                            toggleOutcomeCompletion()
+                        } label: {
+                            Label(
+                                outcomeIsCompleted ? "Mark as Pending" : "Mark as Complete",
+                                systemImage: outcomeIsCompleted ? "circle" : "checkmark.circle",
+                            )
+                        }
+                    }
                     Button(role: .destructive) {
                         onDelete(goal)
                         dismiss()
@@ -104,10 +114,17 @@ struct GoalDetailView: View {
     }
 
     private var progress: Goal.Progress? {
-        guard case .progress(let progress) = goal.completion else {
+        guard case let .progress(progress) = goal.completion else {
             return nil
         }
         return progress
+    }
+
+    private var outcomeIsCompleted: Bool? {
+        guard case let .outcome(isCompleted) = goal.completion else {
+            return nil
+        }
+        return isCompleted
     }
 
     @ViewBuilder
@@ -171,9 +188,18 @@ struct GoalDetailView: View {
         generator.impactOccurred()
     }
 
+    private func toggleOutcomeCompletion() {
+        guard case let .outcome(isCompleted) = goal.completion else {
+            return
+        }
+        goal.completion = .outcome(isCompleted: !isCompleted)
+        playHapticFeedback()
+        onSave(goal)
+    }
+
     private func completeGoal() {
         switch goal.completion {
-        case .progress(var progress):
+        case var .progress(progress):
             progress.currentValue = progress.targetValue
             goal.completion = .progress(progress)
         case .outcome:
