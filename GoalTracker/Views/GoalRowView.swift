@@ -10,13 +10,11 @@ import SwiftUI
 struct GoalRowView: View {
     let goal: Goal
 
+    let onToggleCompletion: (Goal) -> Void
+
     let onSave: (Goal) -> Void
 
     let onDelete: (Goal) -> Void
-
-    private var rowTint: Color {
-        goal.isCompleted ? .secondary : .blue
-    }
 
     var body: some View {
         NavigationLink {
@@ -34,6 +32,17 @@ struct GoalRowView: View {
                 Text(goal.name)
                     .foregroundStyle(goal.isCompleted ? .secondary : .primary)
             }
+        }
+        .swipeActions(edge: .leading) {
+            Button {
+                onToggleCompletion(goal)
+            } label: {
+                Label(
+                    goal.isCompleted ? "Mark Pending" : "Complete",
+                    systemImage: goal.isCompleted ? "arrow.uturn.backward" : "checkmark",
+                )
+            }
+            .tint(goal.isCompleted ? .gray : .blue)
         }
         .swipeActions {
             Button(role: .destructive) {
@@ -81,6 +90,7 @@ private struct CircularGoalProgressView: View {
                     createdAt: Date(),
                     completion: .progress(Goal.Progress(currentValue: 2, targetValue: 5)),
                 ),
+                onToggleCompletion: { _ in },
                 onSave: { _ in },
                 onDelete: { _ in },
             )
@@ -92,6 +102,7 @@ private struct CircularGoalProgressView: View {
                     createdAt: Date(),
                     completion: .outcome(isCompleted: true),
                 ),
+                onToggleCompletion: { _ in },
                 onSave: { _ in },
                 onDelete: { _ in },
             )

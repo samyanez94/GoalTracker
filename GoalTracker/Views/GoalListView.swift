@@ -25,6 +25,9 @@ struct GoalListView: View {
                         ForEach(goalStore.pendingGoals) { goal in
                             GoalRowView(
                                 goal: goal,
+                                onToggleCompletion: { goal in
+                                    toggleCompletion(for: goal)
+                                },
                                 onSave: { goal in
                                     goalStore.updateGoal(goal)
                                 },
@@ -45,6 +48,9 @@ struct GoalListView: View {
                         ForEach(goalStore.completedGoals) { goal in
                             GoalRowView(
                                 goal: goal,
+                                onToggleCompletion: { goal in
+                                    toggleCompletion(for: goal)
+                                },
                                 onSave: { goal in
                                     goalStore.updateGoal(goal)
                                 },
@@ -87,6 +93,24 @@ struct GoalListView: View {
                 }
             }
         }
+    }
+
+    private func toggleCompletion(for goal: Goal) {
+        var updatedGoal = goal
+        switch updatedGoal.completion {
+        case .progress(var progress):
+            progress.currentValue = progress.isCompleted ? 0 : progress.targetValue
+            updatedGoal.completion = .progress(progress)
+        case .outcome(let isCompleted):
+            updatedGoal.completion = .outcome(isCompleted: !isCompleted)
+        }
+        playHapticFeedback()
+        goalStore.updateGoal(updatedGoal)
+    }
+
+    private func playHapticFeedback() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
     }
 }
 
