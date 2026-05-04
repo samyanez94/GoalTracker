@@ -97,12 +97,8 @@ struct GoalListView: View {
 
     private func toggleCompletion(for goal: Goal) {
         var updatedGoal = goal
-        switch updatedGoal.completion {
-        case .progress(var progress):
-            progress.currentValue = progress.isCompleted ? 0 : progress.targetValue
-            updatedGoal.completion = .progress(progress)
-        case .outcome(let isCompleted):
-            updatedGoal.completion = .outcome(isCompleted: !isCompleted)
+        guard updatedGoal.toggleCompletion() else {
+            return
         }
         playHapticFeedback()
         goalStore.updateGoal(updatedGoal)

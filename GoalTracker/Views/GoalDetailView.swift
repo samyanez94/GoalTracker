@@ -105,14 +105,6 @@ struct GoalDetailView: View {
         Text(progress?.currentValue.formatted() ?? "0")
     }
 
-    private var currentProgressUpperBound: Double {
-        max(0, progress?.targetValue ?? 0)
-    }
-
-    private var currentProgressStep: Double {
-        max(1, progress?.incrementValue ?? 1)
-    }
-
     private var progress: Goal.Progress? {
         guard case let .progress(progress) = goal.completion else {
             return nil
@@ -150,37 +142,30 @@ struct GoalDetailView: View {
         guard let progress else {
             return true
         }
-        return progress.currentValue <= 0
+        return !progress.canDecrement
     }
 
     private var isProgressAtUpperBound: Bool {
         guard let progress else {
             return true
         }
-        return progress.currentValue >= progress.targetValue
+        return !progress.canIncrement
     }
 
     private func decrementProgress() {
-        updateProgress { progress in
-            progress.currentValue = max(0, progress.currentValue - currentProgressStep)
+        guard goal.decrementProgress() else {
+            return
         }
+        onSave(goal)
         playHapticFeedback()
     }
 
     private func incrementProgress() {
-        updateProgress { progress in
-            progress.currentValue = min(currentProgressUpperBound, progress.currentValue + currentProgressStep)
-        }
-        playHapticFeedback()
-    }
-
-    private func updateProgress(_ update: (inout Goal.Progress) -> Void) {
-        guard var progress else {
+        guard goal.incrementProgress() else {
             return
         }
-        update(&progress)
-        goal.completion = .progress(progress)
         onSave(goal)
+        playHapticFeedback()
     }
 
     private func playHapticFeedback() {
@@ -189,22 +174,15 @@ struct GoalDetailView: View {
     }
 
     private func toggleOutcomeCompletion() {
-        guard case let .outcome(isCompleted) = goal.completion else {
+        guard goal.toggleCompletion() else {
             return
         }
-        goal.completion = .outcome(isCompleted: !isCompleted)
         playHapticFeedback()
         onSave(goal)
     }
 
     private func completeGoal() {
-        switch goal.completion {
-        case var .progress(progress):
-            progress.currentValue = progress.targetValue
-            goal.completion = .progress(progress)
-        case .outcome:
-            goal.completion = .outcome(isCompleted: true)
-        }
+        goal.complete()
     }
 
     private func saveEdits(_ data: GoalFormData) {
