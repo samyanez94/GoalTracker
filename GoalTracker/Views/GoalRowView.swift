@@ -28,7 +28,7 @@ struct GoalRowView: View {
         } label: {
             HStack(spacing: 12) {
                 CircularGoalProgressView(
-                    progress: goal.progress.fractionCompleted
+                    progress: goal.progress.fractionCompleted,
                 )
                 .frame(width: 24, height: 24)
                 Text(goal.name)
@@ -62,8 +62,8 @@ private struct CircularGoalProgressView: View {
                     .blue,
                     style: StrokeStyle(
                         lineWidth: 5,
-                        lineCap: .round
-                    )
+                        lineCap: .round,
+                    ),
                 )
                 .rotationEffect(.degrees(-90))
         }

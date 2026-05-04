@@ -11,14 +11,16 @@ struct GoalListView: View {
     let goalStore: GoalStore
 
     @State private var isPresentingGoalFormView = false
+
     @State private var isPendingSectionExpanded = true
+
     @State private var isCompletedSectionExpanded = true
 
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    if isPendingSectionExpanded {
+                if !goalStore.pendingGoals.isEmpty {
+                    Section(isExpanded: $isPendingSectionExpanded) {
                         ForEach(goalStore.pendingGoals) { goal in
                             GoalRowView(
                                 goal: goal,
@@ -27,18 +29,18 @@ struct GoalListView: View {
                                 },
                                 onDelete: { goal in
                                     goalStore.deleteGoal(id: goal.id)
-                                }
+                                },
                             )
                         }
+                    } header: {
+                        CollapsibleSectionHeader(
+                            title: "Pending",
+                            isExpanded: $isPendingSectionExpanded,
+                        )
                     }
-                } header: {
-                    CollapsibleSectionHeader(
-                        title: "Pending",
-                        isExpanded: $isPendingSectionExpanded,
-                    )
                 }
-                Section {
-                    if isCompletedSectionExpanded {
+                if !goalStore.completedGoals.isEmpty {
+                    Section(isExpanded: $isCompletedSectionExpanded) {
                         ForEach(goalStore.completedGoals) { goal in
                             GoalRowView(
                                 goal: goal,
@@ -47,15 +49,15 @@ struct GoalListView: View {
                                 },
                                 onDelete: { goal in
                                     goalStore.deleteGoal(id: goal.id)
-                                }
+                                },
                             )
                         }
+                    } header: {
+                        CollapsibleSectionHeader(
+                            title: "Completed",
+                            isExpanded: $isCompletedSectionExpanded,
+                        )
                     }
-                } header: {
-                    CollapsibleSectionHeader(
-                        title: "Completed",
-                        isExpanded: $isCompletedSectionExpanded,
-                    )
                 }
             }
             .navigationTitle("Goals")
@@ -73,10 +75,13 @@ struct GoalListView: View {
                 NavigationStack {
                     GoalFormView(title: "New Goal") { data in
                         goalStore.addGoal(
-                            name: data.name,
-                            description: data.description,
-                            kind: data.kind,
-                            progress: data.progress,
+                            Goal(
+                                name: data.name,
+                                description: data.description,
+                                createdAt: Date(),
+                                kind: data.kind,
+                                progress: data.progress,
+                            ),
                         )
                     }
                 }
@@ -87,12 +92,14 @@ struct GoalListView: View {
 
 private struct CollapsibleSectionHeader: View {
     let title: String
-    
+
     @Binding var isExpanded: Bool
 
     var body: some View {
         Button {
-            isExpanded.toggle()
+            withAnimation {
+                isExpanded.toggle()
+            }
         } label: {
             HStack(spacing: 6) {
                 Text(title)
@@ -115,15 +122,35 @@ private struct AddGoalButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "plus")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(.white)
+                .font(.system(size: 22, weight: .semibold))
                 .frame(width: 56, height: 56)
-                .background(.tint, in: Circle())
         }
+        .tint(.blue)
+        .buttonStyle(.glassProminent)
+        .buttonBorderShape(.circle)
+        .shadow(
+            color: .black.opacity(0.16),
+            radius: 12, x: 0, y: 6,
+        )
         .accessibilityLabel("Add Goal")
     }
 }
 
 #Preview {
-    GoalListView(goalStore: GoalStore(goals: []))
+    GoalListView(
+        goalStore: GoalStore(
+            goals: [
+                Goal(
+                    name: "Run 100 miles",
+                    description: nil,
+                    createdAt: Date(),
+                    kind: .quantified,
+                    progress: Goal.Progress(
+                        currentValue: 20,
+                        targetValue: 100,
+                    ),
+                ),
+            ],
+        ),
+    )
 }

@@ -21,10 +21,10 @@ struct GoalFormData {
     )
 
     init(goal: Goal) {
-        self.name = goal.name
-        self.description = goal.description ?? ""
-        self.kind = goal.kind
-        self.progress = goal.progress
+        name = goal.name
+        description = goal.description ?? ""
+        kind = goal.kind
+        progress = goal.progress
     }
 
     init(
@@ -72,7 +72,7 @@ struct GoalFormView: View {
         onSave: @escaping (GoalFormData) -> Void,
     ) {
         self.title = title
-        self.initialOutcomeCurrentValue = initialData.progress.isCompleted ? 1 : 0
+        initialOutcomeCurrentValue = initialData.progress.isCompleted ? 1 : 0
         self.onSave = onSave
         _name = State(initialValue: initialData.name)
         _description = State(initialValue: initialData.description)
@@ -104,7 +104,8 @@ struct GoalFormView: View {
         }
         guard parsedCurrentValue != nil,
               let parsedTargetValue,
-              let parsedIncrementValue else {
+              let parsedIncrementValue
+        else {
             return true
         }
 
@@ -122,18 +123,28 @@ struct GoalFormView: View {
                 )
                 .lineLimit(1 ... 6)
             }
-            Section("Progress") {
+            Section {
                 Toggle("Progress-based goal", isOn: $isQuantified)
-
+                if isQuantified {
+                    progressTextFieldRow(
+                        label: "Current value",
+                        value: $currentValue,
+                    )
+                    progressTextFieldRow(
+                        label: "Target value",
+                        value: $targetValue,
+                    )
+                    progressTextFieldRow(
+                        label: "Increment",
+                        value: $incrementValue,
+                    )
+                }
+            } header: {
+                Text("Progress")
+            } footer: {
                 Text("A goal you complete over time by making measurable progress.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-
-                if isQuantified {
-                    progressTextFieldRow(label: "Current value", value: $currentValue)
-                    progressTextFieldRow(label: "Target value", value: $targetValue)
-                    progressTextFieldRow(label: "Increment", value: $incrementValue)
-                }
             }
         }
         .navigationTitle(title)
@@ -179,7 +190,8 @@ struct GoalFormView: View {
         if isQuantified {
             guard let parsedCurrentValue,
                   let parsedTargetValue,
-                  let parsedIncrementValue else {
+                  let parsedIncrementValue
+            else {
                 return
             }
             kind = .quantified
@@ -202,7 +214,7 @@ struct GoalFormView: View {
                 description: description,
                 kind: kind,
                 progress: progress,
-            )
+            ),
         )
         dismiss()
     }

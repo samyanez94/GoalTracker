@@ -21,7 +21,7 @@ struct GoalDetailView: View {
     init(
         goal: Goal,
         onSave: @escaping (Goal) -> Void,
-        onDelete: @escaping (Goal) -> Void
+        onDelete: @escaping (Goal) -> Void,
     ) {
         _goal = State(initialValue: goal)
         self.onSave = onSave
@@ -34,7 +34,8 @@ struct GoalDetailView: View {
                 Text(goal.name)
             }
             if let description = goal.description,
-               !description.isEmpty {
+               !description.isEmpty
+            {
                 Section("Description") {
                     Text(description)
                 }
@@ -122,7 +123,7 @@ struct GoalDetailView: View {
         } set: { newValue in
             goal.progress.currentValue = min(
                 currentProgressUpperBound,
-                max(0, newValue)
+                max(0, newValue),
             )
             onSave(goal)
         }
