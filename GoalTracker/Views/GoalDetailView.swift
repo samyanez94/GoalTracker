@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct GoalDetailView: View {
     @Environment(\.dismiss) private var dismiss
@@ -86,48 +87,12 @@ struct GoalDetailView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            Button {
-                completeGoal()
-                onSave(goal)
-                dismiss()
-            } label: {
-                Text(goal.isCompleted ? "Completed" : "Complete")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(goal.isCompleted)
-            .padding(.horizontal)
-            .padding(.bottom, 8)
+            callToActionButton
         }
     }
 
     private func currentProgressRow() -> some View {
-        HStack {
-            Text(progress?.currentValue.formatted() ?? "0")
-            Spacer()
-            Stepper(
-                "Update current value",
-                value: currentProgressBinding,
-                in: 0 ... currentProgressUpperBound,
-                step: currentProgressStep,
-            )
-            .labelsHidden()
-        }
-    }
-
-    private var currentProgressBinding: Binding<Double> {
-        Binding {
-            progress?.currentValue ?? 0
-        } set: { newValue in
-            guard var progress else {
-                return
-            }
-            progress.currentValue = min(currentProgressUpperBound, max(0, newValue))
-            goal.completion = .progress(progress)
-            onSave(goal)
-        }
+        Text(progress?.currentValue.formatted() ?? "0")
     }
 
     private var currentProgressUpperBound: Double {
@@ -143,6 +108,67 @@ struct GoalDetailView: View {
             return nil
         }
         return progress
+    }
+
+    @ViewBuilder
+    private var callToActionButton: some View {
+        if progress != nil {
+            ProgressStepperControl(
+                canDecrement: !isProgressAtLowerBound,
+                canIncrement: !isProgressAtUpperBound,
+                onDecrement: decrementProgress,
+                onIncrement: incrementProgress,
+            )
+        } else {
+            CompleteGoalButton(isCompleted: goal.isCompleted) {
+                playHapticFeedback()
+                completeGoal()
+                onSave(goal)
+                dismiss()
+            }
+        }
+    }
+
+    private var isProgressAtLowerBound: Bool {
+        guard let progress else {
+            return true
+        }
+        return progress.currentValue <= 0
+    }
+
+    private var isProgressAtUpperBound: Bool {
+        guard let progress else {
+            return true
+        }
+        return progress.currentValue >= progress.targetValue
+    }
+
+    private func decrementProgress() {
+        updateProgress { progress in
+            progress.currentValue = max(0, progress.currentValue - currentProgressStep)
+        }
+        playHapticFeedback()
+    }
+
+    private func incrementProgress() {
+        updateProgress { progress in
+            progress.currentValue = min(currentProgressUpperBound, progress.currentValue + currentProgressStep)
+        }
+        playHapticFeedback()
+    }
+
+    private func updateProgress(_ update: (inout Goal.Progress) -> Void) {
+        guard var progress else {
+            return
+        }
+        update(&progress)
+        goal.completion = .progress(progress)
+        onSave(goal)
+    }
+
+    private func playHapticFeedback() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
     }
 
     private func completeGoal() {
@@ -161,6 +187,71 @@ struct GoalDetailView: View {
         goal.completion = data.completion
         onSave(goal)
     }
+}
+
+private struct ProgressStepperControl: View {
+    let canDecrement: Bool
+    let canIncrement: Bool
+    let onDecrement: () -> Void
+    let onIncrement: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            button(
+                systemName: "minus",
+                accessibilityLabel: "Decrease progress",
+                action: onDecrement,
+            )
+            .disabled(!canDecrement)
+            button(
+                systemName: "plus",
+                accessibilityLabel: "Increase progress",
+                action: onIncrement,
+            )
+            .disabled(!canIncrement)
+        }
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+    }
+
+    private func button(
+        systemName: String,
+        accessibilityLabel: String,
+        action: @escaping () -> Void,
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.title3.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .frame(height: GoalDetailBottomAction.height)
+        }
+        .tint(.blue)
+        .buttonStyle(.glassProminent)
+        .buttonBorderShape(.capsule)
+        .accessibilityLabel(accessibilityLabel)
+    }
+}
+
+private struct CompleteGoalButton: View {
+    let isCompleted: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(isCompleted ? "Completed" : "Complete")
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .frame(height: GoalDetailBottomAction.height)
+        }
+        .buttonStyle(.glassProminent)
+        .disabled(isCompleted)
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+    }
+}
+
+private enum GoalDetailBottomAction {
+    static let height: CGFloat = 44
 }
 
 #Preview("Incomplete Goal") {
