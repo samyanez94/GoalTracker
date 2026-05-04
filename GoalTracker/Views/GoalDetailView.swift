@@ -44,15 +44,11 @@ struct GoalDetailView: View {
                     .foregroundStyle(goal.isCompleted ? .blue : .secondary)
             }
             if goal.kind == .quantified {
-                Section("Progress") {
-                    progressTextRow(
-                        label: "Current value",
-                        value: goal.progress.currentValue,
-                    )
-                    progressTextRow(
-                        label: "Target value",
-                        value: goal.progress.targetValue,
-                    )
+                Section("Current value") {
+                    currentProgressRow()
+                }
+                Section("Target value") {
+                    Text(goal.progress.targetValue.formatted())
                 }
             }
         }
@@ -106,14 +102,34 @@ struct GoalDetailView: View {
         }
     }
 
-    private func progressTextRow(label: String, value: Double) -> some View {
+    private func currentProgressRow() -> some View {
         HStack {
-            Text(label)
-                .foregroundStyle(.secondary)
+            Text(goal.progress.currentValue.formatted())
             Spacer()
-            Text(value.formatted())
-                .multilineTextAlignment(.trailing)
+            Stepper(
+                "Update current value",
+                value: currentProgressBinding,
+                in: 0 ... currentProgressUpperBound,
+                step: 1,
+            )
+            .labelsHidden()
         }
+    }
+
+    private var currentProgressBinding: Binding<Double> {
+        Binding {
+            goal.progress.currentValue
+        } set: { newValue in
+            goal.progress.currentValue = min(
+                currentProgressUpperBound,
+                max(0, newValue)
+            )
+            onSave(goal)
+        }
+    }
+
+    private var currentProgressUpperBound: Double {
+        max(0, goal.progress.currentValue, goal.progress.targetValue)
     }
 
     private func saveEdits(_ data: GoalFormData) {
