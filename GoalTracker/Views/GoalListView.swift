@@ -10,19 +10,33 @@ import SwiftUI
 struct GoalListView: View {
     let goalStore: GoalStore
 
-    @State private var isPresentingCreateGoalView = false
+    @State private var isPresentingGoalFormView = false
 
     var body: some View {
         NavigationStack {
             List {
                 Section("Pending") {
                     ForEach(goalStore.pendingGoals) { goal in
-                        goalRow(for: goal)
+                        GoalRowView(
+                            goal: goal,
+                            onSave: { goal in goalStore.updateGoal(goal)
+                            },
+                            onDelete: { goal in
+                                goalStore.deleteGoal(id: goal.id)
+                            }
+                        )
                     }
                 }
                 Section("Completed") {
                     ForEach(goalStore.completedGoals) { goal in
-                        goalRow(for: goal)
+                        GoalRowView(
+                            goal: goal,
+                            onSave: { goal in goalStore.updateGoal(goal)
+                            },
+                            onDelete: { goal in
+                                goalStore.deleteGoal(id: goal.id)
+                            }
+                        )
                     }
                 }
             }
@@ -31,40 +45,49 @@ struct GoalListView: View {
                 HStack {
                     Spacer()
                     AddGoalButton {
-                        isPresentingCreateGoalView = true
+                        isPresentingGoalFormView = true
                     }
                     .padding(.trailing, 24)
                     .padding(.bottom, 8)
                 }
             }
-            .navigationDestination(isPresented: $isPresentingCreateGoalView) {
-                CreateGoalView { name, description, kind, progress in
-                    goalStore.addGoal(
-                        name: name,
-                        description: description,
-                        kind: kind,
-                        progress: progress,
-                    )
+            .sheet(isPresented: $isPresentingGoalFormView) {
+                NavigationStack {
+                    GoalFormView(title: "New Goal") { data in
+                        goalStore.addGoal(
+                            name: data.name,
+                            description: data.description,
+                            kind: data.kind,
+                            progress: data.progress,
+                        )
+                    }
                 }
             }
         }
     }
+}
 
-    private func goalRow(for goal: Goal) -> some View {
+private struct GoalRowView: View {
+    
+    let goal: Goal
+    
+    let onSave: (Goal) -> Void
+    
+    let onDelete: (Goal) -> Void
+    
+    var body: some View {
         NavigationLink {
             GoalDetailView(
                 goal: goal,
-                onSave: goalStore.updateGoal,
-                onDelete: {
-                    goalStore.deleteGoal(id: goal.id)
-                },
+                onSave: onSave,
+                onDelete: onDelete,
             )
         } label: {
             Text(goal.name)
         }
         .swipeActions {
             Button(role: .destructive) {
-                goalStore.deleteGoal(id: goal.id)
+                onDelete(goal)
             } label: {
                 Label("Delete", systemImage: "trash")
             }

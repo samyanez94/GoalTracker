@@ -34,9 +34,12 @@ struct Goal: Identifiable, Codable {
         self.kind = kind
         self.progress = progress
     }
-    
+
+    /// Describes how a goal is completed and how its progress should be interpreted.
     enum Kind: String, Codable {
+        /// A goal completed by increasing a measurable value toward a target.
         case quantified
+        /// A goal completed by achieving an outcome, represented as 0 out of 1 until it is done.
         case outcome
     }
 
