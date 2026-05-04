@@ -79,8 +79,7 @@ struct GoalListView: View {
                                 name: data.name,
                                 description: data.description,
                                 createdAt: Date(),
-                                kind: data.kind,
-                                progress: data.progress,
+                                completion: data.completion,
                             ),
                         )
                     }
@@ -144,10 +143,11 @@ private struct AddGoalButton: View {
                     name: "Run 100 miles",
                     description: nil,
                     createdAt: Date(),
-                    kind: .quantified,
-                    progress: Goal.Progress(
-                        currentValue: 20,
-                        targetValue: 100,
+                    completion: .progress(
+                        Goal.Progress(
+                            currentValue: 20,
+                            targetValue: 100,
+                        ),
                     ),
                 ),
             ],

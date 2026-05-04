@@ -44,12 +44,12 @@ struct GoalDetailView: View {
                 Text(goal.isCompleted ? "Completed" : "Pending")
                     .foregroundStyle(goal.isCompleted ? .blue : .secondary)
             }
-            if goal.kind == .quantified {
+            if let progress {
                 Section("Current value") {
                     currentProgressRow()
                 }
                 Section("Target value") {
-                    Text(goal.progress.targetValue.formatted())
+                    Text(progress.targetValue.formatted())
                 }
             }
         }
@@ -87,7 +87,7 @@ struct GoalDetailView: View {
         }
         .safeAreaInset(edge: .bottom) {
             Button {
-                goal.progress.currentValue = goal.progress.targetValue
+                completeGoal()
                 onSave(goal)
                 dismiss()
             } label: {
@@ -105,7 +105,7 @@ struct GoalDetailView: View {
 
     private func currentProgressRow() -> some View {
         HStack {
-            Text(goal.progress.currentValue.formatted())
+            Text(progress?.currentValue.formatted() ?? "0")
             Spacer()
             Stepper(
                 "Update current value",
@@ -119,29 +119,46 @@ struct GoalDetailView: View {
 
     private var currentProgressBinding: Binding<Double> {
         Binding {
-            goal.progress.currentValue
+            progress?.currentValue ?? 0
         } set: { newValue in
-            goal.progress.currentValue = min(
-                currentProgressUpperBound,
-                max(0, newValue),
-            )
+            guard var progress else {
+                return
+            }
+            progress.currentValue = min(currentProgressUpperBound, max(0, newValue))
+            goal.completion = .progress(progress)
             onSave(goal)
         }
     }
 
     private var currentProgressUpperBound: Double {
-        max(0, goal.progress.targetValue)
+        max(0, progress?.targetValue ?? 0)
     }
 
     private var currentProgressStep: Double {
-        max(1, goal.progress.incrementValue)
+        max(1, progress?.incrementValue ?? 1)
+    }
+
+    private var progress: Goal.Progress? {
+        guard case .progress(let progress) = goal.completion else {
+            return nil
+        }
+        return progress
+    }
+
+    private func completeGoal() {
+        switch goal.completion {
+        case .progress(var progress):
+            progress.currentValue = progress.targetValue
+            goal.completion = .progress(progress)
+        case .outcome:
+            goal.completion = .outcome(isCompleted: true)
+        }
     }
 
     private func saveEdits(_ data: GoalFormData) {
         goal.name = data.name
         goal.description = data.normalizedDescription
-        goal.kind = data.kind
-        goal.progress = data.progress
+        goal.completion = data.completion
         onSave(goal)
     }
 }
@@ -153,8 +170,7 @@ struct GoalDetailView: View {
                 name: "Run a 5K",
                 description: "Build up endurance with three runs per week.",
                 createdAt: Date(),
-                kind: .quantified,
-                progress: Goal.Progress(currentValue: 1, targetValue: 5),
+                completion: .progress(Goal.Progress(currentValue: 1, targetValue: 5)),
             ),
             onSave: { _ in },
             onDelete: { _ in },
@@ -169,8 +185,7 @@ struct GoalDetailView: View {
                 name: "Read every night",
                 description: "Read for at least 20 minutes before bed.",
                 createdAt: Date(),
-                kind: .quantified,
-                progress: Goal.Progress(currentValue: 20, targetValue: 20),
+                completion: .progress(Goal.Progress(currentValue: 20, targetValue: 20)),
             ),
             onSave: { _ in },
             onDelete: { _ in },
@@ -185,8 +200,7 @@ struct GoalDetailView: View {
                 name: "Travel to Japan",
                 description: "Plan and take the trip.",
                 createdAt: Date(),
-                kind: .outcome,
-                progress: Goal.Progress(currentValue: 0, targetValue: 1),
+                completion: .outcome(isCompleted: false),
             ),
             onSave: { _ in },
             onDelete: { _ in },

@@ -28,7 +28,7 @@ struct GoalRowView: View {
         } label: {
             HStack(spacing: 12) {
                 CircularGoalProgressView(
-                    progress: goal.progress.fractionCompleted,
+                    progress: goal.completion.fractionCompleted,
                 )
                 .frame(width: 24, height: 24)
                 Text(goal.name)
@@ -71,15 +71,6 @@ private struct CircularGoalProgressView: View {
     }
 }
 
-private extension Goal.Progress {
-    var fractionCompleted: Double {
-        guard targetValue > 0 else {
-            return isCompleted ? 1 : 0
-        }
-        return currentValue / targetValue
-    }
-}
-
 #Preview {
     NavigationStack {
         List {
@@ -88,8 +79,7 @@ private extension Goal.Progress {
                     name: "Run a 5K",
                     description: "Build up endurance with three runs per week.",
                     createdAt: Date(),
-                    kind: .quantified,
-                    progress: Goal.Progress(currentValue: 2, targetValue: 5),
+                    completion: .progress(Goal.Progress(currentValue: 2, targetValue: 5)),
                 ),
                 onSave: { _ in },
                 onDelete: { _ in },
@@ -100,8 +90,7 @@ private extension Goal.Progress {
                     name: "Travel to Japan",
                     description: "Plan and take the trip.",
                     createdAt: Date(),
-                    kind: .outcome,
-                    progress: Goal.Progress(currentValue: 1, targetValue: 1),
+                    completion: .outcome(isCompleted: true),
                 ),
                 onSave: { _ in },
                 onDelete: { _ in },

@@ -10,33 +10,28 @@ import SwiftUI
 struct GoalFormData {
     var name: String
     var description: String
-    var kind: Goal.Kind
-    var progress: Goal.Progress
+    var completion: Goal.Completion
 
     static let empty = GoalFormData(
         name: "",
         description: "",
-        kind: .outcome,
-        progress: Goal.Progress(currentValue: 0, targetValue: 1),
+        completion: .outcome(isCompleted: false),
     )
 
     init(goal: Goal) {
         name = goal.name
         description = goal.description ?? ""
-        kind = goal.kind
-        progress = goal.progress
+        completion = goal.completion
     }
 
     init(
         name: String,
         description: String,
-        kind: Goal.Kind,
-        progress: Goal.Progress,
+        completion: Goal.Completion,
     ) {
         self.name = name
         self.description = description
-        self.kind = kind
-        self.progress = progress
+        self.completion = completion
     }
 
     var normalizedDescription: String? {
@@ -52,7 +47,7 @@ struct GoalFormView: View {
 
     @State private var description: String
 
-    @State private var isQuantified: Bool
+    @State private var isProgressBased: Bool
 
     @State private var currentValue: String
 
@@ -62,7 +57,7 @@ struct GoalFormView: View {
 
     private let title: String
 
-    private let initialOutcomeCurrentValue: Double
+    private let initialOutcomeIsCompleted: Bool
 
     private let onSave: (GoalFormData) -> Void
 
@@ -72,14 +67,21 @@ struct GoalFormView: View {
         onSave: @escaping (GoalFormData) -> Void,
     ) {
         self.title = title
-        initialOutcomeCurrentValue = initialData.progress.isCompleted ? 1 : 0
+        initialOutcomeIsCompleted = initialData.completion.isCompleted
         self.onSave = onSave
         _name = State(initialValue: initialData.name)
         _description = State(initialValue: initialData.description)
-        _isQuantified = State(initialValue: initialData.kind == .quantified)
-        _currentValue = State(initialValue: Self.text(for: initialData.progress.currentValue))
-        _targetValue = State(initialValue: Self.text(for: initialData.progress.targetValue))
-        _incrementValue = State(initialValue: Self.text(for: initialData.progress.incrementValue))
+        if case .progress(let progress) = initialData.completion {
+            _isProgressBased = State(initialValue: true)
+            _currentValue = State(initialValue: Self.text(for: progress.currentValue))
+            _targetValue = State(initialValue: Self.text(for: progress.targetValue))
+            _incrementValue = State(initialValue: Self.text(for: progress.incrementValue))
+        } else {
+            _isProgressBased = State(initialValue: false)
+            _currentValue = State(initialValue: "0")
+            _targetValue = State(initialValue: "1")
+            _incrementValue = State(initialValue: "1")
+        }
     }
 
     private var trimmedName: String {
@@ -99,7 +101,7 @@ struct GoalFormView: View {
     }
 
     private var isSaveDisabled: Bool {
-        if !isQuantified {
+        if !isProgressBased {
             return trimmedName.isEmpty
         }
         guard parsedCurrentValue != nil,
@@ -124,8 +126,8 @@ struct GoalFormView: View {
                 .lineLimit(1 ... 6)
             }
             Section {
-                Toggle("Progress-based goal", isOn: $isQuantified)
-                if isQuantified {
+                Toggle("Progress-based goal", isOn: $isProgressBased)
+                if isProgressBased {
                     progressTextFieldRow(
                         label: "Current value",
                         value: $currentValue,
@@ -184,36 +186,30 @@ struct GoalFormView: View {
     }
 
     private func save() {
-        let progress: Goal.Progress
-        let kind: Goal.Kind
+        let completion: Goal.Completion
 
-        if isQuantified {
+        if isProgressBased {
             guard let parsedCurrentValue,
                   let parsedTargetValue,
                   let parsedIncrementValue
             else {
                 return
             }
-            kind = .quantified
-            progress = Goal.Progress(
-                currentValue: min(max(0, parsedCurrentValue), parsedTargetValue),
-                targetValue: parsedTargetValue,
-                incrementValue: parsedIncrementValue,
+            completion = .progress(
+                Goal.Progress(
+                    currentValue: min(max(0, parsedCurrentValue), parsedTargetValue),
+                    targetValue: parsedTargetValue,
+                    incrementValue: parsedIncrementValue,
+                ),
             )
         } else {
-            kind = .outcome
-            progress = Goal.Progress(
-                currentValue: initialOutcomeCurrentValue,
-                targetValue: 1,
-                incrementValue: 1,
-            )
+            completion = .outcome(isCompleted: initialOutcomeIsCompleted)
         }
         onSave(
             GoalFormData(
                 name: trimmedName,
                 description: description,
-                kind: kind,
-                progress: progress,
+                completion: completion,
             ),
         )
         dismiss()
@@ -241,8 +237,9 @@ struct GoalFormView: View {
             initialData: GoalFormData(
                 name: "Workout 10 times",
                 description: "Move a little every day.",
-                kind: .quantified,
-                progress: Goal.Progress(currentValue: 3, targetValue: 10, incrementValue: 2),
+                completion: .progress(
+                    Goal.Progress(currentValue: 3, targetValue: 10, incrementValue: 2),
+                ),
             ),
         ) { _ in }
     }
