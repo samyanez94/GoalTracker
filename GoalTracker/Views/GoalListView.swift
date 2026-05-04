@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct GoalListView: View {
     let goalStore: GoalStore
@@ -119,7 +120,10 @@ private struct AddGoalButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            playHapticFeedback()
+            action()
+        } label: {
             Image(systemName: "plus")
                 .font(.system(size: 22, weight: .semibold))
                 .frame(width: 56, height: 56)
@@ -132,6 +136,11 @@ private struct AddGoalButton: View {
             radius: 12, x: 0, y: 6,
         )
         .accessibilityLabel("Add Goal")
+    }
+
+    private func playHapticFeedback() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
     }
 }
 
