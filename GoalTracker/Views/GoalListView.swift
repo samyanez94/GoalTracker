@@ -67,34 +67,6 @@ struct GoalListView: View {
     }
 }
 
-private struct GoalRowView: View {
-    
-    let goal: Goal
-    
-    let onSave: (Goal) -> Void
-    
-    let onDelete: (Goal) -> Void
-    
-    var body: some View {
-        NavigationLink {
-            GoalDetailView(
-                goal: goal,
-                onSave: onSave,
-                onDelete: onDelete,
-            )
-        } label: {
-            Text(goal.name)
-        }
-        .swipeActions {
-            Button(role: .destructive) {
-                onDelete(goal)
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-        }
-    }
-}
-
 private struct AddGoalButton: View {
     let action: () -> Void
 
