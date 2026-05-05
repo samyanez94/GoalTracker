@@ -20,52 +20,16 @@ struct GoalListView: View {
     var body: some View {
         NavigationStack {
             List {
-                if !goalStore.pendingGoals.isEmpty {
-                    Section(isExpanded: $isPendingSectionExpanded) {
-                        ForEach(goalStore.pendingGoals) { goal in
-                            GoalRowView(
-                                goal: goal,
-                                onToggleCompletion: { goal in
-                                    toggleCompletion(for: goal)
-                                },
-                                onSave: { goal in
-                                    goalStore.updateGoal(goal)
-                                },
-                                onDelete: { goal in
-                                    goalStore.deleteGoal(id: goal.id)
-                                },
-                            )
-                        }
-                    } header: {
-                        CollapsibleSectionHeader(
-                            title: "Pending",
-                            isExpanded: $isPendingSectionExpanded,
-                        )
-                    }
-                }
-                if !goalStore.completedGoals.isEmpty {
-                    Section(isExpanded: $isCompletedSectionExpanded) {
-                        ForEach(goalStore.completedGoals) { goal in
-                            GoalRowView(
-                                goal: goal,
-                                onToggleCompletion: { goal in
-                                    toggleCompletion(for: goal)
-                                },
-                                onSave: { goal in
-                                    goalStore.updateGoal(goal)
-                                },
-                                onDelete: { goal in
-                                    goalStore.deleteGoal(id: goal.id)
-                                },
-                            )
-                        }
-                    } header: {
-                        CollapsibleSectionHeader(
-                            title: "Completed",
-                            isExpanded: $isCompletedSectionExpanded,
-                        )
-                    }
-                }
+                goalSection(
+                    title: "Pending",
+                    goals: goalStore.pendingGoals,
+                    isExpanded: $isPendingSectionExpanded,
+                )
+                goalSection(
+                    title: "Completed",
+                    goals: goalStore.completedGoals,
+                    isExpanded: $isCompletedSectionExpanded,
+                )
             }
             .navigationTitle("Goals")
             .safeAreaInset(edge: .bottom) {
@@ -91,6 +55,37 @@ struct GoalListView: View {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func goalSection(
+        title: String,
+        goals: [Goal],
+        isExpanded: Binding<Bool>,
+    ) -> some View {
+        if !goals.isEmpty {
+            Section(isExpanded: isExpanded) {
+                ForEach(goals) { goal in
+                    GoalRowView(
+                        goal: goal,
+                        onToggleCompletion: { goal in
+                            toggleCompletion(for: goal)
+                        },
+                        onSave: { goal in
+                            goalStore.updateGoal(goal)
+                        },
+                        onDelete: { goal in
+                            goalStore.deleteGoal(id: goal.id)
+                        },
+                    )
+                }
+            } header: {
+                CollapsibleSectionHeader(
+                    title: title,
+                    isExpanded: isExpanded,
+                )
             }
         }
     }
