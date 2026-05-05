@@ -78,8 +78,8 @@ struct GoalFormView: View {
             _incrementValue = State(initialValue: Self.text(for: progress.incrementValue))
         } else {
             _isProgressBased = State(initialValue: false)
-            _currentValue = State(initialValue: "0")
-            _targetValue = State(initialValue: "1")
+            _currentValue = State(initialValue: "")
+            _targetValue = State(initialValue: "")
             _incrementValue = State(initialValue: "1")
         }
     }
@@ -104,14 +104,17 @@ struct GoalFormView: View {
         if !isProgressBased {
             return trimmedName.isEmpty
         }
-        guard parsedCurrentValue != nil,
+        guard let parsedCurrentValue,
               let parsedTargetValue,
               let parsedIncrementValue
         else {
             return true
         }
-
-        return trimmedName.isEmpty || parsedTargetValue <= 0 || parsedIncrementValue <= 0
+        return trimmedName.isEmpty
+            || parsedCurrentValue < 0
+            || parsedCurrentValue >= parsedTargetValue
+            || parsedTargetValue <= 0
+            || parsedIncrementValue <= 0
     }
 
     var body: some View {
@@ -186,6 +189,9 @@ struct GoalFormView: View {
     }
 
     private func save() {
+        guard !isSaveDisabled else {
+            return
+        }
         let completion: Goal.Completion
 
         if isProgressBased {
@@ -197,7 +203,7 @@ struct GoalFormView: View {
             }
             completion = .progress(
                 Goal.Progress(
-                    currentValue: min(max(0, parsedCurrentValue), parsedTargetValue),
+                    currentValue: parsedCurrentValue,
                     targetValue: parsedTargetValue,
                     incrementValue: parsedIncrementValue,
                 ),
