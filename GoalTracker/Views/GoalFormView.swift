@@ -100,21 +100,48 @@ struct GoalFormView: View {
         Double(incrementValue)
     }
 
-    private var isSaveDisabled: Bool {
-        if !isProgressBased {
-            return trimmedName.isEmpty
-        }
+    private var parsedProgressValues: (
+        currentValue: Double,
+        targetValue: Double,
+        incrementValue: Double
+    )? {
         guard let parsedCurrentValue,
               let parsedTargetValue,
               let parsedIncrementValue
         else {
+            return nil
+        }
+        return (parsedCurrentValue, parsedTargetValue, parsedIncrementValue)
+    }
+
+    private var hasValidProgressValues: Bool {
+        guard let parsedProgressValues else {
+            return false
+        }
+        return Goal.Progress.isValid(
+            currentValue: parsedProgressValues.currentValue,
+            targetValue: parsedProgressValues.targetValue,
+            incrementValue: parsedProgressValues.incrementValue,
+        )
+    }
+
+    private var progressStartsIncomplete: Bool {
+        guard let parsedProgressValues else {
+            return false
+        }
+        return parsedProgressValues.currentValue < parsedProgressValues.targetValue
+    }
+
+    private var isSaveDisabled: Bool {
+        guard !trimmedName.isEmpty else {
             return true
         }
-        return trimmedName.isEmpty
-            || parsedCurrentValue < 0
-            || parsedCurrentValue >= parsedTargetValue
-            || parsedTargetValue <= 0
-            || parsedIncrementValue <= 0
+
+        guard isProgressBased else {
+            return false
+        }
+
+        return !hasValidProgressValues || !progressStartsIncomplete
     }
 
     var body: some View {
@@ -195,17 +222,14 @@ struct GoalFormView: View {
         let completion: Goal.Completion
 
         if isProgressBased {
-            guard let parsedCurrentValue,
-                  let parsedTargetValue,
-                  let parsedIncrementValue
-            else {
+            guard let parsedProgressValues else {
                 return
             }
             completion = .progress(
                 Goal.Progress(
-                    currentValue: parsedCurrentValue,
-                    targetValue: parsedTargetValue,
-                    incrementValue: parsedIncrementValue,
+                    currentValue: parsedProgressValues.currentValue,
+                    targetValue: parsedProgressValues.targetValue,
+                    incrementValue: parsedProgressValues.incrementValue,
                 ),
             )
         } else {
