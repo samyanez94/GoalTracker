@@ -40,6 +40,16 @@ struct GoalFormData {
     }
 }
 
+private struct InitialState {
+    var name: String
+    var description: String
+    var isProgressBased: Bool
+    var currentValue: String
+    var targetValue: String
+    var incrementValue: String
+    var outcomeIsCompleted: Bool
+}
+
 struct GoalFormView: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -67,20 +77,39 @@ struct GoalFormView: View {
         onSave: @escaping (GoalFormData) -> Void,
     ) {
         self.title = title
-        initialOutcomeIsCompleted = initialData.completion.isCompleted
         self.onSave = onSave
-        _name = State(initialValue: initialData.name)
-        _description = State(initialValue: initialData.description)
-        if case let .progress(progress) = initialData.completion {
-            _isProgressBased = State(initialValue: true)
-            _currentValue = State(initialValue: Self.text(for: progress.currentValue))
-            _targetValue = State(initialValue: Self.text(for: progress.targetValue))
-            _incrementValue = State(initialValue: Self.text(for: progress.incrementValue))
-        } else {
-            _isProgressBased = State(initialValue: false)
-            _currentValue = State(initialValue: "")
-            _targetValue = State(initialValue: "")
-            _incrementValue = State(initialValue: "1")
+        let initialState = Self.initialState(for: initialData)
+        initialOutcomeIsCompleted = initialState.outcomeIsCompleted
+        _name = State(initialValue: initialState.name)
+        _description = State(initialValue: initialState.description)
+        _isProgressBased = State(initialValue: initialState.isProgressBased)
+        _currentValue = State(initialValue: initialState.currentValue)
+        _targetValue = State(initialValue: initialState.targetValue)
+        _incrementValue = State(initialValue: initialState.incrementValue)
+    }
+
+    private static func initialState(for data: GoalFormData) -> InitialState {
+        switch data.completion {
+        case let .progress(progress):
+            InitialState(
+                name: data.name,
+                description: data.description,
+                isProgressBased: true,
+                currentValue: text(for: progress.currentValue),
+                targetValue: text(for: progress.targetValue),
+                incrementValue: text(for: progress.incrementValue),
+                outcomeIsCompleted: data.completion.isCompleted,
+            )
+        case .outcome:
+            InitialState(
+                name: data.name,
+                description: data.description,
+                isProgressBased: false,
+                currentValue: "",
+                targetValue: "",
+                incrementValue: "1",
+                outcomeIsCompleted: data.completion.isCompleted,
+            )
         }
     }
 
