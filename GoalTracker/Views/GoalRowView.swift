@@ -29,8 +29,15 @@ struct GoalRowView: View {
                     progress: goal.completion.fractionCompleted,
                 )
                 .frame(width: 24, height: 24)
-                Text(goal.name)
-                    .foregroundStyle(goal.isCompleted ? .secondary : .primary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(goal.name)
+                        .foregroundStyle(goal.isCompleted ? .secondary : .primary)
+                    if let dueDate = goal.dueDate {
+                        Text(GoalDueDateFormatter.string(from: dueDate))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .swipeActions(edge: .leading) {
@@ -87,6 +94,7 @@ private struct CircularGoalProgressView: View {
                 goal: Goal(
                     name: "Run a 5K",
                     description: "Build up endurance with three runs per week.",
+                    dueDate: Calendar.current.date(byAdding: .day, value: 1, to: Date()),
                     createdAt: Date(),
                     completion: .progress(Goal.Progress(currentValue: 2, targetValue: 5)),
                 ),

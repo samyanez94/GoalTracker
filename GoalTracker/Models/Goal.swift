@@ -12,6 +12,7 @@ struct Goal: Identifiable, Codable {
     var name: String
     var description: String?
     let createdAt: Date
+    var dueDate: Date?
     var completion: Completion
 
     var isCompleted: Bool {
@@ -47,12 +48,14 @@ struct Goal: Identifiable, Codable {
         id: UUID = UUID(),
         name: String,
         description: String?,
+        dueDate: Date? = nil,
         createdAt: Date,
         completion: Completion,
     ) {
         self.id = id
         self.name = name
         self.description = description
+        self.dueDate = dueDate
         self.createdAt = createdAt
         self.completion = completion
     }

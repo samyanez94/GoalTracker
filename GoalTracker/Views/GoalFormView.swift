@@ -10,27 +10,32 @@ import SwiftUI
 struct GoalFormData {
     var name: String
     var description: String
+    var dueDate: Date?
     var completion: Goal.Completion
 
     static let empty = GoalFormData(
         name: "",
         description: "",
+        dueDate: nil,
         completion: .outcome(isCompleted: false),
     )
 
     init(goal: Goal) {
         name = goal.name
         description = goal.description ?? ""
+        dueDate = goal.dueDate
         completion = goal.completion
     }
 
     init(
         name: String,
         description: String,
+        dueDate: Date? = nil,
         completion: Goal.Completion,
     ) {
         self.name = name
         self.description = description
+        self.dueDate = dueDate
         self.completion = completion
     }
 
@@ -43,6 +48,8 @@ struct GoalFormData {
 private struct InitialState {
     var name: String
     var description: String
+    var hasDueDate: Bool
+    var dueDate: Date
     var isProgressBased: Bool
     var currentValue: String
     var targetValue: String
@@ -56,6 +63,10 @@ struct GoalFormView: View {
     @State private var name: String
 
     @State private var description: String
+
+    @State private var hasDueDate: Bool
+
+    @State private var dueDate: Date
 
     @State private var isProgressBased: Bool
 
@@ -82,6 +93,8 @@ struct GoalFormView: View {
         initialOutcomeIsCompleted = initialState.outcomeIsCompleted
         _name = State(initialValue: initialState.name)
         _description = State(initialValue: initialState.description)
+        _hasDueDate = State(initialValue: initialState.hasDueDate)
+        _dueDate = State(initialValue: initialState.dueDate)
         _isProgressBased = State(initialValue: initialState.isProgressBased)
         _currentValue = State(initialValue: initialState.currentValue)
         _targetValue = State(initialValue: initialState.targetValue)
@@ -94,6 +107,8 @@ struct GoalFormView: View {
             InitialState(
                 name: data.name,
                 description: data.description,
+                hasDueDate: data.dueDate != nil,
+                dueDate: data.dueDate ?? Date(),
                 isProgressBased: true,
                 currentValue: text(for: progress.currentValue),
                 targetValue: text(for: progress.targetValue),
@@ -104,6 +119,8 @@ struct GoalFormView: View {
             InitialState(
                 name: data.name,
                 description: data.description,
+                hasDueDate: data.dueDate != nil,
+                dueDate: data.dueDate ?? Date(),
                 isProgressBased: false,
                 currentValue: "",
                 targetValue: "",
@@ -183,6 +200,31 @@ struct GoalFormView: View {
                     axis: .vertical,
                 )
                 .lineLimit(1 ... 6)
+            }
+            Section {
+                HStack {
+                    Image(systemName: "calendar")
+                        .foregroundStyle(.secondary)
+                    Text("Due Date")
+                    Spacer()
+                    Toggle(
+                        "Due Date",
+                        isOn: $hasDueDate
+                    )
+                    .labelsHidden()
+                }
+                if hasDueDate {
+                    DatePicker(
+                        "Select due date",
+                        selection: $dueDate,
+                        displayedComponents: .date,
+                    )
+                    .datePickerStyle(.graphical)
+                }
+            } footer: {
+                Text("Set a due date to help you know when to complete this goal.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
             Section {
                 Toggle("Progress-based goal", isOn: $isProgressBased)
@@ -268,6 +310,7 @@ struct GoalFormView: View {
             GoalFormData(
                 name: trimmedName,
                 description: description,
+                dueDate: hasDueDate ? dueDate : nil,
                 completion: completion,
             ),
         )
@@ -296,6 +339,7 @@ struct GoalFormView: View {
             initialData: GoalFormData(
                 name: "Workout 10 times",
                 description: "Move a little every day.",
+                dueDate: Date(),
                 completion: .progress(
                     Goal.Progress(currentValue: 3, targetValue: 10, incrementValue: 2),
                 ),

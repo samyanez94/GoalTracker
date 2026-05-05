@@ -41,6 +41,16 @@ struct GoalDetailView: View {
                     Text(description)
                 }
             }
+            if let dueDate = goal.dueDate {
+                Section("Due Date") {
+                    Label {
+                        Text(GoalDueDateFormatter.string(from: dueDate))
+                    } icon: {
+                        Image(systemName: "calendar")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
             Section("Status") {
                 Text(goal.isCompleted ? "Completed" : "Pending")
                     .foregroundStyle(goal.isCompleted ? .blue : .secondary)
@@ -188,9 +198,11 @@ struct GoalDetailView: View {
     private func saveEdits(_ data: GoalFormData) {
         goal.name = data.name
         goal.description = data.normalizedDescription
+        goal.dueDate = data.dueDate
         goal.completion = data.completion
         onSave(goal)
     }
+
 }
 
 private struct ProgressStepperControl: View {

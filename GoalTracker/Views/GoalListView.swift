@@ -58,6 +58,7 @@ struct GoalListView: View {
                             Goal(
                                 name: data.name,
                                 description: data.description,
+                                dueDate: data.dueDate,
                                 createdAt: Date(),
                                 completion: data.completion,
                             ),
