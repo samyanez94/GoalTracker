@@ -38,7 +38,7 @@ struct GoalRowView: View {
                 onToggleCompletion(goal)
             } label: {
                 Label(
-                    goal.isCompleted ? "Mark Pending" : "Complete",
+                    goal.isCompleted ? "Mark as Pending" : "Complete",
                     systemImage: goal.isCompleted ? "arrow.uturn.backward" : "checkmark",
                 )
             }

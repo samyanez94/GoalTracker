@@ -26,7 +26,7 @@ struct GoalPersistence {
     }
 
     func loadGoals() throws -> [Goal] {
-        guard fileManager.fileExists(atPath: fileURL.path()) else {
+        guard fileManager.fileExists(atPath: fileURL.path) else {
             return []
         }
         let data = try Data(contentsOf: fileURL)

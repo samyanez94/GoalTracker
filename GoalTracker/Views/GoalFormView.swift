@@ -103,7 +103,7 @@ struct GoalFormView: View {
     private var parsedProgressValues: (
         currentValue: Double,
         targetValue: Double,
-        incrementValue: Double
+        incrementValue: Double,
     )? {
         guard let parsedCurrentValue,
               let parsedTargetValue,

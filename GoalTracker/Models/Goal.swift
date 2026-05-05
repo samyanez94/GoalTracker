@@ -91,7 +91,7 @@ struct Goal: Identifiable, Codable {
                 let didChange = progress.complete()
                 self = .progress(progress)
                 return didChange
-            case .outcome(let isCompleted):
+            case let .outcome(isCompleted):
                 self = .outcome(isCompleted: true)
                 return !isCompleted
             }
@@ -104,7 +104,7 @@ struct Goal: Identifiable, Codable {
                 let didChange = progress.reset()
                 self = .progress(progress)
                 return didChange
-            case .outcome(let isCompleted):
+            case let .outcome(isCompleted):
                 self = .outcome(isCompleted: false)
                 return isCompleted
             }
