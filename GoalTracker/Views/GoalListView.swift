@@ -19,17 +19,26 @@ struct GoalListView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                goalSection(
-                    title: "Pending",
-                    goals: goalStore.pendingGoals,
-                    isExpanded: $isPendingSectionExpanded,
-                )
-                goalSection(
-                    title: "Completed",
-                    goals: goalStore.completedGoals,
-                    isExpanded: $isCompletedSectionExpanded,
-                )
+            Group {
+                if goalStore.goals.isEmpty {
+                    Text("No Goals")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        goalSection(
+                            title: "Pending",
+                            goals: goalStore.pendingGoals,
+                            isExpanded: $isPendingSectionExpanded,
+                        )
+                        goalSection(
+                            title: "Completed",
+                            goals: goalStore.completedGoals,
+                            isExpanded: $isCompletedSectionExpanded,
+                        )
+                    }
+                }
             }
             .navigationTitle("Goals")
             .safeAreaInset(edge: .bottom) {
