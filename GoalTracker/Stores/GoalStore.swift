@@ -13,7 +13,7 @@ import Observation
 final class GoalStore {
     private(set) var goals: [Goal]
 
-    @ObservationIgnored private let fileURL: URL
+    @ObservationIgnored private let persistence: GoalPersistence
 
     var pendingGoals: [Goal] {
         goals.filter { !$0.isCompleted }
@@ -23,16 +23,13 @@ final class GoalStore {
         goals.filter(\.isCompleted)
     }
 
-    private static var defaultFileURL: URL {
-        FileManager.default
-            .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appending(path: "Goals", directoryHint: .isDirectory)
-            .appending(path: "goals.json")
-    }
-
-    init(goals: [Goal]? = nil, fileURL: URL? = nil) {
-        self.fileURL = fileURL ?? Self.defaultFileURL
-        self.goals = goals ?? Self.loadGoals(from: self.fileURL)
+    init(
+        goals: [Goal]? = nil,
+        persistence: GoalPersistence? = nil,
+    ) {
+        let persistence = persistence ?? GoalPersistence()
+        self.persistence = persistence
+        self.goals = goals ?? Self.loadGoals(from: persistence)
     }
 
     func addGoal(_ goal: Goal) {
@@ -53,10 +50,9 @@ final class GoalStore {
         saveGoals()
     }
 
-    private static func loadGoals(from fileURL: URL) -> [Goal] {
+    private static func loadGoals(from persistence: GoalPersistence) -> [Goal] {
         do {
-            let data = try Data(contentsOf: fileURL)
-            return try JSONDecoder().decode([Goal].self, from: data)
+            return try persistence.loadGoals()
         } catch {
             print("Failed to load goals: \(error)")
             return []
@@ -65,12 +61,7 @@ final class GoalStore {
 
     private func saveGoals() {
         do {
-            try FileManager.default.createDirectory(
-                at: fileURL.deletingLastPathComponent(),
-                withIntermediateDirectories: true,
-            )
-            let data = try JSONEncoder().encode(goals)
-            try data.write(to: fileURL, options: [.atomic])
+            try persistence.saveGoals(goals)
         } catch {
             print("Failed to save goals: \(error)")
         }
