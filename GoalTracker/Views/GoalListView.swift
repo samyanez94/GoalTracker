@@ -57,7 +57,7 @@ struct GoalListView: View {
                         goalStore.addGoal(
                             Goal(
                                 name: data.name,
-                                description: data.description,
+                                description: data.normalizedDescription,
                                 dueDate: data.dueDate,
                                 createdAt: Date(),
                                 completion: data.completion,
