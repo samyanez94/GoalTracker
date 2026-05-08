@@ -96,12 +96,10 @@ struct GoalListView: View {
     }
 
     private func toggleCompletion(for goal: Goal) {
-        var updatedGoal = goal
-        guard updatedGoal.toggleCompletion() else {
+        guard goalStore.toggleCompletion(id: goal.id) else {
             return
         }
         playHapticFeedback()
-        goalStore.updateGoal(updatedGoal)
     }
 
     private func playHapticFeedback() {

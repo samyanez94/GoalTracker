@@ -145,8 +145,9 @@ struct GoalDetailView: View {
             )
         } else {
             CompleteGoalButton(isCompleted: goal.isCompleted) {
-                playHapticFeedback()
-                completeGoal()
+                if completeGoal() {
+                    playHapticFeedback()
+                }
                 dismiss()
             }
         }
@@ -167,24 +168,16 @@ struct GoalDetailView: View {
     }
 
     private func decrementProgress() {
-        guard var goal else {
+        guard goalStore.decrementProgress(id: goalId) else {
             return
         }
-        guard goal.decrementProgress() else {
-            return
-        }
-        goalStore.updateGoal(goal)
         playHapticFeedback()
     }
 
     private func incrementProgress() {
-        guard var goal else {
+        guard goalStore.incrementProgress(id: goalId) else {
             return
         }
-        guard goal.incrementProgress() else {
-            return
-        }
-        goalStore.updateGoal(goal)
         playHapticFeedback()
     }
 
@@ -194,33 +187,24 @@ struct GoalDetailView: View {
     }
 
     private func toggleOutcomeCompletion() {
-        guard var goal else {
-            return
-        }
-        guard goal.toggleCompletion() else {
+        guard goalStore.toggleCompletion(id: goalId) else {
             return
         }
         playHapticFeedback()
-        goalStore.updateGoal(goal)
     }
 
-    private func completeGoal() {
-        guard var goal else {
-            return
-        }
-        goal.complete()
-        goalStore.updateGoal(goal)
+    private func completeGoal() -> Bool {
+        goalStore.completeGoal(id: goalId)
     }
 
     private func saveEdits(_ data: GoalFormData) {
-        guard var goal else {
-            return
-        }
-        goal.name = data.name
-        goal.description = data.normalizedDescription
-        goal.dueDate = data.dueDate
-        goal.completion = data.completion
-        goalStore.updateGoal(goal)
+        goalStore.updateGoal(
+            id: goalId,
+            name: data.name,
+            description: data.normalizedDescription,
+            dueDate: data.dueDate,
+            completion: data.completion,
+        )
     }
 
 }

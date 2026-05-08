@@ -37,12 +37,59 @@ final class GoalStore {
         saveGoals()
     }
 
-    func updateGoal(_ updatedGoal: Goal) {
+    @discardableResult
+    func updateGoal(_ updatedGoal: Goal) -> Bool {
         guard let index = goals.firstIndex(where: { $0.id == updatedGoal.id }) else {
-            return
+            return false
         }
         goals[index] = updatedGoal
         saveGoals()
+        return true
+    }
+
+    @discardableResult
+    func updateGoal(
+        id: Goal.ID,
+        name: String,
+        description: String?,
+        dueDate: Date?,
+        completion: Goal.Completion,
+    ) -> Bool {
+        updateGoal(id: id) { goal in
+            goal.name = name
+            goal.description = description
+            goal.dueDate = dueDate
+            goal.completion = completion
+            return true
+        }
+    }
+
+    @discardableResult
+    func toggleCompletion(id: Goal.ID) -> Bool {
+        updateGoal(id: id) { goal in
+            goal.toggleCompletion()
+        }
+    }
+
+    @discardableResult
+    func completeGoal(id: Goal.ID) -> Bool {
+        updateGoal(id: id) { goal in
+            goal.complete()
+        }
+    }
+
+    @discardableResult
+    func incrementProgress(id: Goal.ID) -> Bool {
+        updateGoal(id: id) { goal in
+            goal.incrementProgress()
+        }
+    }
+
+    @discardableResult
+    func decrementProgress(id: Goal.ID) -> Bool {
+        updateGoal(id: id) { goal in
+            goal.decrementProgress()
+        }
     }
 
     func deleteGoal(id: Goal.ID) {
@@ -65,5 +112,22 @@ final class GoalStore {
         } catch {
             print("Failed to save goals: \(error)")
         }
+    }
+
+    @discardableResult
+    private func updateGoal(
+        id: Goal.ID,
+        _ mutate: (inout Goal) -> Bool,
+    ) -> Bool {
+        guard let index = goals.firstIndex(where: { $0.id == id }) else {
+            return false
+        }
+        var goal = goals[index]
+        guard mutate(&goal) else {
+            return false
+        }
+        goals[index] = goal
+        saveGoals()
+        return true
     }
 }
