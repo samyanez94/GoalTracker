@@ -50,6 +50,7 @@ private struct InitialState {
     var description: String
     var hasDueDate: Bool
     var dueDate: Date
+    var isDueDatePickerExpanded: Bool
     var isProgressBased: Bool
     var currentValue: String
     var targetValue: String
@@ -91,6 +92,8 @@ struct GoalFormView: View {
 
     @State private var dueDate: Date
 
+    @State private var isDueDatePickerExpanded: Bool
+
     @State private var isProgressBased: Bool
 
     @State private var currentValue: String
@@ -117,6 +120,7 @@ struct GoalFormView: View {
         _description = State(initialValue: initialState.description)
         _hasDueDate = State(initialValue: initialState.hasDueDate)
         _dueDate = State(initialValue: initialState.dueDate)
+        _isDueDatePickerExpanded = State(initialValue: initialState.isDueDatePickerExpanded)
         _isProgressBased = State(initialValue: initialState.isProgressBased)
         _currentValue = State(initialValue: initialState.currentValue)
         _targetValue = State(initialValue: initialState.targetValue)
@@ -131,6 +135,7 @@ struct GoalFormView: View {
                 description: data.description,
                 hasDueDate: data.dueDate != nil,
                 dueDate: data.dueDate ?? Date(),
+                isDueDatePickerExpanded: false,
                 isProgressBased: true,
                 currentValue: text(for: progress.currentValue),
                 targetValue: text(for: progress.targetValue),
@@ -143,6 +148,7 @@ struct GoalFormView: View {
                 description: data.description,
                 hasDueDate: data.dueDate != nil,
                 dueDate: data.dueDate ?? Date(),
+                isDueDatePickerExpanded: false,
                 isProgressBased: false,
                 currentValue: "",
                 targetValue: "",
@@ -231,17 +237,31 @@ struct GoalFormView: View {
             }
             Section {
                 HStack {
-                    Image(systemName: "calendar")
-                        .foregroundStyle(.secondary)
-                    Text("Due Date")
-                    Spacer()
+                    HStack {
+                        Image(systemName: "calendar")
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 4)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Due Date")
+                            if hasDueDate {
+                                Text(GoalDueDateFormatter.string(from: dueDate))
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        toggleDueDatePicker()
+                    }
                     Toggle(
                         "Due Date",
                         isOn: $hasDueDate
                     )
                     .labelsHidden()
                 }
-                if hasDueDate {
+                if hasDueDate && isDueDatePickerExpanded {
                     DatePicker(
                         "Select due date",
                         selection: $dueDate,
@@ -302,6 +322,11 @@ struct GoalFormView: View {
                 .accessibilityLabel("Save")
             }
         }
+        .onChange(of: hasDueDate) { _, hasDueDate in
+            withAnimation {
+                isDueDatePickerExpanded = hasDueDate
+            }
+        }
     }
 
     private func progressTextFieldRow(label: String, value: Binding<String>) -> some View {
@@ -311,6 +336,15 @@ struct GoalFormView: View {
             TextField("0", text: value)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
+        }
+    }
+
+    private func toggleDueDatePicker() {
+        guard hasDueDate else {
+            return
+        }
+        withAnimation {
+            isDueDatePickerExpanded.toggle()
         }
     }
 
