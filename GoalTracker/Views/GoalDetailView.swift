@@ -11,25 +11,27 @@ import UIKit
 struct GoalDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State private var goal: Goal
-
     @State private var isPresentingEditGoalView = false
 
-    let onSave: (Goal) -> Void
+    let goalId: Goal.ID
 
-    let onDelete: (Goal) -> Void
-
-    init(
-        goal: Goal,
-        onSave: @escaping (Goal) -> Void,
-        onDelete: @escaping (Goal) -> Void,
-    ) {
-        _goal = State(initialValue: goal)
-        self.onSave = onSave
-        self.onDelete = onDelete
-    }
+    let goalStore: GoalStore
 
     var body: some View {
+        if let goal {
+            detailContent(for: goal)
+        } else {
+            ContentUnavailableView("Goal Not Found", systemImage: "target")
+                .navigationTitle("Goal Details")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private var goal: Goal? {
+        goalStore.goals.first { $0.id == goalId }
+    }
+
+    private func detailContent(for goal: Goal) -> some View {
         Form {
             Section("Name") {
                 Text(goal.name)
@@ -55,9 +57,9 @@ struct GoalDetailView: View {
                 Text(goal.isCompleted ? "Completed" : "Pending")
                     .foregroundStyle(goal.isCompleted ? .blue : .secondary)
             }
-            if let progress {
+            if let progress = progress(for: goal) {
                 Section("Current value") {
-                    currentProgressRow()
+                    currentProgressRow(for: progress)
                 }
                 Section("Target value") {
                     Text(progress.targetValue.formatted())
@@ -74,7 +76,7 @@ struct GoalDetailView: View {
                     } label: {
                         Label("Edit", systemImage: "pencil")
                     }
-                    if let outcomeIsCompleted {
+                    if let outcomeIsCompleted = outcomeIsCompleted(for: goal) {
                         Button {
                             toggleOutcomeCompletion()
                         } label: {
@@ -85,7 +87,7 @@ struct GoalDetailView: View {
                         }
                     }
                     Button(role: .destructive) {
-                        onDelete(goal)
+                        goalStore.deleteGoal(id: goal.id)
                         dismiss()
                     } label: {
                         Label("Delete", systemImage: "trash")
@@ -98,30 +100,34 @@ struct GoalDetailView: View {
         }
         .sheet(isPresented: $isPresentingEditGoalView) {
             NavigationStack {
-                GoalFormView(
-                    mode: .edit(GoalFormData(goal: goal)),
-                ) { data in
-                    saveEdits(data)
+                if let currentGoal = self.goal {
+                    GoalFormView(
+                        mode: .edit(GoalFormData(goal: currentGoal)),
+                    ) { data in
+                        saveEdits(data)
+                    }
+                } else {
+                    ContentUnavailableView("Goal Not Found", systemImage: "target")
                 }
             }
         }
         .safeAreaInset(edge: .bottom) {
-            callToActionButton
+            callToActionButton(for: goal)
         }
     }
 
-    private func currentProgressRow() -> some View {
-        Text(progress?.currentValue.formatted() ?? "0")
+    private func currentProgressRow(for progress: Goal.Progress) -> some View {
+        Text(progress.currentValue.formatted())
     }
 
-    private var progress: Goal.Progress? {
+    private func progress(for goal: Goal) -> Goal.Progress? {
         guard case let .progress(progress) = goal.completion else {
             return nil
         }
         return progress
     }
 
-    private var outcomeIsCompleted: Bool? {
+    private func outcomeIsCompleted(for goal: Goal) -> Bool? {
         guard case let .outcome(isCompleted) = goal.completion else {
             return nil
         }
@@ -129,11 +135,11 @@ struct GoalDetailView: View {
     }
 
     @ViewBuilder
-    private var callToActionButton: some View {
-        if progress != nil {
+    private func callToActionButton(for goal: Goal) -> some View {
+        if progress(for: goal) != nil {
             ProgressStepperControl(
-                canDecrement: !isProgressAtLowerBound,
-                canIncrement: !isProgressAtUpperBound,
+                canDecrement: !isProgressAtLowerBound(goal),
+                canIncrement: !isProgressAtUpperBound(goal),
                 onDecrement: decrementProgress,
                 onIncrement: incrementProgress,
             )
@@ -141,39 +147,44 @@ struct GoalDetailView: View {
             CompleteGoalButton(isCompleted: goal.isCompleted) {
                 playHapticFeedback()
                 completeGoal()
-                onSave(goal)
                 dismiss()
             }
         }
     }
 
-    private var isProgressAtLowerBound: Bool {
-        guard let progress else {
+    private func isProgressAtLowerBound(_ goal: Goal) -> Bool {
+        guard let progress = progress(for: goal) else {
             return true
         }
         return !progress.canDecrement
     }
 
-    private var isProgressAtUpperBound: Bool {
-        guard let progress else {
+    private func isProgressAtUpperBound(_ goal: Goal) -> Bool {
+        guard let progress = progress(for: goal) else {
             return true
         }
         return !progress.canIncrement
     }
 
     private func decrementProgress() {
+        guard var goal else {
+            return
+        }
         guard goal.decrementProgress() else {
             return
         }
-        onSave(goal)
+        goalStore.updateGoal(goal)
         playHapticFeedback()
     }
 
     private func incrementProgress() {
+        guard var goal else {
+            return
+        }
         guard goal.incrementProgress() else {
             return
         }
-        onSave(goal)
+        goalStore.updateGoal(goal)
         playHapticFeedback()
     }
 
@@ -183,23 +194,33 @@ struct GoalDetailView: View {
     }
 
     private func toggleOutcomeCompletion() {
+        guard var goal else {
+            return
+        }
         guard goal.toggleCompletion() else {
             return
         }
         playHapticFeedback()
-        onSave(goal)
+        goalStore.updateGoal(goal)
     }
 
     private func completeGoal() {
+        guard var goal else {
+            return
+        }
         goal.complete()
+        goalStore.updateGoal(goal)
     }
 
     private func saveEdits(_ data: GoalFormData) {
+        guard var goal else {
+            return
+        }
         goal.name = data.name
         goal.description = data.normalizedDescription
         goal.dueDate = data.dueDate
         goal.completion = data.completion
-        onSave(goal)
+        goalStore.updateGoal(goal)
     }
 
 }
@@ -306,46 +327,51 @@ private enum GoalDetailBottomAction {
 }
 
 #Preview("Incomplete Goal") {
+    let goal = Goal(
+        name: "Run a 5K",
+        description: "Build up endurance with three runs per week.",
+        createdAt: Date(),
+        completion: .progress(Goal.Progress(currentValue: 1, targetValue: 5)),
+    )
+    let goalStore = GoalStore(goals: [goal])
     NavigationStack {
         GoalDetailView(
-            goal: Goal(
-                name: "Run a 5K",
-                description: "Build up endurance with three runs per week.",
-                createdAt: Date(),
-                completion: .progress(Goal.Progress(currentValue: 1, targetValue: 5)),
-            ),
-            onSave: { _ in },
-            onDelete: { _ in },
+            goalId: goal.id,
+            goalStore: goalStore,
         )
     }
 }
 
 #Preview("Completed Goal") {
+    let goal = Goal(
+        name: "Read every night",
+        description: "Read for at least 20 minutes before bed.",
+        createdAt: Date(),
+        completion: .progress(Goal.Progress(currentValue: 20, targetValue: 20)),
+    )
+    let goalStore = GoalStore(goals: [goal])
+
     NavigationStack {
         GoalDetailView(
-            goal: Goal(
-                name: "Read every night",
-                description: "Read for at least 20 minutes before bed.",
-                createdAt: Date(),
-                completion: .progress(Goal.Progress(currentValue: 20, targetValue: 20)),
-            ),
-            onSave: { _ in },
-            onDelete: { _ in },
+            goalId: goal.id,
+            goalStore: goalStore,
         )
     }
 }
 
 #Preview("One-off Goal") {
+    let goal = Goal(
+        name: "Travel to Japan",
+        description: "Plan and take the trip.",
+        createdAt: Date(),
+        completion: .outcome(isCompleted: false),
+    )
+    let goalStore = GoalStore(goals: [goal])
+
     NavigationStack {
         GoalDetailView(
-            goal: Goal(
-                name: "Travel to Japan",
-                description: "Plan and take the trip.",
-                createdAt: Date(),
-                completion: .outcome(isCompleted: false),
-            ),
-            onSave: { _ in },
-            onDelete: { _ in },
+            goalId: goal.id,
+            goalStore: goalStore,
         )
     }
 }

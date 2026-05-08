@@ -80,14 +80,9 @@ struct GoalListView: View {
                 ForEach(goals) { goal in
                     GoalRowView(
                         goal: goal,
+                        goalStore: goalStore,
                         onToggleCompletion: { goal in
                             toggleCompletion(for: goal)
-                        },
-                        onSave: { goal in
-                            goalStore.updateGoal(goal)
-                        },
-                        onDelete: { goal in
-                            goalStore.deleteGoal(id: goal.id)
                         },
                     )
                 }

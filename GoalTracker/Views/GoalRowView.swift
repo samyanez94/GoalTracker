@@ -10,18 +10,15 @@ import SwiftUI
 struct GoalRowView: View {
     let goal: Goal
 
+    let goalStore: GoalStore
+
     let onToggleCompletion: (Goal) -> Void
-
-    let onSave: (Goal) -> Void
-
-    let onDelete: (Goal) -> Void
 
     var body: some View {
         NavigationLink {
             GoalDetailView(
-                goal: goal,
-                onSave: onSave,
-                onDelete: onDelete,
+                goalId: goal.id,
+                goalStore: goalStore,
             )
         } label: {
             HStack(spacing: 12) {
@@ -53,7 +50,7 @@ struct GoalRowView: View {
         }
         .swipeActions {
             Button(role: .destructive) {
-                onDelete(goal)
+                goalStore.deleteGoal(id: goal.id)
             } label: {
                 Label("Delete", systemImage: "trash")
             }
@@ -88,32 +85,33 @@ private struct CircularGoalProgressView: View {
 }
 
 #Preview {
+    let goalStore = GoalStore(
+        goals: [
+            Goal(
+                name: "Run a 5K",
+                description: "Build up endurance with three runs per week.",
+                dueDate: Calendar.current.date(byAdding: .day, value: 1, to: Date()),
+                createdAt: Date(),
+                completion: .progress(Goal.Progress(currentValue: 2, targetValue: 5)),
+            ),
+            Goal(
+                name: "Travel to Japan",
+                description: "Plan and take the trip.",
+                createdAt: Date(),
+                completion: .outcome(isCompleted: true),
+            ),
+        ],
+    )
+
     NavigationStack {
         List {
-            GoalRowView(
-                goal: Goal(
-                    name: "Run a 5K",
-                    description: "Build up endurance with three runs per week.",
-                    dueDate: Calendar.current.date(byAdding: .day, value: 1, to: Date()),
-                    createdAt: Date(),
-                    completion: .progress(Goal.Progress(currentValue: 2, targetValue: 5)),
-                ),
-                onToggleCompletion: { _ in },
-                onSave: { _ in },
-                onDelete: { _ in },
-            )
-
-            GoalRowView(
-                goal: Goal(
-                    name: "Travel to Japan",
-                    description: "Plan and take the trip.",
-                    createdAt: Date(),
-                    completion: .outcome(isCompleted: true),
-                ),
-                onToggleCompletion: { _ in },
-                onSave: { _ in },
-                onDelete: { _ in },
-            )
+            ForEach(goalStore.goals) { goal in
+                GoalRowView(
+                    goal: goal,
+                    goalStore: goalStore,
+                    onToggleCompletion: { _ in },
+                )
+            }
         }
     }
 }
