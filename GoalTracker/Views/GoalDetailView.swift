@@ -99,8 +99,7 @@ struct GoalDetailView: View {
         .sheet(isPresented: $isPresentingEditGoalView) {
             NavigationStack {
                 GoalFormView(
-                    title: "Edit Goal",
-                    initialData: GoalFormData(goal: goal),
+                    mode: .edit(GoalFormData(goal: goal)),
                 ) { data in
                     saveEdits(data)
                 }

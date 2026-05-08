@@ -53,7 +53,7 @@ struct GoalListView: View {
             }
             .sheet(isPresented: $isPresentingGoalFormView) {
                 NavigationStack {
-                    GoalFormView(title: "New Goal") { data in
+                    GoalFormView(mode: .create) { data in
                         goalStore.addGoal(
                             Goal(
                                 name: data.name,

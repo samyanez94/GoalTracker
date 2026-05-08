@@ -58,6 +58,29 @@ private struct InitialState {
 }
 
 struct GoalFormView: View {
+    enum Mode {
+        case create
+        case edit(GoalFormData)
+
+        var title: String {
+            switch self {
+            case .create:
+                "New Goal"
+            case .edit:
+                "Edit Goal"
+            }
+        }
+
+        var initialData: GoalFormData {
+            switch self {
+            case .create:
+                .empty
+            case let .edit(data):
+                data
+            }
+        }
+    }
+
     @Environment(\.dismiss) private var dismiss
 
     @State private var name: String
@@ -76,20 +99,19 @@ struct GoalFormView: View {
 
     @State private var incrementValue: String
 
-    private let title: String
+    private let mode: Mode
 
     private let initialOutcomeIsCompleted: Bool
 
     private let onSave: (GoalFormData) -> Void
 
     init(
-        title: String,
-        initialData: GoalFormData = .empty,
+        mode: Mode,
         onSave: @escaping (GoalFormData) -> Void,
     ) {
-        self.title = title
+        self.mode = mode
         self.onSave = onSave
-        let initialState = Self.initialState(for: initialData)
+        let initialState = Self.initialState(for: mode.initialData)
         initialOutcomeIsCompleted = initialState.outcomeIsCompleted
         _name = State(initialValue: initialState.name)
         _description = State(initialValue: initialState.description)
@@ -182,12 +204,18 @@ struct GoalFormView: View {
         guard !trimmedName.isEmpty else {
             return true
         }
-
         guard isProgressBased else {
             return false
         }
-
-        return !hasValidProgressValues || !progressStartsIncomplete
+        guard hasValidProgressValues else {
+            return true
+        }
+        switch mode {
+        case .create:
+            return !progressStartsIncomplete
+        case .edit:
+            return false
+        }
     }
 
     var body: some View {
@@ -250,7 +278,7 @@ struct GoalFormView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .navigationTitle(title)
+        .navigationTitle(mode.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -328,22 +356,23 @@ struct GoalFormView: View {
 
 #Preview("Create") {
     NavigationStack {
-        GoalFormView(title: "New Goal") { _ in }
+        GoalFormView(mode: .create) { _ in }
     }
 }
 
 #Preview("Edit") {
     NavigationStack {
         GoalFormView(
-            title: "Edit Goal",
-            initialData: GoalFormData(
-                name: "Workout 10 times",
-                description: "Move a little every day.",
-                dueDate: Date(),
-                completion: .progress(
-                    Goal.Progress(currentValue: 3, targetValue: 10, incrementValue: 2),
+            mode: .edit(
+                GoalFormData(
+                    name: "Workout 10 times",
+                    description: "Move a little every day.",
+                    dueDate: Date(),
+                    completion: .progress(
+                        Goal.Progress(currentValue: 3, targetValue: 10, incrementValue: 2),
+                    ),
                 ),
-            ),
+            )
         ) { _ in }
     }
 }
