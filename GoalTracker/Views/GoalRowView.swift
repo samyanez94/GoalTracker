@@ -32,7 +32,7 @@ struct GoalRowView: View {
                     if let dueDate = goal.dueDate {
                         Text(GoalDueDateFormatter.string(from: dueDate))
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(isPastDue(dueDate) ? .red : .secondary)
                     }
                 }
             }
@@ -55,6 +55,11 @@ struct GoalRowView: View {
                 Label("Delete", systemImage: "trash")
             }
         }
+    }
+
+    private func isPastDue(_ dueDate: Date) -> Bool {
+        !goal.isCompleted
+            && Calendar.current.startOfDay(for: dueDate) < Calendar.current.startOfDay(for: Date())
     }
 }
 
@@ -93,6 +98,13 @@ private struct CircularGoalProgressView: View {
                 dueDate: Calendar.current.date(byAdding: .day, value: 1, to: Date()),
                 createdAt: Date(),
                 completion: .progress(Goal.Progress(currentValue: 2, targetValue: 5)),
+            ),
+            Goal(
+                name: "File taxes",
+                description: nil,
+                dueDate: Calendar.current.date(byAdding: .day, value: -1, to: Date()),
+                createdAt: Date(),
+                completion: .outcome(isCompleted: false),
             ),
             Goal(
                 name: "Travel to Japan",
