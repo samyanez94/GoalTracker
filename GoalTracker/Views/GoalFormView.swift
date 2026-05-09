@@ -105,8 +105,6 @@ struct GoalFormView: View {
 
     @State private var selectedProgressUnit: GoalProgressUnit?
 
-    @State private var isPresentingUnitSelection = false
-
     private let mode: Mode
 
     private let initialOutcomeIsCompleted: Bool
@@ -297,8 +295,8 @@ struct GoalFormView: View {
                         label: "Step",
                         value: $incrementValue,
                     )
-                    Button {
-                        isPresentingUnitSelection = true
+                    NavigationLink {
+                        ProgressUnitSelectionView(selectedUnit: $selectedProgressUnit)
                     } label: {
                         HStack {
                             Text("Unit")
@@ -306,12 +304,8 @@ struct GoalFormView: View {
                             Spacer()
                             Text(selectedProgressUnit?.title ?? "None")
                                 .foregroundStyle(.secondary)
-                            Image(systemName: "chevron.right")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.tertiary)
                         }
                     }
-                    .buttonStyle(.plain)
                 }
             } header: {
                 Text("Progress")
@@ -348,11 +342,6 @@ struct GoalFormView: View {
         .onChange(of: hasDueDate) { _, hasDueDate in
             withAnimation {
                 isDueDatePickerExpanded = hasDueDate
-            }
-        }
-        .sheet(isPresented: $isPresentingUnitSelection) {
-            NavigationStack {
-                ProgressUnitSelectionView(selectedUnit: $selectedProgressUnit)
             }
         }
     }
@@ -421,6 +410,14 @@ private struct ProgressUnitSelectionView: View {
 
     @Binding var selectedUnit: GoalProgressUnit?
 
+    @State private var customUnit: GoalProgressUnit?
+
+    init(selectedUnit: Binding<GoalProgressUnit?>) {
+        _selectedUnit = selectedUnit
+        let initialUnit = selectedUnit.wrappedValue
+        _customUnit = State(initialValue: initialUnit?.category == .custom ? initialUnit : nil)
+    }
+
     var body: some View {
         List {
             Section("None") {
@@ -433,19 +430,27 @@ private struct ProgressUnitSelectionView: View {
                     }
                 }
             }
+            Section {
+                NavigationLink {
+                    CustomUnitFormView(initialUnit: customUnit) { unit in
+                        customUnit = unit
+                        selectedUnit = unit
+                    }
+                } label: {
+                    HStack {
+                        Text("Custom")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        if let customUnit {
+                            Text(customUnit.title)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
         }
         .navigationTitle("Unit")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                }
-                .accessibilityLabel("Close")
-            }
-        }
     }
 
     private func unitButton(
@@ -466,6 +471,84 @@ private struct ProgressUnitSelectionView: View {
             }
         }
         .foregroundStyle(.primary)
+    }
+}
+
+private struct CustomUnitFormView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var name: String
+
+    @State private var abbreviation: String
+
+    private let initialUnit: GoalProgressUnit?
+
+    private let onSave: (GoalProgressUnit) -> Void
+
+    init(
+        initialUnit: GoalProgressUnit?,
+        onSave: @escaping (GoalProgressUnit) -> Void,
+    ) {
+        self.initialUnit = initialUnit
+        self.onSave = onSave
+        _name = State(initialValue: initialUnit?.title ?? "")
+        _abbreviation = State(initialValue: initialUnit?.abbreviatedTitle ?? "")
+    }
+
+    private var trimmedName: String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var trimmedAbbreviation: String {
+        abbreviation.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var isSaveDisabled: Bool {
+        trimmedName.isEmpty
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                TextField("Name", text: $name)
+                TextField("Abbreviation (optional)", text: $abbreviation)
+            } footer: {
+                Text("Values will display this text after the number.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .navigationTitle("Custom Unit")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button {
+                    save()
+                } label: {
+                    Image(systemName: "checkmark")
+                }
+                .tint(.blue)
+                .buttonStyle(.glassProminent)
+                .disabled(isSaveDisabled)
+                .opacity(isSaveDisabled ? 0.5 : 1)
+                .accessibilityLabel("Save")
+            }
+        }
+    }
+
+    private func save() {
+        guard !isSaveDisabled else {
+            return
+        }
+        let displayUnit = trimmedAbbreviation.isEmpty ? trimmedName : trimmedAbbreviation
+        onSave(
+            .custom(
+                id: initialUnit?.id ?? "custom.\(UUID().uuidString)",
+                title: trimmedName,
+                abbreviatedTitle: displayUnit,
+            ),
+        )
+        dismiss()
     }
 }
 

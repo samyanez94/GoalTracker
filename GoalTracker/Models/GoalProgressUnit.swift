@@ -214,6 +214,21 @@ struct GoalProgressUnit: Codable, Hashable, Identifiable {
             .first { $0.id == id }
     }
 
+    static func custom(
+        id: String = "custom.\(UUID().uuidString)",
+        title: String,
+        abbreviatedTitle: String,
+    ) -> GoalProgressUnit {
+        GoalProgressUnit(
+            id: id,
+            category: .custom,
+            title: title,
+            abbreviatedTitle: abbreviatedTitle,
+            prefix: nil,
+            suffix: abbreviatedTitle,
+        )
+    }
+
     struct PresetSection: Identifiable {
         let title: String
         let units: [GoalProgressUnit]
