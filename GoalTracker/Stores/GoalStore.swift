@@ -20,7 +20,7 @@ final class GoalStore {
     init(
         goals: [Goal]? = nil,
         persistence: GoalPersistence? = nil,
-        sorter: GoalSorter? = nil
+        sorter: GoalSorter? = nil,
     ) {
         let persistence = persistence ?? GoalPersistence()
         self.persistence = persistence

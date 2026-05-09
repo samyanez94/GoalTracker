@@ -267,11 +267,11 @@ struct GoalFormView: View {
                     }
                     Toggle(
                         "Due Date",
-                        isOn: $hasDueDate
+                        isOn: $hasDueDate,
                     )
                     .labelsHidden()
                 }
-                if hasDueDate && isDueDatePickerExpanded {
+                if hasDueDate, isDueDatePickerExpanded {
                     DatePicker(
                         "Select due date",
                         selection: $dueDate,
@@ -414,153 +414,6 @@ struct GoalFormView: View {
     }
 }
 
-private struct ProgressUnitSelectionView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    @Binding var selectedUnit: GoalProgressUnit?
-
-    @State private var customUnit: GoalProgressUnit?
-
-    init(selectedUnit: Binding<GoalProgressUnit?>) {
-        _selectedUnit = selectedUnit
-        let initialUnit = selectedUnit.wrappedValue
-        _customUnit = State(initialValue: initialUnit?.category == .custom ? initialUnit : nil)
-    }
-
-    var body: some View {
-        List {
-            Section("None") {
-                unitButton(title: "None", unit: nil)
-            }
-            ForEach(GoalProgressUnit.presetSections) { section in
-                Section(section.title) {
-                    ForEach(section.units) { unit in
-                        unitButton(title: unit.title, unit: unit)
-                    }
-                }
-            }
-            Section {
-                NavigationLink {
-                    CustomUnitFormView(initialUnit: customUnit) { unit in
-                        customUnit = unit
-                        selectedUnit = unit
-                    }
-                } label: {
-                    HStack {
-                        Text("Custom")
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        if let customUnit {
-                            Text(customUnit.title)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-            }
-        }
-        .navigationTitle("Unit")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func unitButton(
-        title: String,
-        unit: GoalProgressUnit?,
-    ) -> some View {
-        Button {
-            selectedUnit = unit
-            dismiss()
-        } label: {
-            HStack {
-                Text(title)
-                Spacer()
-                if selectedUnit == unit {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(.blue)
-                }
-            }
-        }
-        .foregroundStyle(.primary)
-    }
-}
-
-private struct CustomUnitFormView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    @State private var name: String
-
-    @State private var abbreviation: String
-
-    private let initialUnit: GoalProgressUnit?
-
-    private let onSave: (GoalProgressUnit) -> Void
-
-    init(
-        initialUnit: GoalProgressUnit?,
-        onSave: @escaping (GoalProgressUnit) -> Void,
-    ) {
-        self.initialUnit = initialUnit
-        self.onSave = onSave
-        _name = State(initialValue: initialUnit?.title ?? "")
-        _abbreviation = State(initialValue: initialUnit?.abbreviatedTitle ?? "")
-    }
-
-    private var trimmedName: String {
-        name.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var trimmedAbbreviation: String {
-        abbreviation.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var isSaveDisabled: Bool {
-        trimmedName.isEmpty
-    }
-
-    var body: some View {
-        Form {
-            Section {
-                TextField("Name", text: $name)
-                TextField("Abbreviation (optional)", text: $abbreviation)
-            } footer: {
-                Text("Values will display this text after the number.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .navigationTitle("Custom Unit")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button {
-                    save()
-                } label: {
-                    Image(systemName: "checkmark")
-                }
-                .tint(.blue)
-                .buttonStyle(.glassProminent)
-                .disabled(isSaveDisabled)
-                .opacity(isSaveDisabled ? 0.5 : 1)
-                .accessibilityLabel("Save")
-            }
-        }
-    }
-
-    private func save() {
-        guard !isSaveDisabled else {
-            return
-        }
-        let displayUnit = trimmedAbbreviation.isEmpty ? trimmedName : trimmedAbbreviation
-        onSave(
-            .custom(
-                id: initialUnit?.id ?? "custom.\(UUID().uuidString)",
-                title: trimmedName,
-                abbreviatedTitle: displayUnit,
-            ),
-        )
-        dismiss()
-    }
-}
-
 #Preview("Create") {
     NavigationStack {
         GoalFormView(mode: .create) { _ in }
@@ -579,7 +432,7 @@ private struct CustomUnitFormView: View {
                         Goal.Progress(currentValue: 3, targetValue: 10, incrementValue: 2),
                     ),
                 ),
-            )
+            ),
         ) { _ in }
     }
 }

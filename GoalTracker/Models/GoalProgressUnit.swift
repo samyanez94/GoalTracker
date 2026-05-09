@@ -70,12 +70,10 @@ struct GoalProgressUnit: Codable, Hashable, Identifiable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decode(String.self, forKey: .id)
-
         if let preset = Self.preset(withID: id) {
             self = preset
             return
         }
-
         self.id = id
         category = try container.decodeIfPresent(Category.self, forKey: .category) ?? .custom
         title = try container.decode(String.self, forKey: .title)

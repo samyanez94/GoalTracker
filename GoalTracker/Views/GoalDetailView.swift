@@ -216,7 +216,6 @@ struct GoalDetailView: View {
             completion: data.completion,
         )
     }
-
 }
 
 private struct ProgressStepperControl: View {

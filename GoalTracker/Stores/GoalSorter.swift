@@ -86,13 +86,13 @@ struct GoalSorter {
     }
 }
 
-private extension Array where Element == Goal {
+private extension [Goal] {
     mutating func moveElements(from source: IndexSet, to destination: Int) {
         let movingGoals = source.map { self[$0] }
         for index in source.sorted(by: >) {
             remove(at: index)
         }
-        let removedBeforeDestination = source.filter { $0 < destination }.count
+        let removedBeforeDestination = source.count(where: { $0 < destination })
         let insertionIndex = Swift.max(0, Swift.min(destination - removedBeforeDestination, count))
         insert(contentsOf: movingGoals, at: insertionIndex)
     }

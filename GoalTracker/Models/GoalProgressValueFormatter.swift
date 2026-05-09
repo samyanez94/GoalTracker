@@ -8,7 +8,6 @@
 import Foundation
 
 enum GoalProgressValueFormatter {
-    
     static func string(
         from value: Double,
         unit: GoalProgressUnit?,
