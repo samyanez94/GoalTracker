@@ -12,8 +12,6 @@ struct GoalRowView: View {
 
     let goalStore: GoalStore
 
-    let onToggleCompletion: (Goal) -> Void
-
     var body: some View {
         NavigationLink {
             GoalDetailView(
@@ -36,17 +34,6 @@ struct GoalRowView: View {
                     }
                 }
             }
-        }
-        .swipeActions(edge: .leading) {
-            Button {
-                onToggleCompletion(goal)
-            } label: {
-                Label(
-                    goal.isCompleted ? "Mark as Pending" : "Complete",
-                    systemImage: goal.isCompleted ? "arrow.uturn.backward" : "checkmark",
-                )
-            }
-            .tint(goal.isCompleted ? .gray : .blue)
         }
         .swipeActions {
             Button(role: .destructive) {
@@ -121,7 +108,6 @@ private struct CircularGoalProgressView: View {
                 GoalRowView(
                     goal: goal,
                     goalStore: goalStore,
-                    onToggleCompletion: { _ in },
                 )
             }
         }

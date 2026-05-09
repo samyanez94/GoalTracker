@@ -135,9 +135,6 @@ struct GoalListView: View {
             GoalRowView(
                 goal: goal,
                 goalStore: goalStore,
-                onToggleCompletion: { goal in
-                    toggleCompletion(for: goal)
-                },
             )
         }
         .onMove { source, destination in
@@ -170,18 +167,6 @@ struct GoalListView: View {
             to: destination,
             sortedBy: sortMode,
         )
-    }
-
-    private func toggleCompletion(for goal: Goal) {
-        guard goalStore.toggleCompletion(id: goal.id) else {
-            return
-        }
-        playHapticFeedback()
-    }
-
-    private func playHapticFeedback() {
-        let generator = UIImpactFeedbackGenerator(style: .light)
-        generator.impactOccurred()
     }
 }
 
