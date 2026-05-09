@@ -105,6 +105,8 @@ struct GoalFormView: View {
 
     @State private var selectedProgressUnit: GoalProgressUnit?
 
+    @FocusState private var isTextInputFocused: Bool
+
     private let mode: Mode
 
     private let initialOutcomeIsCompleted: Bool
@@ -234,11 +236,13 @@ struct GoalFormView: View {
         Form {
             Section("Details") {
                 TextField("Goal name", text: $name)
+                    .focused($isTextInputFocused)
                 TextField(
                     "Description",
                     text: $description,
                     axis: .vertical,
                 )
+                .focused($isTextInputFocused)
                 .lineLimit(1 ... 6)
             }
             Section {
@@ -340,9 +344,13 @@ struct GoalFormView: View {
             }
         }
         .onChange(of: hasDueDate) { _, hasDueDate in
+            isTextInputFocused = false
             withAnimation {
                 isDueDatePickerExpanded = hasDueDate
             }
+        }
+        .onChange(of: isProgressBased) {
+            isTextInputFocused = false
         }
     }
 
@@ -350,6 +358,7 @@ struct GoalFormView: View {
         HStack {
             Text(label)
             TextField("0", text: value)
+                .focused($isTextInputFocused)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
         }
