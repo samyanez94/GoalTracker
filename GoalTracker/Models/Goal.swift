@@ -257,7 +257,7 @@ struct Goal: Identifiable, Codable {
         }
 
         private var step: Double {
-            max(1, incrementValue)
+            incrementValue
         }
 
         @discardableResult
