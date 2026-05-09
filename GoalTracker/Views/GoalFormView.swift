@@ -237,7 +237,7 @@ struct GoalFormView: View {
             Section("Details") {
                 TextField("Goal name", text: $name)
                 TextField(
-                    "Description (optional)",
+                    "Description",
                     text: $description,
                     axis: .vertical,
                 )
@@ -283,18 +283,18 @@ struct GoalFormView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
-                Toggle("Progress-based goal", isOn: $isProgressBased)
+                Toggle("Track progress", isOn: $isProgressBased)
                 if isProgressBased {
                     progressTextFieldRow(
-                        label: "Current value",
+                        label: "Current",
                         value: $currentValue,
                     )
                     progressTextFieldRow(
-                        label: "Target value",
+                        label: "Target",
                         value: $targetValue,
                     )
                     progressTextFieldRow(
-                        label: "Increment",
+                        label: "Step",
                         value: $incrementValue,
                     )
                     Button {
@@ -316,7 +316,7 @@ struct GoalFormView: View {
             } header: {
                 Text("Progress")
             } footer: {
-                Text("A goal you complete over time by making measurable progress.")
+                Text("Track progress toward a numeric target.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

@@ -25,7 +25,7 @@ struct GoalListView: View {
         NavigationStack {
             Group {
                 if goalStore.goals.isEmpty {
-                    Text("No Goals")
+                    Text("No goals yet")
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)

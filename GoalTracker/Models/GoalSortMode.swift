@@ -24,7 +24,7 @@ enum GoalSortMode: String, CaseIterable, Identifiable {
         case .dueDate:
             "Due Date"
         case .creationDate:
-            "Creation Date"
+            "Date Created"
         case .name:
             "Name"
         }

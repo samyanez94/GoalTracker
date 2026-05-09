@@ -22,7 +22,7 @@ struct GoalDetailView: View {
             detailContent(for: goal)
         } else {
             ContentUnavailableView("Goal Not Found", systemImage: "target")
-                .navigationTitle("Goal Details")
+                .navigationTitle("Goal")
                 .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -58,15 +58,15 @@ struct GoalDetailView: View {
                     .foregroundStyle(goal.isCompleted ? .blue : .secondary)
             }
             if let progress = progress(for: goal) {
-                Section("Current value") {
+                Section("Current") {
                     currentProgressRow(for: progress)
                 }
-                Section("Target value") {
+                Section("Target") {
                     Text(formattedProgressValue(progress.targetValue, for: progress))
                 }
             }
         }
-        .navigationTitle("Goal Details")
+        .navigationTitle("Goal")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

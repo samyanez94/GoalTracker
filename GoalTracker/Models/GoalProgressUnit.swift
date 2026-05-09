@@ -87,7 +87,7 @@ struct GoalProgressUnit: Codable, Hashable, Identifiable {
     static let dollars = GoalProgressUnit(
         id: "currency.usd",
         category: .currency,
-        title: "Dollars",
+        title: "US Dollars",
         abbreviatedTitle: "$",
         prefix: "$",
         suffix: nil,
@@ -105,7 +105,7 @@ struct GoalProgressUnit: Codable, Hashable, Identifiable {
     static let poundsSterling = GoalProgressUnit(
         id: "currency.gbp",
         category: .currency,
-        title: "Great British Pound",
+        title: "British Pound",
         abbreviatedTitle: "GBP",
         prefix: "£",
         suffix: nil,
