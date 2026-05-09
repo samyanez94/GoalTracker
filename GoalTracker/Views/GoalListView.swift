@@ -13,6 +13,8 @@ struct GoalListView: View {
 
     @State private var isPresentingGoalFormView = false
 
+    @State private var sortMode: GoalSortMode = .manual
+
     @State private var isPendingSectionExpanded = true
 
     @State private var isCompletedSectionExpanded = true
@@ -29,18 +31,46 @@ struct GoalListView: View {
                     List {
                         goalSection(
                             title: "Pending",
-                            goals: goalStore.pendingGoals,
+                            goals: goalStore.pendingGoals(sortedBy: sortMode),
                             isExpanded: $isPendingSectionExpanded,
+                            onMove: { source, destination, sortMode in
+                                goalStore.movePendingGoals(
+                                    from: source,
+                                    to: destination,
+                                    sortedBy: sortMode,
+                                )
+                            },
                         )
                         goalSection(
                             title: "Completed",
-                            goals: goalStore.completedGoals,
+                            goals: goalStore.completedGoals(sortedBy: sortMode),
                             isExpanded: $isCompletedSectionExpanded,
+                            onMove: { source, destination, sortMode in
+                                goalStore.moveCompletedGoals(
+                                    from: source,
+                                    to: destination,
+                                    sortedBy: sortMode,
+                                )
+                            },
                         )
                     }
                 }
             }
             .navigationTitle("Goals")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Picker("Sort", selection: $sortMode) {
+                            ForEach(GoalSortMode.allCases) { sortMode in
+                                Text(sortMode.title)
+                                    .tag(sortMode)
+                            }
+                        }
+                    } label: {
+                        Label("Sort", systemImage: "arrow.up.arrow.down")
+                    }
+                }
+            }
             .safeAreaInset(edge: .bottom) {
                 HStack {
                     Spacer()
@@ -74,6 +104,7 @@ struct GoalListView: View {
         title: String,
         goals: [Goal],
         isExpanded: Binding<Bool>,
+        onMove: @escaping (IndexSet, Int, GoalSortMode) -> Void,
     ) -> some View {
         if !goals.isEmpty {
             Section(isExpanded: isExpanded) {
@@ -85,6 +116,12 @@ struct GoalListView: View {
                             toggleCompletion(for: goal)
                         },
                     )
+                }
+                .onMove { source, destination in
+                    defer {
+                        sortMode = .manual
+                    }
+                    onMove(source, destination, sortMode)
                 }
             } header: {
                 CollapsibleSectionHeader(

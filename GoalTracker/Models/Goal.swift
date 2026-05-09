@@ -13,6 +13,7 @@ struct Goal: Identifiable, Codable {
     var description: String?
     let createdAt: Date
     var dueDate: Date?
+    var sortOrder: Int
     var completion: Completion
 
     var isCompleted: Bool {
@@ -50,6 +51,7 @@ struct Goal: Identifiable, Codable {
         description: String?,
         dueDate: Date? = nil,
         createdAt: Date,
+        sortOrder: Int = 0,
         completion: Completion,
     ) {
         self.id = id
@@ -57,6 +59,7 @@ struct Goal: Identifiable, Codable {
         self.description = description
         self.dueDate = dueDate
         self.createdAt = createdAt
+        self.sortOrder = sortOrder
         self.completion = completion
     }
 
