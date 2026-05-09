@@ -15,6 +15,8 @@ struct GoalListView: View {
 
     @State private var sortMode: GoalSortMode = .manual
 
+    @State private var isShowingCompletedGoals = true
+
     @State private var isPendingSectionExpanded = true
 
     @State private var isCompletedSectionExpanded = true
@@ -29,30 +31,25 @@ struct GoalListView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
-                        goalSection(
-                            title: "Pending",
-                            goals: goalStore.pendingGoals(sortedBy: sortMode),
-                            isExpanded: $isPendingSectionExpanded,
-                            onMove: { source, destination, sortMode in
-                                goalStore.movePendingGoals(
-                                    from: source,
-                                    to: destination,
-                                    sortedBy: sortMode,
-                                )
-                            },
-                        )
-                        goalSection(
-                            title: "Completed",
-                            goals: goalStore.completedGoals(sortedBy: sortMode),
-                            isExpanded: $isCompletedSectionExpanded,
-                            onMove: { source, destination, sortMode in
-                                goalStore.moveCompletedGoals(
-                                    from: source,
-                                    to: destination,
-                                    sortedBy: sortMode,
-                                )
-                            },
-                        )
+                        if isShowingCompletedGoals {
+                            goalSection(
+                                title: "Pending",
+                                goals: goalStore.pendingGoals(sortedBy: sortMode),
+                                isExpanded: $isPendingSectionExpanded,
+                                onMove: movePendingGoals,
+                            )
+                            goalSection(
+                                title: "Completed",
+                                goals: goalStore.completedGoals(sortedBy: sortMode),
+                                isExpanded: $isCompletedSectionExpanded,
+                                onMove: moveCompletedGoals,
+                            )
+                        } else {
+                            goalRows(
+                                goals: goalStore.pendingGoals(sortedBy: sortMode),
+                                onMove: movePendingGoals,
+                            )
+                        }
                     }
                 }
             }
@@ -60,14 +57,26 @@ struct GoalListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Picker("Sort", selection: $sortMode) {
-                            ForEach(GoalSortMode.allCases) { sortMode in
-                                Text(sortMode.title)
-                                    .tag(sortMode)
+                        Button {
+                            isShowingCompletedGoals.toggle()
+                        } label: {
+                            Label(
+                                isShowingCompletedGoals ? "Hide Completed" : "Show Completed",
+                                systemImage: isShowingCompletedGoals ? "eye.slash" : "eye",
+                            )
+                        }
+                        Menu {
+                            Picker("Sort", selection: $sortMode) {
+                                ForEach(GoalSortMode.allCases) { sortMode in
+                                    Text(sortMode.title)
+                                        .tag(sortMode)
+                                }
                             }
+                        } label: {
+                            Label("Sort By", systemImage: "arrow.up.arrow.down")
                         }
                     } label: {
-                        Label("Sort", systemImage: "arrow.up.arrow.down")
+                        Label("List Options", systemImage: "ellipsis")
                     }
                 }
             }
@@ -108,21 +117,7 @@ struct GoalListView: View {
     ) -> some View {
         if !goals.isEmpty {
             Section(isExpanded: isExpanded) {
-                ForEach(goals) { goal in
-                    GoalRowView(
-                        goal: goal,
-                        goalStore: goalStore,
-                        onToggleCompletion: { goal in
-                            toggleCompletion(for: goal)
-                        },
-                    )
-                }
-                .onMove { source, destination in
-                    defer {
-                        sortMode = .manual
-                    }
-                    onMove(source, destination, sortMode)
-                }
+                goalRows(goals: goals, onMove: onMove)
             } header: {
                 CollapsibleSectionHeader(
                     title: title,
@@ -130,6 +125,51 @@ struct GoalListView: View {
                 )
             }
         }
+    }
+
+    private func goalRows(
+        goals: [Goal],
+        onMove: @escaping (IndexSet, Int, GoalSortMode) -> Void,
+    ) -> some View {
+        ForEach(goals) { goal in
+            GoalRowView(
+                goal: goal,
+                goalStore: goalStore,
+                onToggleCompletion: { goal in
+                    toggleCompletion(for: goal)
+                },
+            )
+        }
+        .onMove { source, destination in
+            defer {
+                sortMode = .manual
+            }
+            onMove(source, destination, sortMode)
+        }
+    }
+
+    private func movePendingGoals(
+        from source: IndexSet,
+        to destination: Int,
+        sortedBy sortMode: GoalSortMode,
+    ) {
+        goalStore.movePendingGoals(
+            from: source,
+            to: destination,
+            sortedBy: sortMode,
+        )
+    }
+
+    private func moveCompletedGoals(
+        from source: IndexSet,
+        to destination: Int,
+        sortedBy sortMode: GoalSortMode,
+    ) {
+        goalStore.moveCompletedGoals(
+            from: source,
+            to: destination,
+            sortedBy: sortMode,
+        )
     }
 
     private func toggleCompletion(for goal: Goal) {
