@@ -150,6 +150,8 @@ struct Goal: Identifiable, Codable {
         private(set) var targetValue: Double
         /// The amount used when stepping progress up or down.
         private(set) var incrementValue: Double
+        /// The optional unit used when displaying progress values.
+        private(set) var unit: GoalProgressUnit?
 
         /// Whether the current value has reached or exceeded the target value.
         var isCompleted: Bool {
@@ -176,6 +178,7 @@ struct Goal: Identifiable, Codable {
             currentValue: Double,
             targetValue: Double,
             incrementValue: Double = 1,
+            unit: GoalProgressUnit? = nil,
         ) {
             precondition(
                 Self.isValid(
@@ -188,6 +191,7 @@ struct Goal: Identifiable, Codable {
             self.currentValue = currentValue
             self.targetValue = targetValue
             self.incrementValue = incrementValue
+            self.unit = unit
         }
 
         static func isValid(
@@ -229,6 +233,7 @@ struct Goal: Identifiable, Codable {
             let currentValue = try container.decode(Double.self, forKey: .currentValue)
             let targetValue = try container.decode(Double.self, forKey: .targetValue)
             let incrementValue = try container.decodeIfPresent(Double.self, forKey: .incrementValue) ?? 1
+            let unit = try container.decodeIfPresent(GoalProgressUnit.self, forKey: .unit)
             guard Self.isValid(
                 currentValue: currentValue,
                 targetValue: targetValue,
@@ -244,6 +249,7 @@ struct Goal: Identifiable, Codable {
             self.currentValue = currentValue
             self.targetValue = targetValue
             self.incrementValue = incrementValue
+            self.unit = unit
         }
 
         private var upperBound: Double {

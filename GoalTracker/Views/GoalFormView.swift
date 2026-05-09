@@ -55,6 +55,7 @@ private struct InitialState {
     var currentValue: String
     var targetValue: String
     var incrementValue: String
+    var selectedProgressUnit: GoalProgressUnit?
     var outcomeIsCompleted: Bool
 }
 
@@ -102,6 +103,10 @@ struct GoalFormView: View {
 
     @State private var incrementValue: String
 
+    @State private var selectedProgressUnit: GoalProgressUnit?
+
+    @State private var isPresentingUnitSelection = false
+
     private let mode: Mode
 
     private let initialOutcomeIsCompleted: Bool
@@ -125,6 +130,7 @@ struct GoalFormView: View {
         _currentValue = State(initialValue: initialState.currentValue)
         _targetValue = State(initialValue: initialState.targetValue)
         _incrementValue = State(initialValue: initialState.incrementValue)
+        _selectedProgressUnit = State(initialValue: initialState.selectedProgressUnit)
     }
 
     private static func initialState(for data: GoalFormData) -> InitialState {
@@ -140,6 +146,7 @@ struct GoalFormView: View {
                 currentValue: text(for: progress.currentValue),
                 targetValue: text(for: progress.targetValue),
                 incrementValue: text(for: progress.incrementValue),
+                selectedProgressUnit: progress.unit,
                 outcomeIsCompleted: data.completion.isCompleted,
             )
         case .outcome:
@@ -153,6 +160,7 @@ struct GoalFormView: View {
                 currentValue: "",
                 targetValue: "",
                 incrementValue: "1",
+                selectedProgressUnit: nil,
                 outcomeIsCompleted: data.completion.isCompleted,
             )
         }
@@ -289,6 +297,21 @@ struct GoalFormView: View {
                         label: "Increment",
                         value: $incrementValue,
                     )
+                    Button {
+                        isPresentingUnitSelection = true
+                    } label: {
+                        HStack {
+                            Text("Unit")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Text(selectedProgressUnit?.title ?? "None")
+                                .foregroundStyle(.secondary)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
             } header: {
                 Text("Progress")
@@ -327,12 +350,16 @@ struct GoalFormView: View {
                 isDueDatePickerExpanded = hasDueDate
             }
         }
+        .sheet(isPresented: $isPresentingUnitSelection) {
+            NavigationStack {
+                ProgressUnitSelectionView(selectedUnit: $selectedProgressUnit)
+            }
+        }
     }
 
     private func progressTextFieldRow(label: String, value: Binding<String>) -> some View {
         HStack {
             Text(label)
-                .foregroundStyle(.secondary)
             TextField("0", text: value)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
@@ -363,6 +390,7 @@ struct GoalFormView: View {
                     currentValue: parsedProgressValues.currentValue,
                     targetValue: parsedProgressValues.targetValue,
                     incrementValue: parsedProgressValues.incrementValue,
+                    unit: selectedProgressUnit,
                 ),
             )
         } else {
@@ -385,6 +413,59 @@ struct GoalFormView: View {
         }
 
         return String(value)
+    }
+}
+
+private struct ProgressUnitSelectionView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    @Binding var selectedUnit: GoalProgressUnit?
+
+    var body: some View {
+        List {
+            Section("None") {
+                unitButton(title: "None", unit: nil)
+            }
+            ForEach(GoalProgressUnit.presetSections) { section in
+                Section(section.title) {
+                    ForEach(section.units) { unit in
+                        unitButton(title: unit.title, unit: unit)
+                    }
+                }
+            }
+        }
+        .navigationTitle("Unit")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .accessibilityLabel("Close")
+            }
+        }
+    }
+
+    private func unitButton(
+        title: String,
+        unit: GoalProgressUnit?,
+    ) -> some View {
+        Button {
+            selectedUnit = unit
+            dismiss()
+        } label: {
+            HStack {
+                Text(title)
+                Spacer()
+                if selectedUnit == unit {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(.blue)
+                }
+            }
+        }
+        .foregroundStyle(.primary)
     }
 }
 

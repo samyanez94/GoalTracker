@@ -62,7 +62,7 @@ struct GoalDetailView: View {
                     currentProgressRow(for: progress)
                 }
                 Section("Target value") {
-                    Text(progress.targetValue.formatted())
+                    Text(formattedProgressValue(progress.targetValue, for: progress))
                 }
             }
         }
@@ -117,7 +117,17 @@ struct GoalDetailView: View {
     }
 
     private func currentProgressRow(for progress: Goal.Progress) -> some View {
-        Text(progress.currentValue.formatted())
+        Text(formattedProgressValue(progress.currentValue, for: progress))
+    }
+
+    private func formattedProgressValue(
+        _ value: Double,
+        for progress: Goal.Progress,
+    ) -> String {
+        GoalProgressValueFormatter.string(
+            from: value,
+            unit: progress.unit,
+        )
     }
 
     private func progress(for goal: Goal) -> Goal.Progress? {
