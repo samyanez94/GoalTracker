@@ -54,7 +54,7 @@ private struct InitialState {
     var isProgressBased: Bool
     var currentValue: String
     var targetValue: String
-    var incrementValue: String
+    var step: String
     var selectedProgressUnit: GoalProgressUnit?
     var outcomeIsCompleted: Bool
 }
@@ -101,7 +101,7 @@ struct GoalFormView: View {
 
     @State private var targetValue: String
 
-    @State private var incrementValue: String
+    @State private var step: String
 
     @State private var selectedProgressUnit: GoalProgressUnit?
 
@@ -129,7 +129,7 @@ struct GoalFormView: View {
         _isProgressBased = State(initialValue: initialState.isProgressBased)
         _currentValue = State(initialValue: initialState.currentValue)
         _targetValue = State(initialValue: initialState.targetValue)
-        _incrementValue = State(initialValue: initialState.incrementValue)
+        _step = State(initialValue: initialState.step)
         _selectedProgressUnit = State(initialValue: initialState.selectedProgressUnit)
     }
 
@@ -145,7 +145,7 @@ struct GoalFormView: View {
                 isProgressBased: true,
                 currentValue: text(for: progress.currentValue),
                 targetValue: text(for: progress.targetValue),
-                incrementValue: text(for: progress.incrementValue),
+                step: text(for: progress.step),
                 selectedProgressUnit: progress.unit,
                 outcomeIsCompleted: data.completion.isCompleted,
             )
@@ -159,7 +159,7 @@ struct GoalFormView: View {
                 isProgressBased: false,
                 currentValue: "",
                 targetValue: "",
-                incrementValue: "1",
+                step: "1",
                 selectedProgressUnit: nil,
                 outcomeIsCompleted: data.completion.isCompleted,
             )
@@ -178,22 +178,22 @@ struct GoalFormView: View {
         Double(targetValue)
     }
 
-    private var parsedIncrementValue: Double? {
-        Double(incrementValue)
+    private var parsedStep: Double? {
+        Double(step)
     }
 
     private var parsedProgressValues: (
         currentValue: Double,
         targetValue: Double,
-        incrementValue: Double,
+        step: Double,
     )? {
         guard let parsedCurrentValue,
               let parsedTargetValue,
-              let parsedIncrementValue
+              let parsedStep
         else {
             return nil
         }
-        return (parsedCurrentValue, parsedTargetValue, parsedIncrementValue)
+        return (parsedCurrentValue, parsedTargetValue, parsedStep)
     }
 
     private var hasValidProgressValues: Bool {
@@ -203,7 +203,7 @@ struct GoalFormView: View {
         return Goal.Progress.isValid(
             currentValue: parsedProgressValues.currentValue,
             targetValue: parsedProgressValues.targetValue,
-            incrementValue: parsedProgressValues.incrementValue,
+            step: parsedProgressValues.step,
         )
     }
 
@@ -297,7 +297,7 @@ struct GoalFormView: View {
                     )
                     progressTextFieldRow(
                         label: "Step",
-                        value: $incrementValue,
+                        value: $step,
                     )
                     NavigationLink {
                         ProgressUnitSelectionView(selectedUnit: $selectedProgressUnit)
@@ -387,7 +387,7 @@ struct GoalFormView: View {
                 Goal.Progress(
                     currentValue: parsedProgressValues.currentValue,
                     targetValue: parsedProgressValues.targetValue,
-                    incrementValue: parsedProgressValues.incrementValue,
+                    step: parsedProgressValues.step,
                     unit: selectedProgressUnit,
                 ),
             )
@@ -429,7 +429,7 @@ struct GoalFormView: View {
                     description: "Move a little every day.",
                     dueDate: Date(),
                     completion: .progress(
-                        Goal.Progress(currentValue: 3, targetValue: 10, incrementValue: 2),
+                        Goal.Progress(currentValue: 3, targetValue: 10, step: 2),
                     ),
                 ),
             ),

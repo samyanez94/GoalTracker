@@ -149,7 +149,7 @@ struct Goal: Identifiable, Codable {
         /// The value at which the goal is considered complete.
         private(set) var targetValue: Double
         /// The amount used when stepping progress up or down.
-        private(set) var incrementValue: Double
+        private(set) var step: Double
         /// The optional unit used when displaying progress values.
         private(set) var unit: GoalProgressUnit?
 
@@ -177,34 +177,34 @@ struct Goal: Identifiable, Codable {
         init(
             currentValue: Double,
             targetValue: Double,
-            incrementValue: Double = 1,
+            step: Double = 1,
             unit: GoalProgressUnit? = nil,
         ) {
             precondition(
                 Self.isValid(
                     currentValue: currentValue,
                     targetValue: targetValue,
-                    incrementValue: incrementValue,
+                    step: step,
                 ),
                 "Progress values must be finite, non-negative, and within target bounds.",
             )
             self.currentValue = currentValue
             self.targetValue = targetValue
-            self.incrementValue = incrementValue
+            self.step = step
             self.unit = unit
         }
 
         static func isValid(
             currentValue: Double,
             targetValue: Double,
-            incrementValue: Double,
+            step: Double,
         ) -> Bool {
             currentValue.isFinite
                 && targetValue.isFinite
-                && incrementValue.isFinite
+                && step.isFinite
                 && currentValue >= 0
                 && targetValue > 0
-                && incrementValue > 0
+                && step > 0
                 && currentValue <= targetValue
         }
 
@@ -232,12 +232,12 @@ struct Goal: Identifiable, Codable {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             let currentValue = try container.decode(Double.self, forKey: .currentValue)
             let targetValue = try container.decode(Double.self, forKey: .targetValue)
-            let incrementValue = try container.decodeIfPresent(Double.self, forKey: .incrementValue) ?? 1
+            let step = try container.decodeIfPresent(Double.self, forKey: .step) ?? 1
             let unit = try container.decodeIfPresent(GoalProgressUnit.self, forKey: .unit)
             guard Self.isValid(
                 currentValue: currentValue,
                 targetValue: targetValue,
-                incrementValue: incrementValue,
+                step: step,
             ) else {
                 throw DecodingError.dataCorrupted(
                     DecodingError.Context(
@@ -248,16 +248,12 @@ struct Goal: Identifiable, Codable {
             }
             self.currentValue = currentValue
             self.targetValue = targetValue
-            self.incrementValue = incrementValue
+            self.step = step
             self.unit = unit
         }
 
         private var upperBound: Double {
             max(0, targetValue)
-        }
-
-        private var step: Double {
-            incrementValue
         }
 
         @discardableResult
