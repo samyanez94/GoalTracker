@@ -200,10 +200,22 @@ struct GoalProgressUnit: Codable, Hashable, Identifiable {
     )
 
     static let presetSections: [PresetSection] = [
-        PresetSection(title: Category.currency.title, units: [.dollars, .euros, .poundsSterling]),
-        PresetSection(title: Category.time.title, units: [.minutes, .hours, .days, .weeks, .months, .years]),
-        PresetSection(title: Category.weight.title, units: [.pounds, .kilograms]),
-        PresetSection(title: Category.distance.title, units: [.miles, .kilometers]),
+        PresetSection(
+            title: Category.currency.title,
+            units: [.dollars, .euros, .poundsSterling],
+        ),
+        PresetSection(
+            title: Category.time.title,
+            units: [.minutes, .hours, .days, .weeks, .months, .years],
+        ),
+        PresetSection(
+            title: Category.weight.title,
+            units: [.pounds, .kilograms],
+        ),
+        PresetSection(
+            title: Category.distance.title,
+            units: [.miles, .kilometers],
+        ),
     ]
 
     static func preset(withID id: String) -> GoalProgressUnit? {

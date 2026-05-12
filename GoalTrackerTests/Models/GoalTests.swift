@@ -5,14 +5,14 @@
 //  Created by Codex on 5/9/26.
 //
 
-@testable import GoalTracker
 import Foundation
+@testable import GoalTracker
 import Testing
 
 @Suite("Goal.Progress tests")
 struct GoalProgressTests {
-    @Test("Complete sets current value to target")
-    func completeSetsCurrentValueToTargetValue() {
+    @Test
+    func `Complete sets current value to target`() {
         var progress = makeProgress(currentValue: 3, targetValue: 10)
 
         let didChange = progress.complete()
@@ -21,8 +21,8 @@ struct GoalProgressTests {
         #expect(progress.currentValue == 10)
     }
 
-    @Test("Reset sets current value to zero")
-    func resetSetsCurrentValueToZero() {
+    @Test
+    func `Reset sets current value to zero`() {
         var progress = makeProgress(currentValue: 3, targetValue: 10)
 
         let didChange = progress.reset()
@@ -31,8 +31,8 @@ struct GoalProgressTests {
         #expect(progress.currentValue == 0)
     }
 
-    @Test("Increment increases current value by step")
-    func incrementIncreasesCurrentValueByStep() {
+    @Test
+    func `Increment increases current value by step`() {
         var progress = makeProgress(currentValue: 2, targetValue: 10, step: 2.5)
 
         let didChange = progress.increment()
@@ -41,8 +41,8 @@ struct GoalProgressTests {
         #expect(progress.currentValue == 4.5)
     }
 
-    @Test("Decrement decreases current value by step")
-    func decrementDecreasesCurrentValueByStep() {
+    @Test
+    func `Decrement decreases current value by step`() {
         var progress = makeProgress(currentValue: 6, targetValue: 10, step: 2.5)
 
         let didChange = progress.decrement()
@@ -51,8 +51,8 @@ struct GoalProgressTests {
         #expect(progress.currentValue == 3.5)
     }
 
-    @Test("Increment clamps at target value")
-    func incrementClampsAtTargetValue() {
+    @Test
+    func `Increment clamps at target value`() {
         var progress = makeProgress(currentValue: 8, targetValue: 10, step: 5)
 
         let didChange = progress.increment()
@@ -61,8 +61,8 @@ struct GoalProgressTests {
         #expect(progress.currentValue == 10)
     }
 
-    @Test("Decrement clamps at zero")
-    func decrementClampsAtZero() {
+    @Test
+    func `Decrement clamps at zero`() {
         var progress = makeProgress(currentValue: 2, targetValue: 10, step: 5)
 
         let didChange = progress.decrement()
@@ -71,8 +71,8 @@ struct GoalProgressTests {
         #expect(progress.currentValue == 0)
     }
 
-    @Test("Progress methods report whether state changed")
-    func methodsReturnTrueOnlyWhenStateChanges() {
+    @Test
+    func `Progress methods report whether state changed`() {
         var progress = makeProgress(currentValue: 0, targetValue: 10, step: 5)
 
         let resetAtZeroChanged = progress.reset()
@@ -90,14 +90,14 @@ struct GoalProgressTests {
         #expect(incrementAtTargetChanged == false)
     }
 
-    @Test("isCompleted is true when current value reaches target")
-    func isCompletedIsTrueWhenCurrentValueReachesTargetValue() {
+    @Test
+    func `isCompleted is true when current value reaches target`() {
         #expect(makeProgress(currentValue: 9.5, targetValue: 10).isCompleted == false)
         #expect(makeProgress(currentValue: 10, targetValue: 10).isCompleted == true)
     }
 
-    @Test("fractionCompleted returns current value divided by target")
-    func fractionCompletedReturnsCurrentValueDividedByTargetValue() {
+    @Test
+    func `fractionCompleted returns current value divided by target`() {
         let progress = makeProgress(currentValue: 4, targetValue: 10)
 
         #expect(progress.fractionCompleted == 0.4)
@@ -118,8 +118,8 @@ struct GoalProgressTests {
 
 @Suite("Goal.Completion tests")
 struct GoalCompletionTests {
-    @Test("Putcome completion can complete, mark pending, and toggle")
-    func outcomeCanBeCompletedMarkedPendingAndToggled() {
+    @Test
+    func `Outcome completion can complete, mark pending, and toggle`() {
         var completion = Goal.Completion.outcome(isCompleted: false)
 
         let completeChanged = completion.complete()
@@ -143,8 +143,8 @@ struct GoalCompletionTests {
         #expect(completion.isCompleted == false)
     }
 
-    @Test("Progress completion delegates complete and reset")
-    func progressCompletionDelegatesCompleteAndReset() {
+    @Test
+    func `Progress completion delegates complete and reset`() {
         var completion = Goal.Completion.progress(
             Goal.Progress(currentValue: 4, targetValue: 10),
         )
@@ -162,8 +162,8 @@ struct GoalCompletionTests {
         #expect(completion.fractionCompleted == 0)
     }
 
-    @Test("{rogress completion delegates increment and decrement")
-    func progressCompletionDelegatesIncrementAndDecrement() {
+    @Test
+    func `Progress completion delegates increment and decrement`() {
         var completion = Goal.Completion.progress(
             Goal.Progress(currentValue: 4, targetValue: 10, step: 2),
         )
@@ -179,8 +179,8 @@ struct GoalCompletionTests {
         #expect(completion.fractionCompleted == 0.4)
     }
 
-    @Test("Progress changes return false for outcome goals")
-    func progressChangesReturnFalseForOutcomeGoals() {
+    @Test
+    func `Progress changes return false for outcome goals`() {
         var completion = Goal.Completion.outcome(isCompleted: false)
 
         let incrementChanged = completion.incrementProgress()
@@ -190,8 +190,8 @@ struct GoalCompletionTests {
         #expect(decrementChanged == false)
     }
 
-    @Test("outcome fractionCompleted returns one or zero")
-    func outcomeFractionCompletedReturnsOneOrZero() {
+    @Test
+    func `Outcome fractionCompleted returns one or zero`() {
         #expect(Goal.Completion.outcome(isCompleted: false).fractionCompleted == 0)
         #expect(Goal.Completion.outcome(isCompleted: true).fractionCompleted == 1)
     }
@@ -199,14 +199,14 @@ struct GoalCompletionTests {
 
 @Suite("Goal tests")
 struct GoalTests {
-    @Test("Goal isCompleted delegates to completion")
-    func isCompletedDelegatesToCompletion() {
+    @Test
+    func `Goal isCompleted delegates to completion`() {
         #expect(makeGoal(completion: .outcome(isCompleted: false)).isCompleted == false)
         #expect(makeGoal(completion: .outcome(isCompleted: true)).isCompleted == true)
     }
 
-    @Test("Goal complete delegates to completion and updates state")
-    func completeDelegatesToCompletionAndUpdatesGoal() {
+    @Test
+    func `Goal complete delegates to completion and updates state`() {
         var goal = makeGoal(completion: .outcome(isCompleted: false))
 
         let didChange = goal.complete()
@@ -215,8 +215,8 @@ struct GoalTests {
         #expect(goal.isCompleted)
     }
 
-    @Test("Goal markPending delegates to completion and updates state")
-    func markPendingDelegatesToCompletionAndUpdatesGoal() {
+    @Test
+    func `Goal markPending delegates to completion and updates state`() {
         var goal = makeGoal(completion: .outcome(isCompleted: true))
 
         let didChange = goal.markPending()
@@ -225,8 +225,8 @@ struct GoalTests {
         #expect(goal.isCompleted == false)
     }
 
-    @Test("Goal toggleCompletion delegates to completion and updates state")
-    func toggleCompletionDelegatesToCompletionAndUpdatesGoal() {
+    @Test
+    func `Goal toggleCompletion delegates to completion and updates state`() {
         var goal = makeGoal(completion: .outcome(isCompleted: false))
 
         let firstToggleChanged = goal.toggleCompletion()
@@ -240,8 +240,8 @@ struct GoalTests {
         #expect(goal.isCompleted == false)
     }
 
-    @Test("Goal progress changes delegate to completion and update state")
-    func progressChangesDelegateToCompletionAndUpdateGoal() {
+    @Test
+    func `Goal progress changes delegate to completion and update state`() {
         var goal = makeGoal(
             completion: .progress(
                 Goal.Progress(currentValue: 4, targetValue: 10, step: 2),
@@ -272,8 +272,8 @@ struct GoalTests {
 @MainActor
 @Suite("Goal+Codable tests")
 struct GoalCodableTests {
-    @Test("Valid progress values decode successfully")
-    func validProgressValuesDecodeSuccessfully() throws {
+    @Test
+    func `Valid progress values decode successfully`() throws {
         let progress = try decodeProgress(
             """
             {
@@ -289,8 +289,8 @@ struct GoalCodableTests {
         #expect(progress.step == 2)
     }
 
-    @Test("Invalid progress values throw a DecodingError")
-    func invalidProgressValuesThrowDecodingError() {
+    @Test
+    func `Invalid progress values throw a DecodingError`() {
         #expect(throws: DecodingError.self) {
             try decodeProgress(
                 """
@@ -304,8 +304,8 @@ struct GoalCodableTests {
         }
     }
 
-    @Test("Missing step decodes with default of one")
-    func missingStepDecodesWithDefaultValueOfOne() throws {
+    @Test
+    func `Missing step decodes with default of one`() throws {
         let progress = try decodeProgress(
             """
             {
