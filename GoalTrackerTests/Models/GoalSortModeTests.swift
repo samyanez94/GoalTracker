@@ -12,7 +12,7 @@ import Testing
 @Suite
 struct GoalSortModeTests {
   @Test
-  func `titles are human readable`() {
+  func `Titles are human readable`() {
     #expect(GoalSortMode.manual.title == "Manual")
     #expect(GoalSortMode.dueDate.title == "Due Date")
     #expect(GoalSortMode.creationDate.title == "Date Created")
