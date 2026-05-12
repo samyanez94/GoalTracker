@@ -10,7 +10,7 @@ import Foundation
 import Testing
 
 @MainActor
-@Suite("GoalDueDateFormatter tests")
+@Suite
 struct GoalDueDateFormatterTests {
     @Test
     func `Formats dates using medium date style`() {
