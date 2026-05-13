@@ -10,7 +10,7 @@ import SwiftUI
 struct GoalDetailView: View {
   @Environment(\.dismiss) private var dismiss
 
-  @State private var isPresentingEditGoalView = false
+  @State private var editingGoal: Goal?
 
   @State private var feedbackTrigger = false
 
@@ -73,7 +73,7 @@ struct GoalDetailView: View {
       ToolbarItem(placement: .topBarTrailing) {
         Menu("Goal Actions", systemImage: "ellipsis") {
           Button {
-            isPresentingEditGoalView = true
+            editingGoal = goal
           } label: {
             Label("Edit", systemImage: "pencil")
           }
@@ -97,16 +97,12 @@ struct GoalDetailView: View {
         .labelStyle(.iconOnly)
       }
     }
-    .sheet(isPresented: $isPresentingEditGoalView) {
+    .sheet(item: $editingGoal) { currentGoal in
       NavigationStack {
-        if let currentGoal = self.goal {
-          GoalFormView(
-            mode: .edit(GoalFormData(goal: currentGoal)),
-          ) { data in
-            saveEdits(data)
-          }
-        } else {
-          ContentUnavailableView("Goal Not Found", systemImage: "target")
+        GoalFormView(
+          mode: .edit(GoalFormData(goal: currentGoal)),
+        ) { data in
+          saveEdits(data)
         }
       }
     }

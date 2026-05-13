@@ -8,70 +8,78 @@
 import SwiftUI
 
 struct ProgressUnitSelectionView: View {
-    @Environment(\.dismiss) private var dismiss
+  private enum Destination: Hashable {
+    case customUnit
+  }
 
-    @Binding var selectedUnit: GoalProgressUnit?
+  @Environment(\.dismiss) private var dismiss
 
-    @State private var customUnit: GoalProgressUnit?
+  @Binding var selectedUnit: GoalProgressUnit?
 
-    init(selectedUnit: Binding<GoalProgressUnit?>) {
-        _selectedUnit = selectedUnit
-        let initialUnit = selectedUnit.wrappedValue
-        _customUnit = State(initialValue: initialUnit?.category == .custom ? initialUnit : nil)
-    }
+  @State private var customUnit: GoalProgressUnit?
 
-    var body: some View {
-        List {
-            Section("None") {
-                unitButton(title: "None", unit: nil)
-            }
-            ForEach(GoalProgressUnit.presetSections) { section in
-                Section(section.title) {
-                    ForEach(section.units) { unit in
-                        unitButton(title: unit.title, unit: unit)
-                    }
-                }
-            }
-            Section {
-                NavigationLink {
-                    CustomUnitFormView(initialUnit: customUnit) { unit in
-                        customUnit = unit
-                        selectedUnit = unit
-                    }
-                } label: {
-                    HStack {
-                        Text("Custom")
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        if let customUnit {
-                            Text(customUnit.title)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-            }
+  init(selectedUnit: Binding<GoalProgressUnit?>) {
+    _selectedUnit = selectedUnit
+    let initialUnit = selectedUnit.wrappedValue
+    _customUnit = State(initialValue: initialUnit?.category == .custom ? initialUnit : nil)
+  }
+
+  var body: some View {
+    List {
+      Section("None") {
+        unitButton(title: "None", unit: nil)
+      }
+      ForEach(GoalProgressUnit.presetSections) { section in
+        Section(section.title) {
+          ForEach(section.units) { unit in
+            unitButton(title: unit.title, unit: unit)
+          }
         }
-        .navigationTitle("Unit")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func unitButton(
-        title: String,
-        unit: GoalProgressUnit?,
-    ) -> some View {
-        Button {
-            selectedUnit = unit
-            dismiss()
-        } label: {
-            HStack {
-                Text(title)
-                Spacer()
-                if selectedUnit == unit {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(.blue)
-                }
+      }
+      Section {
+        NavigationLink(value: Destination.customUnit) {
+          HStack {
+            Text("Custom")
+              .foregroundStyle(.primary)
+            Spacer()
+            if let customUnit {
+              Text(customUnit.title)
+                .foregroundStyle(.secondary)
             }
+          }
         }
-        .foregroundStyle(.primary)
+      }
     }
+    .navigationTitle("Unit")
+    .navigationBarTitleDisplayMode(.inline)
+    .navigationDestination(for: Destination.self) { destination in
+      switch destination {
+      case .customUnit:
+        CustomUnitFormView(initialUnit: customUnit) { unit in
+          customUnit = unit
+          selectedUnit = unit
+        }
+      }
+    }
+  }
+
+  private func unitButton(
+    title: String,
+    unit: GoalProgressUnit?,
+  ) -> some View {
+    Button {
+      selectedUnit = unit
+      dismiss()
+    } label: {
+      HStack {
+        Text(title)
+        Spacer()
+        if selectedUnit == unit {
+          Image(systemName: "checkmark")
+            .foregroundStyle(.blue)
+        }
+      }
+    }
+    .foregroundStyle(.primary)
+  }
 }

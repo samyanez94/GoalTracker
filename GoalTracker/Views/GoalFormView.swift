@@ -60,6 +60,10 @@ private struct InitialState {
 }
 
 struct GoalFormView: View {
+  private enum Destination: Hashable {
+    case progressUnit
+  }
+
   enum Mode {
     case create
     case edit(GoalFormData)
@@ -266,9 +270,7 @@ struct GoalFormView: View {
             label: "Step",
             value: $step,
           )
-          NavigationLink {
-            ProgressUnitSelectionView(selectedUnit: $selectedProgressUnit)
-          } label: {
+          NavigationLink(value: Destination.progressUnit) {
             HStack {
               Text("Unit")
                 .foregroundStyle(.primary)
@@ -312,6 +314,12 @@ struct GoalFormView: View {
     }
     .onChange(of: isProgressBased) {
       isTextInputFocused = false
+    }
+    .navigationDestination(for: Destination.self) { destination in
+      switch destination {
+      case .progressUnit:
+        ProgressUnitSelectionView(selectedUnit: $selectedProgressUnit)
+      }
     }
   }
 

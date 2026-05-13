@@ -104,6 +104,12 @@ struct GoalListView: View {
           }
         }
       }
+      .navigationDestination(for: Goal.ID.self) { goalId in
+        GoalDetailView(
+          goalId: goalId,
+          goalStore: goalStore,
+        )
+      }
     }
   }
 
