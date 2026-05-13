@@ -304,9 +304,9 @@ struct GoalTests {
     }
 
     @Test
-    func `Invalid progress values throw a DecodingError`() {
-      #expect(throws: DecodingError.self) {
-        try decodeProgress(
+    func `Invalid progress values throw a data corrupted error`() {
+      do {
+        _ = try decodeProgress(
           """
           {
               "currentValue": 11,
@@ -315,6 +315,11 @@ struct GoalTests {
           }
           """,
         )
+        Issue.record("Expected invalid progress values to throw.")
+      } catch DecodingError.dataCorrupted {
+        // Expected.
+      } catch {
+        Issue.record("Expected dataCorrupted, got \(error).")
       }
     }
 

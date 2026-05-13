@@ -267,16 +267,24 @@ struct GoalStoreTests {
   }
 
   @MainActor
-  private struct StoreFixture {
+  private final class StoreFixture {
+    let directoryURL: URL
     let fileURL: URL
     let persistence: GoalPersistence
 
     init(persistedGoals: [Goal] = []) throws {
-      fileURL = FileManager.default.temporaryDirectory
-        .appending(path: UUID().uuidString, directoryHint: .isDirectory)
-        .appending(path: "goals.json")
+      directoryURL = FileManager.default.temporaryDirectory
+        .appending(
+          path: UUID().uuidString,
+          directoryHint: .isDirectory
+        )
+      fileURL = directoryURL.appending(path: "goals.json")
       persistence = GoalPersistence(fileURL: fileURL)
       try persistence.saveGoals(persistedGoals)
+    }
+
+    deinit {
+      try? FileManager.default.removeItem(at: directoryURL)
     }
 
     func savedGoals() throws -> [Goal] {
