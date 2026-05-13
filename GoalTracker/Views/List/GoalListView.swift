@@ -31,21 +31,27 @@ struct GoalListView: View {
         } else {
           List {
             if isShowingCompletedGoals {
-              goalSection(
+              GoalSectionView(
                 title: "Pending",
                 goals: goalStore.pendingGoals(sortedBy: sortMode),
                 isExpanded: $isPendingSectionExpanded,
+                goalStore: goalStore,
+                sortMode: $sortMode,
                 onMove: movePendingGoals,
               )
-              goalSection(
+              GoalSectionView(
                 title: "Completed",
                 goals: goalStore.completedGoals(sortedBy: sortMode),
                 isExpanded: $isCompletedSectionExpanded,
+                goalStore: goalStore,
+                sortMode: $sortMode,
                 onMove: moveCompletedGoals,
               )
             } else {
-              goalRows(
+              GoalRowsView(
                 goals: goalStore.pendingGoals(sortedBy: sortMode),
+                goalStore: goalStore,
+                sortMode: $sortMode,
                 onMove: movePendingGoals,
               )
             }
@@ -113,43 +119,6 @@ struct GoalListView: View {
     }
   }
 
-  @ViewBuilder
-  private func goalSection(
-    title: String,
-    goals: [Goal],
-    isExpanded: Binding<Bool>,
-    onMove: @escaping (IndexSet, Int, GoalSortMode) -> Void,
-  ) -> some View {
-    if !goals.isEmpty {
-      Section(isExpanded: isExpanded) {
-        goalRows(goals: goals, onMove: onMove)
-      } header: {
-        CollapsibleSectionHeader(
-          title: title,
-          isExpanded: isExpanded,
-        )
-      }
-    }
-  }
-
-  private func goalRows(
-    goals: [Goal],
-    onMove: @escaping (IndexSet, Int, GoalSortMode) -> Void,
-  ) -> some View {
-    ForEach(goals) { goal in
-      GoalRowView(
-        goal: goal,
-        goalStore: goalStore,
-      )
-    }
-    .onMove { source, destination in
-      defer {
-        sortMode = .manual
-      }
-      onMove(source, destination, sortMode)
-    }
-  }
-
   private func movePendingGoals(
     from source: IndexSet,
     to destination: Int,
@@ -172,58 +141,6 @@ struct GoalListView: View {
       to: destination,
       sortedBy: sortMode,
     )
-  }
-}
-
-private struct CollapsibleSectionHeader: View {
-  let title: String
-
-  @Binding var isExpanded: Bool
-
-  var body: some View {
-    Button {
-      withAnimation {
-        isExpanded.toggle()
-      }
-    } label: {
-      HStack(spacing: 6) {
-        Text(title)
-        Image(systemName: "chevron.right")
-          .font(.caption.weight(.semibold))
-          .rotationEffect(.degrees(isExpanded ? 90 : 0))
-        Spacer()
-      }
-      .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-    .accessibilityLabel(title)
-    .accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
-  }
-}
-
-private struct AddGoalButton: View {
-  let action: () -> Void
-
-  @State private var feedbackTrigger = false
-
-  var body: some View {
-    Button {
-      feedbackTrigger.toggle()
-      action()
-    } label: {
-      Label("Add Goal", systemImage: "plus")
-        .font(.system(size: 22, weight: .semibold))
-        .labelStyle(.iconOnly)
-        .frame(width: 56, height: 56)
-    }
-    .tint(.blue)
-    .buttonStyle(.glassProminent)
-    .buttonBorderShape(.circle)
-    .shadow(
-      color: .black.opacity(0.16),
-      radius: 12, x: 0, y: 6,
-    )
-    .sensoryFeedback(.impact(weight: .light), trigger: feedbackTrigger)
   }
 }
 

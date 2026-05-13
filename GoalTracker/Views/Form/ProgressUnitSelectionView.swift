@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-struct ProgressUnitSelectionView: View {
-  private enum Destination: Hashable {
-    case customUnit
-  }
+private enum ProgressUnitSelectionDestination: Hashable {
+  case customUnit
+}
 
+struct ProgressUnitSelectionView: View {
   @Environment(\.dismiss) private var dismiss
 
   @Binding var selectedUnit: GoalProgressUnit?
@@ -27,17 +27,29 @@ struct ProgressUnitSelectionView: View {
   var body: some View {
     List {
       Section("None") {
-        unitButton(title: "None", unit: nil)
+        ProgressUnitButton(
+          title: "None",
+          unit: nil,
+          selectedUnit: $selectedUnit,
+        ) {
+          dismiss()
+        }
       }
       ForEach(GoalProgressUnit.presetSections) { section in
         Section(section.title) {
           ForEach(section.units) { unit in
-            unitButton(title: unit.title, unit: unit)
+            ProgressUnitButton(
+              title: unit.title,
+              unit: unit,
+              selectedUnit: $selectedUnit,
+            ) {
+              dismiss()
+            }
           }
         }
       }
       Section {
-        NavigationLink(value: Destination.customUnit) {
+        NavigationLink(value: ProgressUnitSelectionDestination.customUnit) {
           HStack {
             Text("Custom")
               .foregroundStyle(.primary)
@@ -52,7 +64,7 @@ struct ProgressUnitSelectionView: View {
     }
     .navigationTitle("Unit")
     .navigationBarTitleDisplayMode(.inline)
-    .navigationDestination(for: Destination.self) { destination in
+    .navigationDestination(for: ProgressUnitSelectionDestination.self) { destination in
       switch destination {
       case .customUnit:
         CustomUnitFormView(initialUnit: customUnit) { unit in
@@ -61,25 +73,5 @@ struct ProgressUnitSelectionView: View {
         }
       }
     }
-  }
-
-  private func unitButton(
-    title: String,
-    unit: GoalProgressUnit?,
-  ) -> some View {
-    Button {
-      selectedUnit = unit
-      dismiss()
-    } label: {
-      HStack {
-        Text(title)
-        Spacer()
-        if selectedUnit == unit {
-          Image(systemName: "checkmark")
-            .foregroundStyle(.blue)
-        }
-      }
-    }
-    .foregroundStyle(.primary)
   }
 }

@@ -7,45 +7,34 @@
 
 import SwiftUI
 
-struct GoalFormData {
-  var name: String
-  var description: String
-  var dueDate: Date?
-  var completion: Goal.Completion
+enum GoalFormMode {
+  case create
+  case edit(GoalFormData)
 
-  static let empty = GoalFormData(
-    name: "",
-    description: "",
-    dueDate: nil,
-    completion: .outcome(isCompleted: false),
-  )
-
-  init(goal: Goal) {
-    name = goal.name
-    description = goal.description ?? ""
-    dueDate = goal.dueDate
-    completion = goal.completion
+  var title: String {
+    switch self {
+    case .create:
+      "New Goal"
+    case .edit:
+      "Edit Goal"
+    }
   }
 
-  init(
-    name: String,
-    description: String,
-    dueDate: Date? = nil,
-    completion: Goal.Completion,
-  ) {
-    self.name = name
-    self.description = description
-    self.dueDate = dueDate
-    self.completion = completion
-  }
-
-  var normalizedDescription: String? {
-    let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
-    return trimmedDescription.isEmpty ? nil : trimmedDescription
+  var initialData: GoalFormData {
+    switch self {
+    case .create:
+      .empty
+    case .edit(let data):
+      data
+    }
   }
 }
 
-private struct InitialState {
+private enum GoalFormDestination: Hashable {
+  case progressUnit
+}
+
+private struct GoalFormInitialState {
   var name: String
   var description: String
   var hasDueDate: Bool
@@ -60,33 +49,6 @@ private struct InitialState {
 }
 
 struct GoalFormView: View {
-  private enum Destination: Hashable {
-    case progressUnit
-  }
-
-  enum Mode {
-    case create
-    case edit(GoalFormData)
-
-    var title: String {
-      switch self {
-      case .create:
-        "New Goal"
-      case .edit:
-        "Edit Goal"
-      }
-    }
-
-    var initialData: GoalFormData {
-      switch self {
-      case .create:
-        .empty
-      case .edit(let data):
-        data
-      }
-    }
-  }
-
   @Environment(\.dismiss) private var dismiss
 
   @State private var name: String
@@ -111,14 +73,14 @@ struct GoalFormView: View {
 
   @FocusState private var isTextInputFocused: Bool
 
-  private let mode: Mode
+  private let mode: GoalFormMode
 
   private let initialOutcomeIsCompleted: Bool
 
   private let onSave: (GoalFormData) -> Void
 
   init(
-    mode: Mode,
+    mode: GoalFormMode,
     onSave: @escaping (GoalFormData) -> Void,
   ) {
     self.mode = mode
@@ -137,10 +99,10 @@ struct GoalFormView: View {
     _selectedProgressUnit = State(initialValue: initialState.selectedProgressUnit)
   }
 
-  private static func initialState(for data: GoalFormData) -> InitialState {
+  private static func initialState(for data: GoalFormData) -> GoalFormInitialState {
     switch data.completion {
     case .progress(let progress):
-      InitialState(
+      GoalFormInitialState(
         name: data.name,
         description: data.description,
         hasDueDate: data.dueDate != nil,
@@ -154,7 +116,7 @@ struct GoalFormView: View {
         outcomeIsCompleted: data.completion.isCompleted,
       )
     case .outcome:
-      InitialState(
+      GoalFormInitialState(
         name: data.name,
         description: data.description,
         hasDueDate: data.dueDate != nil,
@@ -219,23 +181,11 @@ struct GoalFormView: View {
       }
       Section {
         HStack {
-          Button(action: toggleDueDatePicker) {
-            HStack {
-              Image(systemName: "calendar")
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 4)
-              VStack(alignment: .leading, spacing: 2) {
-                Text("Due Date")
-                if hasDueDate {
-                  Text(GoalDueDateFormatter.string(from: dueDate))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                }
-              }
-              Spacer()
-            }
-          }
-          .buttonStyle(.plain)
+          DueDateSummaryButton(
+            hasDueDate: hasDueDate,
+            dueDate: dueDate,
+            action: toggleDueDatePicker,
+          )
           Toggle(
             "Due Date",
             isOn: $hasDueDate,
@@ -258,19 +208,22 @@ struct GoalFormView: View {
       Section {
         Toggle("Track progress", isOn: $isProgressBased)
         if isProgressBased {
-          progressTextFieldRow(
+          ProgressTextFieldRow(
             label: "Current",
             value: $currentValue,
+            focus: $isTextInputFocused,
           )
-          progressTextFieldRow(
+          ProgressTextFieldRow(
             label: "Target",
             value: $targetValue,
+            focus: $isTextInputFocused,
           )
-          progressTextFieldRow(
+          ProgressTextFieldRow(
             label: "Step",
             value: $step,
+            focus: $isTextInputFocused,
           )
-          NavigationLink(value: Destination.progressUnit) {
+          NavigationLink(value: GoalFormDestination.progressUnit) {
             HStack {
               Text("Unit")
                 .foregroundStyle(.primary)
@@ -315,21 +268,11 @@ struct GoalFormView: View {
     .onChange(of: isProgressBased) {
       isTextInputFocused = false
     }
-    .navigationDestination(for: Destination.self) { destination in
+    .navigationDestination(for: GoalFormDestination.self) { destination in
       switch destination {
       case .progressUnit:
         ProgressUnitSelectionView(selectedUnit: $selectedProgressUnit)
       }
-    }
-  }
-
-  private func progressTextFieldRow(label: String, value: Binding<Double>) -> some View {
-    HStack {
-      Text(label)
-      TextField("0", value: value, format: .number)
-        .focused($isTextInputFocused)
-        .keyboardType(.decimalPad)
-        .multilineTextAlignment(.trailing)
     }
   }
 
