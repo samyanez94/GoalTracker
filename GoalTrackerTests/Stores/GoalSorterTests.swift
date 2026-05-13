@@ -10,6 +10,7 @@ import Testing
 
 @testable import GoalTracker
 
+@MainActor
 @Suite
 struct GoalSorterTests {
   private let sorter = GoalSorter()

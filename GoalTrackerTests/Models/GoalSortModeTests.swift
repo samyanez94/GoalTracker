@@ -9,6 +9,7 @@ import Testing
 
 @testable import GoalTracker
 
+@MainActor
 @Suite
 struct GoalSortModeTests {
   @Test
