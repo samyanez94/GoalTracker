@@ -22,7 +22,7 @@ struct GoalTests {
 
   @Test
   func `Goal complete delegates to progress and updates state`() {
-    var goal = makeGoal(progress: .outcomePending)
+    let goal = makeGoal(progress: .outcomePending)
 
     let didChange = goal.complete()
 
@@ -32,7 +32,7 @@ struct GoalTests {
 
   @Test
   func `Goal markPending delegates to progress and updates state`() {
-    var goal = makeGoal(progress: .outcomeCompleted)
+    let goal = makeGoal(progress: .outcomeCompleted)
 
     let didChange = goal.markPending()
 
@@ -42,7 +42,7 @@ struct GoalTests {
 
   @Test
   func `Goal toggleCompletion delegates to progress and updates state`() {
-    var goal = makeGoal(progress: .outcomePending)
+    let goal = makeGoal(progress: .outcomePending)
 
     let firstToggleChanged = goal.toggleCompletion()
     let secondToggleChanged = goal.toggleCompletion()

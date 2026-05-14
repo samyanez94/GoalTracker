@@ -10,12 +10,29 @@ import SwiftUI
 
 @main
 struct GoalTrackerApp: App {
-  @State private var goalStore = GoalStore()
-
   var body: some Scene {
     WindowGroup {
-      GoalListView(goalStore: goalStore)
+      GoalTrackerRootView()
     }
     .modelContainer(for: [Goal.self, GoalProgressEntry.self])
+  }
+}
+
+private struct GoalTrackerRootView: View {
+  @Environment(\.modelContext) private var modelContext
+
+  @State private var goalStore: GoalStore?
+
+  var body: some View {
+    Group {
+      if let goalStore {
+        GoalListView(goalStore: goalStore)
+      } else {
+        ProgressView()
+          .task {
+            goalStore = GoalStore(modelContext: modelContext)
+          }
+      }
+    }
   }
 }
