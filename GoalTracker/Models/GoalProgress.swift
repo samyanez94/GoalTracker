@@ -8,7 +8,7 @@
 import Foundation
 
 /// Tracks the state used to determine whether a goal is complete.
-struct GoalProgress: Codable {
+nonisolated struct GoalProgress: Codable {
   /// Whether this progress represents a binary outcome or a measurable target.
   private(set) var kind: GoalProgressKind
   /// The user's current progress toward the target value.

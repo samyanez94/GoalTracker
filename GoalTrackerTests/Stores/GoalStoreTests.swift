@@ -13,55 +13,42 @@ import Testing
 @MainActor
 struct GoalStoreTests {
   @Test
-  func `Initializes with provided goals instead of loading persisted goals`() throws {
-    let fixture = try StoreFixture(persistedGoals: [goal(named: "Persisted")])
+  func `Initializes with provided goals`() {
     let providedGoal = goal(named: "Provided")
 
-    let store = GoalStore(goals: [providedGoal], persistence: fixture.persistence)
+    let store = GoalStore(goals: [providedGoal])
 
     #expect(store.goals.map(\.name) == ["Provided"])
   }
 
   @Test
-  func `Initializes by loading persisted goals when goals are not provided`() throws {
-    let persistedGoals = [
-      goal(named: "First", sortOrder: 0),
-      goal(named: "Second", sortOrder: 1),
-    ]
-    let fixture = try StoreFixture(persistedGoals: persistedGoals)
+  func `Initializes with empty goals by default`() {
+    let store = GoalStore()
 
-    let store = GoalStore(persistence: fixture.persistence)
-
-    #expect(store.goals.map(\.id) == persistedGoals.map(\.id))
+    #expect(store.goals.isEmpty)
   }
 
   @Test
-  func `Add goal assigns next sort order for its completion section and saves`() throws {
+  func `Add goal assigns next sort order for its completion section`() throws {
     let completedGoal = goal(
       named: "Completed",
       sortOrder: 8,
       progress: .outcomeCompleted,
     )
     let pendingGoal = goal(named: "Pending", sortOrder: 2)
-    let fixture = try StoreFixture()
-    let store = GoalStore(
-      goals: [completedGoal, pendingGoal],
-      persistence: fixture.persistence,
-    )
+    let store = GoalStore(goals: [completedGoal, pendingGoal])
 
     store.addGoal(goal(named: "New Pending", sortOrder: 99))
 
     let addedGoal = try #require(store.goals.last)
     #expect(addedGoal.name == "New Pending")
     #expect(addedGoal.sortOrder == 3)
-    #expect(try fixture.savedGoals().map(\.name) == ["Completed", "Pending", "New Pending"])
   }
 
   @Test
-  func `Update goal changes existing values and saves`() throws {
+  func `Update goal changes existing values`() throws {
     let originalGoal = goal(named: "Original")
-    let fixture = try StoreFixture()
-    let store = GoalStore(goals: [originalGoal], persistence: fixture.persistence)
+    let store = GoalStore(goals: [originalGoal])
     let updatedGoal = Goal(
       id: originalGoal.id,
       name: "Updated",
@@ -77,21 +64,18 @@ struct GoalStoreTests {
     #expect(didUpdate)
     #expect(store.goals.first?.name == "Updated")
     #expect(store.goals.first?.details == "Updated description")
-    #expect(try fixture.savedGoals().first?.name == "Updated")
   }
 
   @Test
-  func `Update goal returns false and does not save when id is missing`() throws {
+  func `Update goal returns false when id is missing`() {
     let originalGoal = goal(named: "Original")
-    let fixture = try StoreFixture()
-    let store = GoalStore(goals: [originalGoal], persistence: fixture.persistence)
+    let store = GoalStore(goals: [originalGoal])
     let missingGoal = goal(named: "Missing")
 
     let didUpdate = store.updateGoal(missingGoal)
 
     #expect(didUpdate == false)
     #expect(store.goals.map(\.id) == [originalGoal.id])
-    #expect(try fixture.savedGoals().isEmpty)
   }
 
   @Test
@@ -102,11 +86,7 @@ struct GoalStoreTests {
       sortOrder: 4,
       progress: .outcomeCompleted,
     )
-    let fixture = try StoreFixture()
-    let store = GoalStore(
-      goals: [pendingGoal, completedGoal],
-      persistence: fixture.persistence,
-    )
+    let store = GoalStore(goals: [pendingGoal, completedGoal])
     let updatedGoal = Goal(
       id: pendingGoal.id,
       name: pendingGoal.name,
@@ -128,8 +108,7 @@ struct GoalStoreTests {
   @Test
   func `Convenience update changes editable fields`() throws {
     let originalGoal = goal(named: "Original")
-    let fixture = try StoreFixture()
-    let store = GoalStore(goals: [originalGoal], persistence: fixture.persistence)
+    let store = GoalStore(goals: [originalGoal])
 
     let didUpdate = store.updateGoal(
       id: originalGoal.id,
@@ -155,11 +134,7 @@ struct GoalStoreTests {
       sortOrder: 3,
       progress: .outcomeCompleted,
     )
-    let fixture = try StoreFixture()
-    let store = GoalStore(
-      goals: [pendingGoal, completedGoal],
-      persistence: fixture.persistence,
-    )
+    let store = GoalStore(goals: [pendingGoal, completedGoal])
 
     let didToggle = store.toggleCompletion(id: pendingGoal.id)
 
@@ -175,8 +150,7 @@ struct GoalStoreTests {
       named: "Progress",
       progress: .measurable(currentValue: 1, targetValue: 3, step: 1),
     )
-    let fixture = try StoreFixture()
-    let store = GoalStore(goals: [progressGoal], persistence: fixture.persistence)
+    let store = GoalStore(goals: [progressGoal])
 
     let didIncrement = store.incrementProgress(id: progressGoal.id)
     let didDecrement = store.decrementProgress(id: progressGoal.id)
@@ -205,7 +179,7 @@ struct GoalStoreTests {
   }
 
   @Test
-  func `Move pending goals updates only pending sort orders and saves`() throws {
+  func `Move pending goals updates only pending sort orders`() {
     let completedGoal = goal(
       named: "Completed",
       sortOrder: 0,
@@ -217,26 +191,23 @@ struct GoalStoreTests {
       goal(named: "Second", sortOrder: 1),
       goal(named: "Third", sortOrder: 2),
     ]
-    let fixture = try StoreFixture()
-    let store = GoalStore(goals: goals, persistence: fixture.persistence)
+    let store = GoalStore(goals: goals)
 
     store.movePendingGoals(from: IndexSet(integer: 0), to: 3)
 
     #expect(store.pendingGoals(sortedBy: .manual).map(\.name) == ["Second", "Third", "First"])
     #expect(store.completedGoals(sortedBy: .manual).map(\.name) == ["Completed"])
-    #expect(try fixture.savedGoals().isEmpty == false)
   }
 
   @Test
-  func `Move completed goals updates only completed sort orders and saves`() throws {
+  func `Move completed goals updates only completed sort orders`() {
     let goals = [
       goal(named: "Pending", sortOrder: 0),
       goal(named: "Completed First", sortOrder: 0, progress: .outcomeCompleted),
       goal(named: "Completed Second", sortOrder: 1, progress: .outcomeCompleted),
       goal(named: "Completed Third", sortOrder: 2, progress: .outcomeCompleted),
     ]
-    let fixture = try StoreFixture()
-    let store = GoalStore(goals: goals, persistence: fixture.persistence)
+    let store = GoalStore(goals: goals)
 
     store.moveCompletedGoals(from: IndexSet(integer: 0), to: 3)
 
@@ -246,46 +217,17 @@ struct GoalStoreTests {
         "Completed Second", "Completed Third", "Completed First",
       ],
     )
-    #expect(try fixture.savedGoals().isEmpty == false)
   }
 
   @Test
-  func `Delete goal removes matching goal and saves`() throws {
+  func `Delete goal removes matching goal`() {
     let removedGoal = goal(named: "Remove")
     let remainingGoal = goal(named: "Keep")
-    let fixture = try StoreFixture()
-    let store = GoalStore(goals: [removedGoal, remainingGoal], persistence: fixture.persistence)
+    let store = GoalStore(goals: [removedGoal, remainingGoal])
 
     store.deleteGoal(id: removedGoal.id)
 
     #expect(store.goals.map(\.id) == [remainingGoal.id])
-    #expect(try fixture.savedGoals().map(\.id) == [remainingGoal.id])
-  }
-
-  @MainActor
-  private final class StoreFixture {
-    let directoryURL: URL
-    let fileURL: URL
-    let persistence: GoalPersistence
-
-    init(persistedGoals: [Goal] = []) throws {
-      directoryURL = FileManager.default.temporaryDirectory
-        .appending(
-          path: UUID().uuidString,
-          directoryHint: .isDirectory,
-        )
-      fileURL = directoryURL.appending(path: "goals.json")
-      persistence = GoalPersistence(fileURL: fileURL)
-      try persistence.saveGoals(persistedGoals)
-    }
-
-    deinit {
-      try? FileManager.default.removeItem(at: directoryURL)
-    }
-
-    func savedGoals() throws -> [Goal] {
-      try persistence.loadGoals()
-    }
   }
 
   private func goal(

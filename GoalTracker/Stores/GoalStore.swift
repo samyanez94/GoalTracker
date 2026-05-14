@@ -13,19 +13,14 @@ import Observation
 final class GoalStore {
   private(set) var goals: [Goal]
 
-  @ObservationIgnored private let persistence: GoalPersistence
-
   @ObservationIgnored private let sorter: GoalSorter
 
   init(
-    goals: [Goal]? = nil,
-    persistence: GoalPersistence? = nil,
+    goals: [Goal] = [],
     sorter: GoalSorter? = nil,
   ) {
-    let persistence = persistence ?? GoalPersistence()
-    self.persistence = persistence
     self.sorter = sorter ?? GoalSorter()
-    self.goals = goals ?? Self.loadGoals(from: persistence)
+    self.goals = goals
   }
 
   func pendingGoals(sortedBy sortMode: GoalSortMode) -> [Goal] {
@@ -48,7 +43,6 @@ final class GoalStore {
       isCompleted: goal.isCompleted,
     )
     goals.append(goal)
-    saveGoals()
   }
 
   @discardableResult
@@ -64,7 +58,6 @@ final class GoalStore {
       )
     }
     goals[index] = updatedGoal
-    saveGoals()
     return true
   }
 
@@ -141,24 +134,6 @@ final class GoalStore {
 
   func deleteGoal(id: Goal.ID) {
     goals.removeAll { $0.id == id }
-    saveGoals()
-  }
-
-  private static func loadGoals(from persistence: GoalPersistence) -> [Goal] {
-    do {
-      return try persistence.loadGoals()
-    } catch {
-      print("Failed to load goals: \(error)")
-      return []
-    }
-  }
-
-  private func saveGoals() {
-    do {
-      try persistence.saveGoals(goals)
-    } catch {
-      print("Failed to save goals: \(error)")
-    }
   }
 
   private func moveGoals(
@@ -180,7 +155,6 @@ final class GoalStore {
       goal.sortOrder = sortOrder
       goals[index] = goal
     }
-    saveGoals()
   }
 
   @discardableResult
@@ -203,7 +177,6 @@ final class GoalStore {
       )
     }
     goals[index] = goal
-    saveGoals()
     return true
   }
 }

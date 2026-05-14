@@ -6,15 +6,22 @@
 //
 
 import Foundation
+import SwiftData
 
-final class Goal: Identifiable, Codable {
+@Model
+final class Goal {
   var id: UUID = UUID()
   var name: String = ""
   var details: String?
   var createdAt: Date = Date()
   var dueDate: Date?
   var sortOrder: Int = 0
-  var progress: GoalProgress = .outcomePending
+  var progress: GoalProgress = GoalProgress.outcomePending
+  var recurrence: GoalRecurrence?
+  var reminder: GoalReminder?
+
+  @Relationship(deleteRule: .cascade, inverse: \GoalProgressEntry.goal)
+  var progressEntries: [GoalProgressEntry] = []
 
   var isCompleted: Bool {
     progress.isCompleted
@@ -53,6 +60,9 @@ final class Goal: Identifiable, Codable {
     createdAt: Date,
     sortOrder: Int = 0,
     progress: GoalProgress,
+    recurrence: GoalRecurrence? = nil,
+    reminder: GoalReminder? = nil,
+    progressEntries: [GoalProgressEntry] = [],
   ) {
     self.id = id
     self.name = name
@@ -61,5 +71,8 @@ final class Goal: Identifiable, Codable {
     self.createdAt = createdAt
     self.sortOrder = sortOrder
     self.progress = progress
+    self.recurrence = recurrence
+    self.reminder = reminder
+    self.progressEntries = progressEntries
   }
 }
