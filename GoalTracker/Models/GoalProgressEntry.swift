@@ -10,23 +10,23 @@ import SwiftData
 
 @Model
 final class GoalProgressEntry {
-  var id: UUID = UUID()
-  var date: Date = Date()
-  var amount: Double = 0
-  var note: String?
-  var goal: Goal?
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var amount: Double = 0
+    var note: String?
+    var goal: Goal?
 
-  init(
-    id: UUID = UUID(),
-    date: Date = Date(),
-    amount: Double,
-    note: String? = nil,
-    goal: Goal? = nil,
-  ) {
-    self.id = id
-    self.date = date
-    self.amount = amount
-    self.note = note
-    self.goal = goal
-  }
+    init(
+        id: UUID = UUID(),
+        date: Date = Date(),
+        amount: Double,
+        note: String? = nil,
+        goal: Goal? = nil,
+    ) {
+        self.id = id
+        self.date = date
+        self.amount = amount
+        self.note = note
+        self.goal = goal
+    }
 }

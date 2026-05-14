@@ -8,13 +8,13 @@
 import Foundation
 
 nonisolated struct GoalRecurrence: Codable, Hashable {
-  var cadence: Cadence
+    var cadence: Cadence
 }
 
 extension GoalRecurrence {
-  nonisolated enum Cadence: String, Codable, Hashable {
-    case daily
-    case weekly
-    case monthly
-  }
+    nonisolated enum Cadence: String, Codable, Hashable {
+        case daily
+        case weekly
+        case monthly
+    }
 }

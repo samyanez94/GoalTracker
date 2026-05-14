@@ -8,28 +8,28 @@
 import SwiftUI
 
 struct GoalSectionView: View {
-  let title: String
-  let goals: [Goal]
-  @Binding var isExpanded: Bool
-  let goalStore: GoalStore
-  @Binding var sortMode: GoalSortMode
-  let onMove: (IndexSet, Int, GoalSortMode) -> Void
+    let title: String
+    let goals: [Goal]
+    @Binding var isExpanded: Bool
+    let goalStore: GoalStore
+    @Binding var sortMode: GoalSortMode
+    let onMove: (IndexSet, Int, GoalSortMode) -> Void
 
-  var body: some View {
-    if !goals.isEmpty {
-      Section(isExpanded: $isExpanded) {
-        GoalRowsView(
-          goals: goals,
-          goalStore: goalStore,
-          sortMode: $sortMode,
-          onMove: onMove,
-        )
-      } header: {
-        CollapsibleSectionHeader(
-          title: title,
-          isExpanded: $isExpanded,
-        )
-      }
+    var body: some View {
+        if !goals.isEmpty {
+            Section(isExpanded: $isExpanded) {
+                GoalRowsView(
+                    goals: goals,
+                    goalStore: goalStore,
+                    sortMode: $sortMode,
+                    onMove: onMove,
+                )
+            } header: {
+                CollapsibleSectionHeader(
+                    title: title,
+                    isExpanded: $isExpanded,
+                )
+            }
+        }
     }
-  }
 }

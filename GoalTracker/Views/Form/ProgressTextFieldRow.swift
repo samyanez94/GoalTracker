@@ -8,17 +8,17 @@
 import SwiftUI
 
 struct ProgressTextFieldRow: View {
-  let label: String
-  @Binding var value: Double
-  let focus: FocusState<Bool>.Binding
+    let label: String
+    @Binding var value: Double
+    let focus: FocusState<Bool>.Binding
 
-  var body: some View {
-    HStack {
-      Text(label)
-      TextField("0", value: $value, format: .number)
-        .focused(focus)
-        .keyboardType(.decimalPad)
-        .multilineTextAlignment(.trailing)
+    var body: some View {
+        HStack {
+            Text(label)
+            TextField("0", value: $value, format: .number)
+                .focused(focus)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+        }
     }
-  }
 }

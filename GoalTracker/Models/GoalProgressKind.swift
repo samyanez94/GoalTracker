@@ -9,6 +9,6 @@ import Foundation
 
 /// Describes whether progress is a simple outcome or a measurable target.
 nonisolated enum GoalProgressKind: String, Codable {
-  case outcome
-  case measurable
+    case outcome
+    case measurable
 }

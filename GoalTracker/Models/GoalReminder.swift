@@ -8,6 +8,6 @@
 import Foundation
 
 nonisolated struct GoalReminder: Codable, Hashable {
-  var hour: Int
-  var minute: Int
+    var hour: Int
+    var minute: Int
 }

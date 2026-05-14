@@ -8,19 +8,19 @@
 import SwiftUI
 
 struct CompleteGoalButton: View {
-  let isCompleted: Bool
-  let action: () -> Void
+    let isCompleted: Bool
+    let action: () -> Void
 
-  var body: some View {
-    Button(action: action) {
-      Text(isCompleted ? "Completed" : "Complete")
-        .font(.headline)
-        .frame(maxWidth: .infinity)
-        .frame(height: 44)
+    var body: some View {
+        Button(action: action) {
+            Text(isCompleted ? "Completed" : "Complete")
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+        }
+        .buttonStyle(.glassProminent)
+        .disabled(isCompleted)
+        .padding(.horizontal)
+        .padding(.bottom, 8)
     }
-    .buttonStyle(.glassProminent)
-    .disabled(isCompleted)
-    .padding(.horizontal)
-    .padding(.bottom, 8)
-  }
 }

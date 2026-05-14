@@ -8,27 +8,27 @@
 import SwiftUI
 
 struct DueDateSummaryButton: View {
-  let hasDueDate: Bool
-  let dueDate: Date
-  let action: () -> Void
+    let hasDueDate: Bool
+    let dueDate: Date
+    let action: () -> Void
 
-  var body: some View {
-    Button(action: action) {
-      HStack {
-        Image(systemName: "calendar")
-          .foregroundStyle(.secondary)
-          .padding(.horizontal, 4)
-        VStack(alignment: .leading, spacing: 2) {
-          Text("Due Date")
-          if hasDueDate {
-            Text(GoalDueDateFormatter.string(from: dueDate))
-              .font(.subheadline)
-              .foregroundStyle(.secondary)
-          }
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: "calendar")
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 4)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Due Date")
+                    if hasDueDate {
+                        Text(GoalDueDateFormatter.string(from: dueDate))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+            }
         }
-        Spacer()
-      }
+        .buttonStyle(.plain)
     }
-    .buttonStyle(.plain)
-  }
 }

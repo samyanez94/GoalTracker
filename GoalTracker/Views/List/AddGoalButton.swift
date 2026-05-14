@@ -8,27 +8,27 @@
 import SwiftUI
 
 struct AddGoalButton: View {
-  let action: () -> Void
+    let action: () -> Void
 
-  @State private var feedbackTrigger = false
+    @State private var feedbackTrigger = false
 
-  var body: some View {
-    Button {
-      feedbackTrigger.toggle()
-      action()
-    } label: {
-      Label("Add Goal", systemImage: "plus")
-        .font(.system(size: 22, weight: .semibold))
-        .labelStyle(.iconOnly)
-        .frame(width: 56, height: 56)
+    var body: some View {
+        Button {
+            feedbackTrigger.toggle()
+            action()
+        } label: {
+            Label("Add Goal", systemImage: "plus")
+                .font(.system(size: 22, weight: .semibold))
+                .labelStyle(.iconOnly)
+                .frame(width: 56, height: 56)
+        }
+        .tint(.blue)
+        .buttonStyle(.glassProminent)
+        .buttonBorderShape(.circle)
+        .shadow(
+            color: .black.opacity(0.16),
+            radius: 12, x: 0, y: 6,
+        )
+        .sensoryFeedback(.impact(weight: .light), trigger: feedbackTrigger)
     }
-    .tint(.blue)
-    .buttonStyle(.glassProminent)
-    .buttonBorderShape(.circle)
-    .shadow(
-      color: .black.opacity(0.16),
-      radius: 12, x: 0, y: 6,
-    )
-    .sensoryFeedback(.impact(weight: .light), trigger: feedbackTrigger)
-  }
 }

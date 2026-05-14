@@ -11,11 +11,11 @@ import Testing
 
 @MainActor
 struct GoalSortModeTests {
-  @Test
-  func `Titles are human readable`() {
-    #expect(GoalSortMode.manual.title == "Manual")
-    #expect(GoalSortMode.dueDate.title == "Due Date")
-    #expect(GoalSortMode.creationDate.title == "Date Created")
-    #expect(GoalSortMode.name.title == "Name")
-  }
+    @Test
+    func `Titles are human readable`() {
+        #expect(GoalSortMode.manual.title == "Manual")
+        #expect(GoalSortMode.dueDate.title == "Due Date")
+        #expect(GoalSortMode.creationDate.title == "Date Created")
+        #expect(GoalSortMode.name.title == "Name")
+    }
 }

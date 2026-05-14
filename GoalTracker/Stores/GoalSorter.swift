@@ -30,7 +30,8 @@ struct GoalSorter {
         in goals: [Goal],
         isCompleted: Bool,
     ) -> Int {
-        let sectionSortOrders = goals
+        let sectionSortOrders =
+            goals
             .filter { $0.isCompleted == isCompleted }
             .map(\.sortOrder)
         return (sectionSortOrders.max() ?? -1) + 1
@@ -56,7 +57,7 @@ struct GoalSorter {
 
     private func sortByDueDate(_ lhs: Goal, _ rhs: Goal) -> Bool {
         switch (lhs.dueDate, rhs.dueDate) {
-        case let (lhsDueDate?, rhsDueDate?):
+        case (let lhsDueDate?, let rhsDueDate?):
             if lhsDueDate != rhsDueDate {
                 return lhsDueDate < rhsDueDate
             }
@@ -86,8 +87,8 @@ struct GoalSorter {
     }
 }
 
-private extension [Goal] {
-    mutating func moveElements(from source: IndexSet, to destination: Int) {
+extension [Goal] {
+    fileprivate mutating func moveElements(from source: IndexSet, to destination: Int) {
         let movingGoals = source.map { self[$0] }
         for index in source.sorted(by: >) {
             remove(at: index)
