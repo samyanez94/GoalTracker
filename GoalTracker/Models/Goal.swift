@@ -8,262 +8,58 @@
 import Foundation
 
 struct Goal: Identifiable, Codable {
-    let id: UUID
-    var name: String
-    var description: String?
-    let createdAt: Date
-    var dueDate: Date?
-    var sortOrder: Int
-    var completion: Completion
+  let id: UUID
+  var name: String
+  var description: String?
+  let createdAt: Date
+  var dueDate: Date?
+  var sortOrder: Int
+  var progress: GoalProgress
 
-    var isCompleted: Bool {
-        completion.isCompleted
-    }
+  var isCompleted: Bool {
+    progress.isCompleted
+  }
 
-    @discardableResult
-    mutating func complete() -> Bool {
-        completion.complete()
-    }
+  @discardableResult
+  mutating func complete() -> Bool {
+    progress.complete()
+  }
 
-    @discardableResult
-    mutating func markPending() -> Bool {
-        completion.markPending()
-    }
+  @discardableResult
+  mutating func markPending() -> Bool {
+    progress.reset()
+  }
 
-    @discardableResult
-    mutating func toggleCompletion() -> Bool {
-        completion.toggleCompletion()
-    }
+  @discardableResult
+  mutating func toggleCompletion() -> Bool {
+    progress.toggleCompletion()
+  }
 
-    @discardableResult
-    mutating func incrementProgress() -> Bool {
-        completion.incrementProgress()
-    }
+  @discardableResult
+  mutating func incrementProgress() -> Bool {
+    progress.increment()
+  }
 
-    @discardableResult
-    mutating func decrementProgress() -> Bool {
-        completion.decrementProgress()
-    }
+  @discardableResult
+  mutating func decrementProgress() -> Bool {
+    progress.decrement()
+  }
 
-    init(
-        id: UUID = UUID(),
-        name: String,
-        description: String?,
-        dueDate: Date? = nil,
-        createdAt: Date,
-        sortOrder: Int = 0,
-        completion: Completion,
-    ) {
-        self.id = id
-        self.name = name
-        self.description = description
-        self.dueDate = dueDate
-        self.createdAt = createdAt
-        self.sortOrder = sortOrder
-        self.completion = completion
-    }
-
-    /// Stores the state that determines how a goal reaches completion.
-    enum Completion: Codable {
-        /// A goal completed by making measurable progress toward a target value.
-        case progress(Progress)
-        /// A goal completed by achieving an outcome.
-        case outcome(isCompleted: Bool)
-
-        /// Whether the goal has reached its completion condition.
-        var isCompleted: Bool {
-            switch self {
-            case let .progress(progress):
-                progress.isCompleted
-            case let .outcome(isCompleted):
-                isCompleted
-            }
-        }
-
-        /// The goal's completion amount represented from 0 to 1.
-        var fractionCompleted: Double {
-            switch self {
-            case let .progress(progress):
-                progress.fractionCompleted
-            case let .outcome(isCompleted):
-                isCompleted ? 1 : 0
-            }
-        }
-
-        @discardableResult
-        mutating func complete() -> Bool {
-            switch self {
-            case var .progress(progress):
-                let didChange = progress.complete()
-                self = .progress(progress)
-                return didChange
-            case let .outcome(isCompleted):
-                self = .outcome(isCompleted: true)
-                return !isCompleted
-            }
-        }
-
-        @discardableResult
-        mutating func markPending() -> Bool {
-            switch self {
-            case var .progress(progress):
-                let didChange = progress.reset()
-                self = .progress(progress)
-                return didChange
-            case let .outcome(isCompleted):
-                self = .outcome(isCompleted: false)
-                return isCompleted
-            }
-        }
-
-        @discardableResult
-        mutating func toggleCompletion() -> Bool {
-            isCompleted ? markPending() : complete()
-        }
-
-        @discardableResult
-        mutating func incrementProgress() -> Bool {
-            guard case var .progress(progress) = self else {
-                return false
-            }
-            let didChange = progress.increment()
-            self = .progress(progress)
-            return didChange
-        }
-
-        @discardableResult
-        mutating func decrementProgress() -> Bool {
-            guard case var .progress(progress) = self else {
-                return false
-            }
-            let didChange = progress.decrement()
-            self = .progress(progress)
-            return didChange
-        }
-    }
-
-    /// Tracks the numeric state used to determine whether a goal is complete.
-    struct Progress: Codable {
-        /// The user's current progress toward the target value.
-        private(set) var currentValue: Double
-        /// The value at which the goal is considered complete.
-        private(set) var targetValue: Double
-        /// The amount used when stepping progress up or down.
-        private(set) var step: Double
-        /// The optional unit used when displaying progress values.
-        private(set) var unit: GoalProgressUnit?
-
-        /// Whether the current value has reached or exceeded the target value.
-        var isCompleted: Bool {
-            currentValue >= targetValue
-        }
-
-        var canDecrement: Bool {
-            currentValue > 0
-        }
-
-        var canIncrement: Bool {
-            currentValue < upperBound
-        }
-
-        /// The progress amount represented from 0 to 1.
-        var fractionCompleted: Double {
-            guard targetValue > 0 else {
-                return isCompleted ? 1 : 0
-            }
-            return currentValue / targetValue
-        }
-
-        init(
-            currentValue: Double,
-            targetValue: Double,
-            step: Double = 1,
-            unit: GoalProgressUnit? = nil,
-        ) {
-            precondition(
-                Self.isValid(
-                    currentValue: currentValue,
-                    targetValue: targetValue,
-                    step: step,
-                ),
-                "Progress values must be finite, non-negative, and within target bounds.",
-            )
-            self.currentValue = currentValue
-            self.targetValue = targetValue
-            self.step = step
-            self.unit = unit
-        }
-
-        static func isValid(
-            currentValue: Double,
-            targetValue: Double,
-            step: Double,
-        ) -> Bool {
-            currentValue.isFinite
-                && targetValue.isFinite
-                && step.isFinite
-                && currentValue >= 0
-                && targetValue > 0
-                && step > 0
-                && currentValue <= targetValue
-        }
-
-        @discardableResult
-        mutating func complete() -> Bool {
-            setCurrentValue(targetValue)
-        }
-
-        @discardableResult
-        mutating func reset() -> Bool {
-            setCurrentValue(0)
-        }
-
-        @discardableResult
-        mutating func increment() -> Bool {
-            setCurrentValue(currentValue + step)
-        }
-
-        @discardableResult
-        mutating func decrement() -> Bool {
-            setCurrentValue(currentValue - step)
-        }
-
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            let currentValue = try container.decode(Double.self, forKey: .currentValue)
-            let targetValue = try container.decode(Double.self, forKey: .targetValue)
-            let step = try container.decodeIfPresent(Double.self, forKey: .step) ?? 1
-            let unit = try container.decodeIfPresent(GoalProgressUnit.self, forKey: .unit)
-            guard Self.isValid(
-                currentValue: currentValue,
-                targetValue: targetValue,
-                step: step,
-            ) else {
-                throw DecodingError.dataCorrupted(
-                    DecodingError.Context(
-                        codingPath: container.codingPath,
-                        debugDescription: "Progress values must be finite, non-negative, and within target bounds.",
-                    ),
-                )
-            }
-            self.currentValue = currentValue
-            self.targetValue = targetValue
-            self.step = step
-            self.unit = unit
-        }
-
-        private var upperBound: Double {
-            max(0, targetValue)
-        }
-
-        @discardableResult
-        private mutating func setCurrentValue(_ value: Double) -> Bool {
-            let updatedValue = min(max(0, value), upperBound)
-            guard currentValue != updatedValue else {
-                return false
-            }
-            currentValue = updatedValue
-            return true
-        }
-    }
+  init(
+    id: UUID = UUID(),
+    name: String,
+    description: String?,
+    dueDate: Date? = nil,
+    createdAt: Date,
+    sortOrder: Int = 0,
+    progress: GoalProgress,
+  ) {
+    self.id = id
+    self.name = name
+    self.description = description
+    self.dueDate = dueDate
+    self.createdAt = createdAt
+    self.sortOrder = sortOrder
+    self.progress = progress
+  }
 }

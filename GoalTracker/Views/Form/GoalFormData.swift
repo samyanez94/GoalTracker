@@ -11,32 +11,32 @@ struct GoalFormData {
   var name: String
   var description: String
   var dueDate: Date?
-  var completion: Goal.Completion
+  var progress: GoalProgress
 
   static let empty = GoalFormData(
     name: "",
     description: "",
     dueDate: nil,
-    completion: .outcome(isCompleted: false),
+    progress: .outcomePending,
   )
 
   init(goal: Goal) {
     name = goal.name
     description = goal.description ?? ""
     dueDate = goal.dueDate
-    completion = goal.completion
+    progress = goal.progress
   }
 
   init(
     name: String,
     description: String,
     dueDate: Date? = nil,
-    completion: Goal.Completion,
+    progress: GoalProgress,
   ) {
     self.name = name
     self.description = description
     self.dueDate = dueDate
-    self.completion = completion
+    self.progress = progress
   }
 
   var normalizedDescription: String? {

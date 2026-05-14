@@ -47,16 +47,13 @@ struct GoalDetailContent: View {
     }
   }
 
-  private var progress: Goal.Progress? {
-    guard case .progress(let progress) = goal.completion else {
-      return nil
-    }
-    return progress
+  private var progress: GoalProgress? {
+    goal.progress.isMeasurable ? goal.progress : nil
   }
 
   private func formattedProgressValue(
     _ value: Double,
-    for progress: Goal.Progress,
+    for progress: GoalProgress,
   ) -> String {
     GoalProgressValueFormatter.string(
       from: value,

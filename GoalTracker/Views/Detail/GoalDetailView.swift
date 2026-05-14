@@ -83,10 +83,10 @@ struct GoalDetailView: View {
   }
 
   private func outcomeIsCompleted(for goal: Goal) -> Bool? {
-    guard case .outcome(let isCompleted) = goal.completion else {
+    guard goal.progress.kind == .outcome else {
       return nil
     }
-    return isCompleted
+    return goal.progress.isCompleted
   }
 
   private func toggleOutcomeCompletion() {
@@ -102,7 +102,7 @@ struct GoalDetailView: View {
       name: data.name,
       description: data.normalizedDescription,
       dueDate: data.dueDate,
-      completion: data.completion,
+      progress: data.progress,
     )
   }
 }
@@ -112,7 +112,7 @@ struct GoalDetailView: View {
     name: "Run a 5K",
     description: "Build up endurance with three runs per week.",
     createdAt: Date(),
-    completion: .progress(Goal.Progress(currentValue: 1, targetValue: 5)),
+    progress: .measurable(currentValue: 1, targetValue: 5),
   )
   let goalStore = GoalStore(goals: [goal])
   NavigationStack {
@@ -128,7 +128,7 @@ struct GoalDetailView: View {
     name: "Read every night",
     description: "Read for at least 20 minutes before bed.",
     createdAt: Date(),
-    completion: .progress(Goal.Progress(currentValue: 20, targetValue: 20)),
+    progress: .measurable(currentValue: 20, targetValue: 20),
   )
   let goalStore = GoalStore(goals: [goal])
 
@@ -145,7 +145,7 @@ struct GoalDetailView: View {
     name: "Travel to Japan",
     description: "Plan and take the trip.",
     createdAt: Date(),
-    completion: .outcome(isCompleted: false),
+    progress: .outcomePending,
   )
   let goalStore = GoalStore(goals: [goal])
 

@@ -32,11 +32,8 @@ struct GoalDetailBottomActionView: View {
     }
   }
 
-  private var progress: Goal.Progress? {
-    guard case .progress(let progress) = goal.completion else {
-      return nil
-    }
-    return progress
+  private var progress: GoalProgress? {
+    goal.progress.isMeasurable ? goal.progress : nil
   }
 
   private func decrementProgress() {

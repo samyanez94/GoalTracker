@@ -104,7 +104,7 @@ struct GoalListView: View {
                 description: data.normalizedDescription,
                 dueDate: data.dueDate,
                 createdAt: Date(),
-                completion: data.completion,
+                progress: data.progress,
               ),
             )
           }
@@ -152,11 +152,9 @@ struct GoalListView: View {
           name: "Run 100 miles",
           description: nil,
           createdAt: Date(),
-          completion: .progress(
-            Goal.Progress(
-              currentValue: 20,
-              targetValue: 100,
-            ),
+          progress: .measurable(
+            currentValue: 20,
+            targetValue: 100,
           ),
         )
       ],

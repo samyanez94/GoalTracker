@@ -2,7 +2,7 @@
 //  GoalSortModeTests.swift
 //  GoalTrackerTests
 //
-//  Created by Codex on 5/12/26.
+//  Created by Samuel Yanez on 5/12/26.
 //
 
 import Testing

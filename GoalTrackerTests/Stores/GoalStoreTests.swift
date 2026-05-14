@@ -2,7 +2,7 @@
 //  GoalStoreTests.swift
 //  GoalTrackerTests
 //
-//  Created by Codex on 5/12/26.
+//  Created by Samuel Yanez on 5/12/26.
 //
 
 import Foundation
@@ -41,7 +41,7 @@ struct GoalStoreTests {
     let completedGoal = goal(
       named: "Completed",
       sortOrder: 8,
-      completion: .outcome(isCompleted: true),
+      progress: .outcomeCompleted,
     )
     let pendingGoal = goal(named: "Pending", sortOrder: 2)
     let fixture = try StoreFixture()
@@ -70,7 +70,7 @@ struct GoalStoreTests {
       dueDate: date(4),
       createdAt: originalGoal.createdAt,
       sortOrder: originalGoal.sortOrder,
-      completion: .outcome(isCompleted: false),
+      progress: .outcomePending,
     )
 
     let didUpdate = store.updateGoal(updatedGoal)
@@ -101,7 +101,7 @@ struct GoalStoreTests {
     let completedGoal = goal(
       named: "Completed",
       sortOrder: 4,
-      completion: .outcome(isCompleted: true),
+      progress: .outcomeCompleted,
     )
     let fixture = try StoreFixture()
     let store = GoalStore(
@@ -115,7 +115,7 @@ struct GoalStoreTests {
       dueDate: pendingGoal.dueDate,
       createdAt: pendingGoal.createdAt,
       sortOrder: pendingGoal.sortOrder,
-      completion: .outcome(isCompleted: true),
+      progress: .outcomeCompleted,
     )
 
     let didUpdate = store.updateGoal(updatedGoal)
@@ -137,9 +137,7 @@ struct GoalStoreTests {
       name: "Edited",
       description: "Details",
       dueDate: date(6),
-      completion: .progress(
-        Goal.Progress(currentValue: 2, targetValue: 5, step: 1),
-      ),
+      progress: .measurable(currentValue: 2, targetValue: 5, step: 1),
     )
 
     let editedGoal = try #require(store.goals.first)
@@ -147,7 +145,7 @@ struct GoalStoreTests {
     #expect(editedGoal.name == "Edited")
     #expect(editedGoal.description == "Details")
     #expect(editedGoal.dueDate == date(6))
-    #expect(editedGoal.completion.fractionCompleted == 0.4)
+    #expect(editedGoal.progress.fractionCompleted == 0.4)
   }
 
   @Test
@@ -156,7 +154,7 @@ struct GoalStoreTests {
     let completedGoal = goal(
       named: "Completed",
       sortOrder: 3,
-      completion: .outcome(isCompleted: true),
+      progress: .outcomeCompleted,
     )
     let fixture = try StoreFixture()
     let store = GoalStore(
@@ -176,9 +174,7 @@ struct GoalStoreTests {
   func `Complete goal increments and decrements progress`() throws {
     let progressGoal = goal(
       named: "Progress",
-      completion: .progress(
-        Goal.Progress(currentValue: 1, targetValue: 3, step: 1),
-      ),
+      progress: .measurable(currentValue: 1, targetValue: 3, step: 1),
     )
     let fixture = try StoreFixture()
     let store = GoalStore(goals: [progressGoal], persistence: fixture.persistence)
@@ -192,16 +188,16 @@ struct GoalStoreTests {
     #expect(didDecrement)
     #expect(didComplete)
     #expect(updatedGoal.isCompleted)
-    #expect(updatedGoal.completion.fractionCompleted == 1)
+    #expect(updatedGoal.progress.fractionCompleted == 1)
   }
 
   @Test
   func `Pending and completed goals are filtered and sorted`() {
     let goals = [
       goal(named: "Pending B", sortOrder: 2),
-      goal(named: "Completed B", sortOrder: 2, completion: .outcome(isCompleted: true)),
+      goal(named: "Completed B", sortOrder: 2, progress: .outcomeCompleted),
       goal(named: "Pending A", sortOrder: 1),
-      goal(named: "Completed A", sortOrder: 1, completion: .outcome(isCompleted: true)),
+      goal(named: "Completed A", sortOrder: 1, progress: .outcomeCompleted),
     ]
     let store = GoalStore(goals: goals)
 
@@ -214,7 +210,7 @@ struct GoalStoreTests {
     let completedGoal = goal(
       named: "Completed",
       sortOrder: 0,
-      completion: .outcome(isCompleted: true),
+      progress: .outcomeCompleted,
     )
     let goals = [
       goal(named: "First", sortOrder: 0),
@@ -236,9 +232,9 @@ struct GoalStoreTests {
   func `Move completed goals updates only completed sort orders and saves`() throws {
     let goals = [
       goal(named: "Pending", sortOrder: 0),
-      goal(named: "Completed First", sortOrder: 0, completion: .outcome(isCompleted: true)),
-      goal(named: "Completed Second", sortOrder: 1, completion: .outcome(isCompleted: true)),
-      goal(named: "Completed Third", sortOrder: 2, completion: .outcome(isCompleted: true)),
+      goal(named: "Completed First", sortOrder: 0, progress: .outcomeCompleted),
+      goal(named: "Completed Second", sortOrder: 1, progress: .outcomeCompleted),
+      goal(named: "Completed Third", sortOrder: 2, progress: .outcomeCompleted),
     ]
     let fixture = try StoreFixture()
     let store = GoalStore(goals: goals, persistence: fixture.persistence)
@@ -298,7 +294,7 @@ struct GoalStoreTests {
     dueDate: Date? = nil,
     createdAt: Date = Date(timeIntervalSinceReferenceDate: 0),
     sortOrder: Int = 0,
-    completion: Goal.Completion = .outcome(isCompleted: false),
+    progress: GoalProgress = .outcomePending,
   ) -> Goal {
     Goal(
       id: UUID(),
@@ -307,7 +303,7 @@ struct GoalStoreTests {
       dueDate: dueDate,
       createdAt: createdAt,
       sortOrder: sortOrder,
-      completion: completion,
+      progress: progress,
     )
   }
 

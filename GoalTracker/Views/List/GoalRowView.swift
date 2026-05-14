@@ -16,7 +16,7 @@ struct GoalRowView: View {
     NavigationLink(value: goal.id) {
       HStack(spacing: 12) {
         CircularGoalProgressView(
-          progress: goal.completion.fractionCompleted,
+          progress: goal.progress.fractionCompleted,
         )
         .frame(width: 24, height: 24)
         VStack(alignment: .leading, spacing: 2) {
@@ -53,20 +53,20 @@ struct GoalRowView: View {
         description: "Build up endurance with three runs per week.",
         dueDate: Calendar.current.date(byAdding: .day, value: 1, to: Date()),
         createdAt: Date(),
-        completion: .progress(Goal.Progress(currentValue: 2, targetValue: 5)),
+        progress: .measurable(currentValue: 2, targetValue: 5),
       ),
       Goal(
         name: "File taxes",
         description: nil,
         dueDate: Calendar.current.date(byAdding: .day, value: -1, to: Date()),
         createdAt: Date(),
-        completion: .outcome(isCompleted: false),
+        progress: .outcomePending,
       ),
       Goal(
         name: "Travel to Japan",
         description: "Plan and take the trip.",
         createdAt: Date(),
-        completion: .outcome(isCompleted: true),
+        progress: .outcomeCompleted,
       ),
     ],
   )

@@ -100,8 +100,8 @@ struct GoalFormView: View {
   }
 
   private static func initialState(for data: GoalFormData) -> GoalFormInitialState {
-    switch data.completion {
-    case .progress(let progress):
+    switch data.progress.kind {
+    case .measurable:
       GoalFormInitialState(
         name: data.name,
         description: data.description,
@@ -109,11 +109,11 @@ struct GoalFormView: View {
         dueDate: data.dueDate ?? Date(),
         isDueDatePickerExpanded: false,
         isProgressBased: true,
-        currentValue: progress.currentValue,
-        targetValue: progress.targetValue,
-        step: progress.step,
-        selectedProgressUnit: progress.unit,
-        outcomeIsCompleted: data.completion.isCompleted,
+        currentValue: data.progress.currentValue,
+        targetValue: data.progress.targetValue,
+        step: data.progress.step,
+        selectedProgressUnit: data.progress.unit,
+        outcomeIsCompleted: data.progress.isCompleted,
       )
     case .outcome:
       GoalFormInitialState(
@@ -124,10 +124,10 @@ struct GoalFormView: View {
         isDueDatePickerExpanded: false,
         isProgressBased: false,
         currentValue: 0,
-        targetValue: 0,
+        targetValue: 1,
         step: 1,
         selectedProgressUnit: nil,
-        outcomeIsCompleted: data.completion.isCompleted,
+        outcomeIsCompleted: data.progress.isCompleted,
       )
     }
   }
@@ -137,7 +137,7 @@ struct GoalFormView: View {
   }
 
   private var hasValidProgressValues: Bool {
-    Goal.Progress.isValid(
+    GoalProgress.isValid(
       currentValue: currentValue,
       targetValue: targetValue,
       step: step,
@@ -289,26 +289,24 @@ struct GoalFormView: View {
     guard !isSaveDisabled else {
       return
     }
-    let completion: Goal.Completion
+    let progress: GoalProgress
 
     if isProgressBased {
-      completion = .progress(
-        Goal.Progress(
-          currentValue: currentValue,
-          targetValue: targetValue,
-          step: step,
-          unit: selectedProgressUnit,
-        ),
+      progress = .measurable(
+        currentValue: currentValue,
+        targetValue: targetValue,
+        step: step,
+        unit: selectedProgressUnit,
       )
     } else {
-      completion = .outcome(isCompleted: initialOutcomeIsCompleted)
+      progress = initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending
     }
     onSave(
       GoalFormData(
         name: trimmedName,
         description: description,
         dueDate: hasDueDate ? dueDate : nil,
-        completion: completion,
+        progress: progress,
       ),
     )
     dismiss()
@@ -329,9 +327,7 @@ struct GoalFormView: View {
           name: "Workout 10 times",
           description: "Move a little every day.",
           dueDate: Date(),
-          completion: .progress(
-            Goal.Progress(currentValue: 3, targetValue: 10, step: 2),
-          ),
+          progress: .measurable(currentValue: 3, targetValue: 10, step: 2),
         ),
       ),
     ) { _ in }

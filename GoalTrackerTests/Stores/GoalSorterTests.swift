@@ -2,7 +2,7 @@
 //  GoalSorterTests.swift
 //  GoalTrackerTests
 //
-//  Created by Codex on 5/12/26.
+//  Created by Samuel Yanez on 5/12/26.
 //
 
 import Foundation
@@ -83,7 +83,7 @@ struct GoalSorterTests {
   func `Next sort order only considers goals in the same completion section`() {
     let goals = [
       goal(named: "Pending", sortOrder: 4),
-      goal(named: "Completed", sortOrder: 12, completion: .outcome(isCompleted: true)),
+      goal(named: "Completed", sortOrder: 12, progress: .outcomeCompleted),
     ]
 
     #expect(sorter.nextSortOrder(in: goals, isCompleted: false) == 5)
@@ -113,7 +113,7 @@ struct GoalSorterTests {
     dueDate: Date? = nil,
     createdAt: Date = Date(timeIntervalSinceReferenceDate: 0),
     sortOrder: Int = 0,
-    completion: Goal.Completion = .outcome(isCompleted: false),
+    progress: GoalProgress = .outcomePending,
   ) -> Goal {
     Goal(
       id: UUID(),
@@ -122,7 +122,7 @@ struct GoalSorterTests {
       dueDate: dueDate,
       createdAt: createdAt,
       sortOrder: sortOrder,
-      completion: completion,
+      progress: progress,
     )
   }
 
