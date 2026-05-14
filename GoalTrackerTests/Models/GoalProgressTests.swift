@@ -12,7 +12,6 @@ import Testing
 // MARK: - GoalProgressTests
 
 @MainActor
-@Suite
 struct GoalProgressTests {
   @Test
   func `Complete sets current value to target`() {

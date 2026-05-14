@@ -289,18 +289,17 @@ struct GoalFormView: View {
     guard !isSaveDisabled else {
       return
     }
-    let progress: GoalProgress
-
-    if isProgressBased {
-      progress = .measurable(
-        currentValue: currentValue,
-        targetValue: targetValue,
-        step: step,
-        unit: selectedProgressUnit,
-      )
-    } else {
-      progress = initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending
-    }
+    let progress: GoalProgress =
+      if isProgressBased {
+        .measurable(
+          currentValue: currentValue,
+          targetValue: targetValue,
+          step: step,
+          unit: selectedProgressUnit,
+        )
+      } else {
+        initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending
+      }
     onSave(
       GoalFormData(
         name: trimmedName,

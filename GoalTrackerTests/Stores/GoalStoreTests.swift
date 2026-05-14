@@ -11,7 +11,6 @@ import Testing
 @testable import GoalTracker
 
 @MainActor
-@Suite
 struct GoalStoreTests {
   @Test
   func `Initializes with provided goals instead of loading persisted goals`() throws {
@@ -245,7 +244,8 @@ struct GoalStoreTests {
     #expect(
       store.completedGoals(sortedBy: .manual).map(\.name) == [
         "Completed Second", "Completed Third", "Completed First",
-      ])
+      ],
+    )
     #expect(try fixture.savedGoals().isEmpty == false)
   }
 
@@ -272,7 +272,7 @@ struct GoalStoreTests {
       directoryURL = FileManager.default.temporaryDirectory
         .appending(
           path: UUID().uuidString,
-          directoryHint: .isDirectory
+          directoryHint: .isDirectory,
         )
       fileURL = directoryURL.appending(path: "goals.json")
       persistence = GoalPersistence(fileURL: fileURL)
@@ -308,6 +308,6 @@ struct GoalStoreTests {
   }
 
   private func date(_ day: Int) -> Date {
-    Date(timeIntervalSinceReferenceDate: TimeInterval(day * 86_400))
+    Date(timeIntervalSinceReferenceDate: TimeInterval(day * 86400))
   }
 }

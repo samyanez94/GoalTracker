@@ -11,7 +11,6 @@ import Testing
 @testable import GoalTracker
 
 @MainActor
-@Suite
 struct GoalProgressUnitTests {
   @Test
   func `Category titles are human readable`() {

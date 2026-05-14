@@ -10,7 +10,6 @@ import Testing
 @testable import GoalTracker
 
 @MainActor
-@Suite
 struct GoalSortModeTests {
   @Test
   func `Titles are human readable`() {

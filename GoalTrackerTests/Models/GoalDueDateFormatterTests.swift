@@ -11,7 +11,6 @@ import Testing
 @testable import GoalTracker
 
 @MainActor
-@Suite
 struct GoalDueDateFormatterTests {
   @Test
   func `Formats dates using medium date style`() {

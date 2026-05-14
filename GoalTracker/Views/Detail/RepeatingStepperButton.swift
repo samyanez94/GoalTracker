@@ -15,28 +15,30 @@ struct RepeatingStepperButton: View {
   @State private var repeatTask: Task<Void, Never>?
 
   var body: some View {
-    Button(accessibilityLabel, systemImage: systemName, action: action)
-      .font(.title3.weight(.semibold))
-      .labelStyle(.iconOnly)
-      .frame(maxWidth: .infinity)
-      .frame(height: 44)
-      .tint(.blue)
-      .buttonStyle(.glassProminent)
-      .buttonBorderShape(.capsule)
-      .onLongPressGesture(
-        minimumDuration: 0.35,
-        perform: {},
-        onPressingChanged: { isPressing in
-          if isPressing {
-            startRepeating()
-          } else {
-            stopRepeating()
-          }
-        },
-      )
-      .onDisappear {
-        stopRepeating()
-      }
+    Button(action: action) {
+      Label(accessibilityLabel, systemImage: systemName)
+        .font(.title3.weight(.semibold))
+        .labelStyle(.iconOnly)
+        .frame(maxWidth: .infinity)
+        .frame(height: 44)
+    }
+    .tint(.blue)
+    .buttonStyle(.glassProminent)
+    .buttonBorderShape(.capsule)
+    .onLongPressGesture(
+      minimumDuration: 0.35,
+      perform: {},
+      onPressingChanged: { isPressing in
+        if isPressing {
+          startRepeating()
+        } else {
+          stopRepeating()
+        }
+      },
+    )
+    .onDisappear {
+      stopRepeating()
+    }
   }
 
   private func startRepeating() {

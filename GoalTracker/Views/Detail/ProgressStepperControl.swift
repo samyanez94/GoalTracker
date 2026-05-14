@@ -28,6 +28,7 @@ struct ProgressStepperControl: View {
       )
       .disabled(!canIncrement)
     }
+    .frame(maxWidth: .infinity)
     .padding(.horizontal)
     .padding(.bottom, 8)
   }

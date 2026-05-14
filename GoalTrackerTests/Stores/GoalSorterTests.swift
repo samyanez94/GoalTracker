@@ -11,7 +11,6 @@ import Testing
 @testable import GoalTracker
 
 @MainActor
-@Suite
 struct GoalSorterTests {
   private let sorter = GoalSorter()
 
@@ -127,6 +126,6 @@ struct GoalSorterTests {
   }
 
   private func date(_ day: Int) -> Date {
-    Date(timeIntervalSinceReferenceDate: TimeInterval(day * 86_400))
+    Date(timeIntervalSinceReferenceDate: TimeInterval(day * 86400))
   }
 }

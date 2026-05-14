@@ -13,9 +13,7 @@ import Testing
 // MARK: - GoalTests
 
 @MainActor
-@Suite
 struct GoalTests {
-
   @Test
   func `Goal isCompleted delegates to progress`() {
     #expect(makeGoal(progress: .outcomePending).isCompleted == false)
