@@ -100,7 +100,7 @@ struct GoalDetailView: View {
     goalStore.updateGoal(
       id: goalId,
       name: data.name,
-      description: data.normalizedDescription,
+      details: data.normalizedDetails,
       dueDate: data.dueDate,
       progress: data.progress,
     )
@@ -110,7 +110,7 @@ struct GoalDetailView: View {
 #Preview("Incomplete Goal") {
   let goal = Goal(
     name: "Run a 5K",
-    description: "Build up endurance with three runs per week.",
+    details: "Build up endurance with three runs per week.",
     createdAt: Date(),
     progress: .measurable(currentValue: 1, targetValue: 5),
   )
@@ -126,7 +126,7 @@ struct GoalDetailView: View {
 #Preview("Completed Goal") {
   let goal = Goal(
     name: "Read every night",
-    description: "Read for at least 20 minutes before bed.",
+    details: "Read for at least 20 minutes before bed.",
     createdAt: Date(),
     progress: .measurable(currentValue: 20, targetValue: 20),
   )
@@ -143,7 +143,7 @@ struct GoalDetailView: View {
 #Preview("One-off Goal") {
   let goal = Goal(
     name: "Travel to Japan",
-    description: "Plan and take the trip.",
+    details: "Plan and take the trip.",
     createdAt: Date(),
     progress: .outcomePending,
   )

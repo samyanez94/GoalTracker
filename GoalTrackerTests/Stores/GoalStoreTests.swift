@@ -65,7 +65,7 @@ struct GoalStoreTests {
     let updatedGoal = Goal(
       id: originalGoal.id,
       name: "Updated",
-      description: "Updated description",
+      details: "Updated description",
       dueDate: date(4),
       createdAt: originalGoal.createdAt,
       sortOrder: originalGoal.sortOrder,
@@ -76,7 +76,7 @@ struct GoalStoreTests {
 
     #expect(didUpdate)
     #expect(store.goals.first?.name == "Updated")
-    #expect(store.goals.first?.description == "Updated description")
+    #expect(store.goals.first?.details == "Updated description")
     #expect(try fixture.savedGoals().first?.name == "Updated")
   }
 
@@ -110,7 +110,7 @@ struct GoalStoreTests {
     let updatedGoal = Goal(
       id: pendingGoal.id,
       name: pendingGoal.name,
-      description: pendingGoal.description,
+      details: pendingGoal.details,
       dueDate: pendingGoal.dueDate,
       createdAt: pendingGoal.createdAt,
       sortOrder: pendingGoal.sortOrder,
@@ -134,7 +134,7 @@ struct GoalStoreTests {
     let didUpdate = store.updateGoal(
       id: originalGoal.id,
       name: "Edited",
-      description: "Details",
+      details: "Details",
       dueDate: date(6),
       progress: .measurable(currentValue: 2, targetValue: 5, step: 1),
     )
@@ -142,7 +142,7 @@ struct GoalStoreTests {
     let editedGoal = try #require(store.goals.first)
     #expect(didUpdate)
     #expect(editedGoal.name == "Edited")
-    #expect(editedGoal.description == "Details")
+    #expect(editedGoal.details == "Details")
     #expect(editedGoal.dueDate == date(6))
     #expect(editedGoal.progress.fractionCompleted == 0.4)
   }
@@ -290,7 +290,7 @@ struct GoalStoreTests {
 
   private func goal(
     named name: String,
-    description: String? = nil,
+    details: String? = nil,
     dueDate: Date? = nil,
     createdAt: Date = Date(timeIntervalSinceReferenceDate: 0),
     sortOrder: Int = 0,
@@ -299,7 +299,7 @@ struct GoalStoreTests {
     Goal(
       id: UUID(),
       name: name,
-      description: description,
+      details: details,
       dueDate: dueDate,
       createdAt: createdAt,
       sortOrder: sortOrder,

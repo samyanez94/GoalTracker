@@ -43,7 +43,6 @@ final class GoalStore {
   }
 
   func addGoal(_ goal: Goal) {
-    var goal = goal
     goal.sortOrder = sorter.nextSortOrder(
       in: goals,
       isCompleted: goal.isCompleted,
@@ -58,7 +57,6 @@ final class GoalStore {
       return false
     }
     let isCompleted = goals[index].isCompleted
-    var updatedGoal = updatedGoal
     if updatedGoal.isCompleted != isCompleted {
       updatedGoal.sortOrder = sorter.nextSortOrder(
         in: goals,
@@ -74,13 +72,13 @@ final class GoalStore {
   func updateGoal(
     id: Goal.ID,
     name: String,
-    description: String?,
+    details: String?,
     dueDate: Date?,
     progress: GoalProgress,
   ) -> Bool {
     updateGoal(id: id) { goal in
       goal.name = name
-      goal.description = description
+      goal.details = details
       goal.dueDate = dueDate
       goal.progress = progress
       return true
@@ -179,7 +177,8 @@ final class GoalStore {
       guard let index = goals.firstIndex(where: { $0.id == goal.id }) else {
         continue
       }
-      goals[index].sortOrder = sortOrder
+      goal.sortOrder = sortOrder
+      goals[index] = goal
     }
     saveGoals()
   }
@@ -187,14 +186,14 @@ final class GoalStore {
   @discardableResult
   private func updateGoal(
     id: Goal.ID,
-    _ mutate: (inout Goal) -> Bool,
+    _ mutate: (Goal) -> Bool,
   ) -> Bool {
     guard let index = goals.firstIndex(where: { $0.id == id }) else {
       return false
     }
     let isCompleted = goals[index].isCompleted
-    var goal = goals[index]
-    guard mutate(&goal) else {
+    let goal = goals[index]
+    guard mutate(goal) else {
       return false
     }
     if goal.isCompleted != isCompleted {

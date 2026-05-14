@@ -50,21 +50,21 @@ struct GoalRowView: View {
     goals: [
       Goal(
         name: "Run a 5K",
-        description: "Build up endurance with three runs per week.",
+        details: "Build up endurance with three runs per week.",
         dueDate: Calendar.current.date(byAdding: .day, value: 1, to: Date()),
         createdAt: Date(),
         progress: .measurable(currentValue: 2, targetValue: 5),
       ),
       Goal(
         name: "File taxes",
-        description: nil,
+        details: nil,
         dueDate: Calendar.current.date(byAdding: .day, value: -1, to: Date()),
         createdAt: Date(),
         progress: .outcomePending,
       ),
       Goal(
         name: "Travel to Japan",
-        description: "Plan and take the trip.",
+        details: "Plan and take the trip.",
         createdAt: Date(),
         progress: .outcomeCompleted,
       ),

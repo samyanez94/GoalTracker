@@ -101,7 +101,7 @@ struct GoalListView: View {
             goalStore.addGoal(
               Goal(
                 name: data.name,
-                description: data.normalizedDescription,
+                details: data.normalizedDetails,
                 dueDate: data.dueDate,
                 createdAt: Date(),
                 progress: data.progress,
@@ -150,7 +150,7 @@ struct GoalListView: View {
       goals: [
         Goal(
           name: "Run 100 miles",
-          description: nil,
+          details: nil,
           createdAt: Date(),
           progress: .measurable(
             currentValue: 20,

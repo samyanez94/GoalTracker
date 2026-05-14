@@ -54,7 +54,7 @@ struct GoalTests {
 
   @Test
   func `Goal progress changes delegate to progress and update state`() {
-    var goal = makeGoal(
+    let goal = makeGoal(
       progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
     )
 
@@ -124,7 +124,7 @@ struct GoalTests {
   private func makeGoal(progress: GoalProgress) -> Goal {
     Goal(
       name: "Test Goal",
-      description: nil,
+      details: nil,
       createdAt: Date(timeIntervalSinceReferenceDate: 0),
       progress: progress,
     )

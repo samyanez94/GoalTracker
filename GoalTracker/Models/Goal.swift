@@ -7,48 +7,48 @@
 
 import Foundation
 
-struct Goal: Identifiable, Codable {
-  let id: UUID
-  var name: String
-  var description: String?
-  let createdAt: Date
+final class Goal: Identifiable, Codable {
+  var id: UUID = UUID()
+  var name: String = ""
+  var details: String?
+  var createdAt: Date = Date()
   var dueDate: Date?
-  var sortOrder: Int
-  var progress: GoalProgress
+  var sortOrder: Int = 0
+  var progress: GoalProgress = .outcomePending
 
   var isCompleted: Bool {
     progress.isCompleted
   }
 
   @discardableResult
-  mutating func complete() -> Bool {
+  func complete() -> Bool {
     progress.complete()
   }
 
   @discardableResult
-  mutating func markPending() -> Bool {
+  func markPending() -> Bool {
     progress.reset()
   }
 
   @discardableResult
-  mutating func toggleCompletion() -> Bool {
+  func toggleCompletion() -> Bool {
     progress.toggleCompletion()
   }
 
   @discardableResult
-  mutating func incrementProgress() -> Bool {
+  func incrementProgress() -> Bool {
     progress.increment()
   }
 
   @discardableResult
-  mutating func decrementProgress() -> Bool {
+  func decrementProgress() -> Bool {
     progress.decrement()
   }
 
   init(
     id: UUID = UUID(),
     name: String,
-    description: String?,
+    details: String?,
     dueDate: Date? = nil,
     createdAt: Date,
     sortOrder: Int = 0,
@@ -56,7 +56,7 @@ struct Goal: Identifiable, Codable {
   ) {
     self.id = id
     self.name = name
-    self.description = description
+    self.details = details
     self.dueDate = dueDate
     self.createdAt = createdAt
     self.sortOrder = sortOrder

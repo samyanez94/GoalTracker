@@ -117,7 +117,7 @@ struct GoalSorterTests {
     Goal(
       id: UUID(),
       name: name,
-      description: nil,
+      details: nil,
       dueDate: dueDate,
       createdAt: createdAt,
       sortOrder: sortOrder,

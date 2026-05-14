@@ -15,11 +15,11 @@ struct GoalDetailContent: View {
       Section("Name") {
         Text(goal.name)
       }
-      if let description = goal.description,
-        !description.isEmpty
+      if let details = goal.details,
+        !details.isEmpty
       {
         Section("Description") {
-          Text(description)
+          Text(details)
         }
       }
       if let dueDate = goal.dueDate {

@@ -36,7 +36,7 @@ private enum GoalFormDestination: Hashable {
 
 private struct GoalFormInitialState {
   var name: String
-  var description: String
+  var details: String
   var hasDueDate: Bool
   var dueDate: Date
   var isDueDatePickerExpanded: Bool
@@ -53,7 +53,7 @@ struct GoalFormView: View {
 
   @State private var name: String
 
-  @State private var description: String
+  @State private var details: String
 
   @State private var hasDueDate: Bool
 
@@ -88,7 +88,7 @@ struct GoalFormView: View {
     let initialState = Self.initialState(for: mode.initialData)
     initialOutcomeIsCompleted = initialState.outcomeIsCompleted
     _name = State(initialValue: initialState.name)
-    _description = State(initialValue: initialState.description)
+    _details = State(initialValue: initialState.details)
     _hasDueDate = State(initialValue: initialState.hasDueDate)
     _dueDate = State(initialValue: initialState.dueDate)
     _isDueDatePickerExpanded = State(initialValue: initialState.isDueDatePickerExpanded)
@@ -104,7 +104,7 @@ struct GoalFormView: View {
     case .measurable:
       GoalFormInitialState(
         name: data.name,
-        description: data.description,
+        details: data.details,
         hasDueDate: data.dueDate != nil,
         dueDate: data.dueDate ?? Date(),
         isDueDatePickerExpanded: false,
@@ -118,7 +118,7 @@ struct GoalFormView: View {
     case .outcome:
       GoalFormInitialState(
         name: data.name,
-        description: data.description,
+        details: data.details,
         hasDueDate: data.dueDate != nil,
         dueDate: data.dueDate ?? Date(),
         isDueDatePickerExpanded: false,
@@ -173,7 +173,7 @@ struct GoalFormView: View {
           .focused($isTextInputFocused)
         TextField(
           "Description",
-          text: $description,
+          text: $details,
           axis: .vertical,
         )
         .focused($isTextInputFocused)
@@ -303,7 +303,7 @@ struct GoalFormView: View {
     onSave(
       GoalFormData(
         name: trimmedName,
-        description: description,
+        details: details,
         dueDate: hasDueDate ? dueDate : nil,
         progress: progress,
       ),
@@ -324,7 +324,7 @@ struct GoalFormView: View {
       mode: .edit(
         GoalFormData(
           name: "Workout 10 times",
-          description: "Move a little every day.",
+          details: "Move a little every day.",
           dueDate: Date(),
           progress: .measurable(currentValue: 3, targetValue: 10, step: 2),
         ),

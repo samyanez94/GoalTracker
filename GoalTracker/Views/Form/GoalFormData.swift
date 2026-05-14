@@ -9,38 +9,38 @@ import Foundation
 
 struct GoalFormData {
   var name: String
-  var description: String
+  var details: String
   var dueDate: Date?
   var progress: GoalProgress
 
   static let empty = GoalFormData(
     name: "",
-    description: "",
+    details: "",
     dueDate: nil,
     progress: .outcomePending,
   )
 
   init(goal: Goal) {
     name = goal.name
-    description = goal.description ?? ""
+    details = goal.details ?? ""
     dueDate = goal.dueDate
     progress = goal.progress
   }
 
   init(
     name: String,
-    description: String,
+    details: String,
     dueDate: Date? = nil,
     progress: GoalProgress,
   ) {
     self.name = name
-    self.description = description
+    self.details = details
     self.dueDate = dueDate
     self.progress = progress
   }
 
-  var normalizedDescription: String? {
-    let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
-    return trimmedDescription.isEmpty ? nil : trimmedDescription
+  var normalizedDetails: String? {
+    let trimmedDetails = details.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmedDetails.isEmpty ? nil : trimmedDetails
   }
 }
