@@ -15,13 +15,13 @@ struct GoalListView: View {
 
     @State private var isPresentingGoalFormView = false
 
-    @State private var sortMode: GoalSortMode = .manual
+    @AppStorage("goalSortMode") private var sortMode: GoalSortMode = .manual
 
-    @State private var isShowingCompletedGoals = true
+    @AppStorage("isShowingCompletedGoals") private var isShowingCompletedGoals = true
 
-    @State private var isPendingSectionExpanded = true
+    @AppStorage("isPendingSectionExpanded") private var isPendingSectionExpanded = true
 
-    @State private var isCompletedSectionExpanded = true
+    @AppStorage("isCompletedSectionExpanded") private var isCompletedSectionExpanded = true
 
     private let sorter = GoalSorter()
 
