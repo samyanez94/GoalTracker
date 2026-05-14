@@ -122,7 +122,7 @@ struct GoalProgressUnitTests {
     }
 
     @Test
-    func `Goal progress encodes unit as flattened fields`() throws {
+    func `Goal progress encodes unit as a nested value`() throws {
         let progress = GoalProgress.measurable(
             currentValue: 1,
             targetValue: 5,
@@ -131,19 +131,21 @@ struct GoalProgressUnitTests {
         let data = try JSONEncoder().encode(progress)
         let json = try #require(String(data: data, encoding: .utf8))
 
-        #expect(json.contains(#""unitId":"time.minutes""#))
-        #expect(!json.contains(#""unit":{"#))
+        #expect(json.contains(#""unit":{"#))
+        #expect(json.contains(#""id":"time.minutes""#))
     }
 
     @Test
-    func `Goal progress decodes flattened preset unit`() throws {
+    func `Goal progress decodes nested preset unit`() throws {
         let data = """
             {
                 "kind": "measurable",
                 "currentValue": 1,
                 "targetValue": 5,
                 "step": 1,
-                "unitId": "time.minutes"
+                "unit": {
+                    "id": "time.minutes"
+                }
             }
             """.data(using: .utf8)!
 
@@ -153,18 +155,20 @@ struct GoalProgressUnitTests {
     }
 
     @Test
-    func `Goal progress decodes flattened custom unit`() throws {
+    func `Goal progress decodes nested custom unit`() throws {
         let data = """
             {
                 "kind": "measurable",
                 "currentValue": 1,
                 "targetValue": 5,
                 "step": 1,
-                "unitId": "custom.pages",
-                "unitCategory": "custom",
-                "unitTitle": "Pages",
-                "unitAbbreviatedTitle": "pg",
-                "unitSuffix": "pg"
+                "unit": {
+                    "id": "custom.pages",
+                    "category": "custom",
+                    "title": "Pages",
+                    "abbreviatedTitle": "pg",
+                    "suffix": "pg"
+                }
             }
             """.data(using: .utf8)!
 
@@ -173,6 +177,23 @@ struct GoalProgressUnitTests {
         #expect(progress.unit?.id == "custom.pages")
         #expect(progress.unit?.title == "Pages")
         #expect(progress.unit?.suffix == "pg")
+    }
+
+    @Test
+    func `Goal progress ignores nested unit without id`() throws {
+        let data = """
+            {
+                "kind": "measurable",
+                "currentValue": 1,
+                "targetValue": 5,
+                "step": 1,
+                "unit": {}
+            }
+            """.data(using: .utf8)!
+
+        let progress = try JSONDecoder().decode(GoalProgress.self, from: data)
+
+        #expect(progress.unit == nil)
     }
 
     private func decodeUnit(_ json: String) throws -> GoalProgressUnit {

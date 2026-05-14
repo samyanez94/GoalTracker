@@ -31,7 +31,7 @@ struct GoalManagerTests {
         #expect(entry.amount == 2)
         #expect(entry.date == entryDate)
         #expect(entry.goal?.id == goal.id)
-        #expect(goal.progressEntries.count == 1)
+        #expect(goal.progressEntries?.count == 1)
     }
 
     @Test
@@ -159,11 +159,7 @@ struct GoalManagerTests {
     }
 
     private func makeContainer() throws -> ModelContainer {
-        try ModelContainer(
-            for: Goal.self,
-            GoalProgressEntry.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true),
-        )
+        try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
     }
 
     private func makeManager(in container: ModelContainer) -> GoalManager {

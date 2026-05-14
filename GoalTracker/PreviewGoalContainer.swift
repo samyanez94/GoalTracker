@@ -12,11 +12,7 @@
     enum GoalPreviewContainer {
         static func make(goals: [Goal]) -> ModelContainer {
             do {
-                let container = try ModelContainer(
-                    for: Goal.self,
-                    GoalProgressEntry.self,
-                    configurations: ModelConfiguration(isStoredInMemoryOnly: true),
-                )
+                let container = try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
                 for goal in goals {
                     container.mainContext.insert(goal)
                 }

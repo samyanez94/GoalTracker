@@ -7,7 +7,12 @@
 
 import Foundation
 
-/// Tracks the state used to determine whether a goal is complete.
+/// Stores the current progress summary for a goal.
+///
+/// `GoalProgress` is the source of truth for where a goal stands right now.
+///
+/// `GoalProgressEntry` records dated changes over time for future charts and
+/// calendars.
 nonisolated struct GoalProgress: Codable {
     /// Whether this progress represents a binary outcome or a measurable target.
     private(set) var kind: GoalProgressKind
@@ -19,19 +24,6 @@ nonisolated struct GoalProgress: Codable {
     private(set) var step: Double
     /// The optional unit used when displaying measurable progress values.
     private(set) var unit: GoalProgressUnit?
-
-    private enum CodingKeys: String, CodingKey {
-        case kind
-        case currentValue
-        case targetValue
-        case step
-        case unitId
-        case unitCategory
-        case unitTitle
-        case unitAbbreviatedTitle
-        case unitPrefix
-        case unitSuffix
-    }
 
     static let outcomePending = GoalProgress(
         kind: .outcome,
@@ -187,74 +179,112 @@ nonisolated struct GoalProgress: Codable {
     }
 
     init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let kind = try container.decode(GoalProgressKind.self, forKey: .kind)
-        let currentValue = try container.decode(Double.self, forKey: .currentValue)
-        let targetValue = try container.decode(Double.self, forKey: .targetValue)
-        let step = try container.decodeIfPresent(Double.self, forKey: .step) ?? 1
-        let unitId = try container.decodeIfPresent(String.self, forKey: .unitId)
-        let unitCategory = try container.decodeIfPresent(
-            GoalProgressUnit.Category.self,
-            forKey: .unitCategory,
-        )
-        let unitTitle = try container.decodeIfPresent(String.self, forKey: .unitTitle)
-        let unitAbbreviatedTitle = try container.decodeIfPresent(
-            String.self,
-            forKey: .unitAbbreviatedTitle,
-        )
-        let unitPrefix = try container.decodeIfPresent(String.self, forKey: .unitPrefix)
-        let unitSuffix = try container.decodeIfPresent(String.self, forKey: .unitSuffix)
+        let storage = try GoalProgressStorage(from: decoder)
         guard
             Self.isValid(
-                currentValue: currentValue,
-                targetValue: targetValue,
-                step: step,
+                currentValue: storage.currentValue,
+                targetValue: storage.targetValue,
+                step: storage.step,
             )
         else {
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(
-                    codingPath: container.codingPath,
+                    codingPath: decoder.codingPath,
                     debugDescription:
                         "Progress values must be finite, non-negative, and within target bounds.",
                 ),
             )
         }
+        kind = storage.kind
+        currentValue = storage.currentValue
+        targetValue = storage.targetValue
+        step = storage.step
+        unit = storage.unit?.resolvedUnit()
+    }
+
+    func encode(to encoder: Encoder) throws {
+        try GoalProgressStorage(
+            kind: kind,
+            currentValue: currentValue,
+            targetValue: targetValue,
+            step: step,
+            unit: unit,
+        )
+        .encode(to: encoder)
+    }
+
+    private var upperBound: Double {
+        max(0, targetValue)
+    }
+
+    @discardableResult
+    private mutating func setCurrentValue(_ value: Double) -> Bool {
+        let updatedValue = min(max(0, value), upperBound)
+        guard currentValue != updatedValue else {
+            return false
+        }
+        currentValue = updatedValue
+        return true
+    }
+}
+
+nonisolated private struct GoalProgressStorage: Codable {
+    var kind: GoalProgressKind
+    var currentValue: Double
+    var targetValue: Double
+    var step: Double
+    var unit: GoalProgressUnitSnapshot?
+
+    private enum CodingKeys: String, CodingKey {
+        case kind
+        case currentValue
+        case targetValue
+        case step
+        case unit
+    }
+
+    init(
+        kind: GoalProgressKind,
+        currentValue: Double,
+        targetValue: Double,
+        step: Double,
+        unit: GoalProgressUnit?,
+    ) {
         self.kind = kind
         self.currentValue = currentValue
         self.targetValue = targetValue
         self.step = step
-        unit = Self.decodedUnit(
-            id: unitId,
-            category: unitCategory,
-            title: unitTitle,
-            abbreviatedTitle: unitAbbreviatedTitle,
-            prefix: unitPrefix,
-            suffix: unitSuffix,
-        )
+        self.unit = unit.map(GoalProgressUnitSnapshot.init)
     }
 
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(kind, forKey: .kind)
-        try container.encode(currentValue, forKey: .currentValue)
-        try container.encode(targetValue, forKey: .targetValue)
-        try container.encode(step, forKey: .step)
-        try container.encodeIfPresent(unit?.id, forKey: .unitId)
-        try container.encodeIfPresent(unit?.category, forKey: .unitCategory)
-        try container.encodeIfPresent(unit?.title, forKey: .unitTitle)
-        try container.encodeIfPresent(unit?.abbreviatedTitle, forKey: .unitAbbreviatedTitle)
-        try container.encodeIfPresent(unit?.prefix, forKey: .unitPrefix)
-        try container.encodeIfPresent(unit?.suffix, forKey: .unitSuffix)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        kind = try container.decode(GoalProgressKind.self, forKey: .kind)
+        currentValue = try container.decode(Double.self, forKey: .currentValue)
+        targetValue = try container.decode(Double.self, forKey: .targetValue)
+        step = try container.decodeIfPresent(Double.self, forKey: .step) ?? 1
+        unit = try container.decodeIfPresent(GoalProgressUnitSnapshot.self, forKey: .unit)
+    }
+}
+
+nonisolated private struct GoalProgressUnitSnapshot: Codable {
+    var id: String?
+    var category: GoalProgressUnit.Category?
+    var title: String?
+    var abbreviatedTitle: String?
+    var prefix: String?
+    var suffix: String?
+
+    init(_ unit: GoalProgressUnit) {
+        id = unit.id
+        category = unit.category
+        title = unit.title
+        abbreviatedTitle = unit.abbreviatedTitle
+        prefix = unit.prefix
+        suffix = unit.suffix
     }
 
-    private static func decodedUnit(
-        id: String?,
-        category: GoalProgressUnit.Category?,
-        title: String?,
-        abbreviatedTitle: String?,
-        prefix: String?,
-        suffix: String?,
-    ) -> GoalProgressUnit? {
+    func resolvedUnit() -> GoalProgressUnit? {
         guard let id else {
             return nil
         }
@@ -270,19 +300,5 @@ nonisolated struct GoalProgress: Codable {
             prefix: prefix,
             suffix: suffix,
         )
-    }
-
-    private var upperBound: Double {
-        max(0, targetValue)
-    }
-
-    @discardableResult
-    private mutating func setCurrentValue(_ value: Double) -> Bool {
-        let updatedValue = min(max(0, value), upperBound)
-        guard currentValue != updatedValue else {
-            return false
-        }
-        currentValue = updatedValue
-        return true
     }
 }

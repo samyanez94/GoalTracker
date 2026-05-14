@@ -10,10 +10,20 @@ import SwiftUI
 
 @main
 struct GoalTrackerApp: App {
+    private let modelContainer: ModelContainer
+
+    init() {
+        do {
+            modelContainer = try GoalTrackerModelContainer.make()
+        } catch {
+            fatalError("Failed to create model container: \(error)")
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             GoalListView()
         }
-        .modelContainer(for: [Goal.self, GoalProgressEntry.self])
+        .modelContainer(modelContainer)
     }
 }
