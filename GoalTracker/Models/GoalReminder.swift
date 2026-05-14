@@ -10,9 +10,4 @@ import Foundation
 nonisolated struct GoalReminder: Codable, Hashable {
   var hour: Int
   var minute: Int
-
-  init(hour: Int, minute: Int) {
-    self.hour = hour
-    self.minute = minute
-  }
 }

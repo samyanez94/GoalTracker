@@ -9,10 +9,6 @@ import Foundation
 
 nonisolated struct GoalRecurrence: Codable, Hashable {
   var cadence: Cadence
-
-  init(cadence: Cadence) {
-    self.cadence = cadence
-  }
 }
 
 extension GoalRecurrence {

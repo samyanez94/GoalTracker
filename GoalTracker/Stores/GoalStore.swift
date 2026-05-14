@@ -24,10 +24,10 @@ final class GoalStore {
     modelContext: ModelContext,
     sorter: GoalSorter? = nil,
   ) {
-    self.modelContainer = nil
+    modelContainer = nil
     self.modelContext = modelContext
     self.sorter = sorter ?? GoalSorter()
-    self.goals = Self.fetchGoals(from: modelContext)
+    goals = Self.fetchGoals(from: modelContext)
   }
 
   init(
