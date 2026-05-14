@@ -40,7 +40,7 @@ struct GoalListView: View {
                                 title: "Pending",
                                 goals: pendingGoals,
                                 isExpanded: $isPendingSectionExpanded,
-                                goalStore: goalStore,
+                                goalManager: goalManager,
                                 sortMode: $sortMode,
                                 onMove: movePendingGoals,
                             )
@@ -48,14 +48,14 @@ struct GoalListView: View {
                                 title: "Completed",
                                 goals: completedGoals,
                                 isExpanded: $isCompletedSectionExpanded,
-                                goalStore: goalStore,
+                                goalManager: goalManager,
                                 sortMode: $sortMode,
                                 onMove: moveCompletedGoals,
                             )
                         } else {
                             GoalRowsView(
                                 goals: pendingGoals,
-                                goalStore: goalStore,
+                                goalManager: goalManager,
                                 sortMode: $sortMode,
                                 onMove: movePendingGoals,
                             )
@@ -103,7 +103,7 @@ struct GoalListView: View {
             .sheet(isPresented: $isPresentingGoalFormView) {
                 NavigationStack {
                     GoalFormView(mode: .create) { data in
-                        goalStore.addGoal(
+                        goalManager.addGoal(
                             Goal(
                                 name: data.name,
                                 details: data.normalizedDetails,
@@ -122,8 +122,8 @@ struct GoalListView: View {
         }
     }
 
-    private var goalStore: GoalStore {
-        GoalStore(modelContext: modelContext)
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
     }
 
     private var pendingGoals: [Goal] {
@@ -145,7 +145,7 @@ struct GoalListView: View {
         to destination: Int,
         sortedBy sortMode: GoalSortMode,
     ) {
-        goalStore.movePendingGoals(
+        goalManager.movePendingGoals(
             in: goals,
             from: source,
             to: destination,
@@ -158,7 +158,7 @@ struct GoalListView: View {
         to destination: Int,
         sortedBy sortMode: GoalSortMode,
     ) {
-        goalStore.moveCompletedGoals(
+        goalManager.moveCompletedGoals(
             in: goals,
             from: source,
             to: destination,

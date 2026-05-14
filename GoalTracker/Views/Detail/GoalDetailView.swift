@@ -46,7 +46,7 @@ struct GoalDetailView: View {
                                 }
                             }
                             Button(role: .destructive) {
-                                goalStore.deleteGoal(goal)
+                                goalManager.deleteGoal(goal)
                                 dismiss()
                             } label: {
                                 Label("Delete", systemImage: "trash")
@@ -69,7 +69,7 @@ struct GoalDetailView: View {
                         goal: goal,
                         goalId: goalId,
                         goals: goals,
-                        goalStore: goalStore,
+                        goalManager: goalManager,
                         feedbackTrigger: $feedbackTrigger,
                     ) {
                         dismiss()
@@ -87,8 +87,8 @@ struct GoalDetailView: View {
         goals.first { $0.id == goalId }
     }
 
-    private var goalStore: GoalStore {
-        GoalStore(modelContext: modelContext)
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
     }
 
     private func outcomeIsCompleted(for goal: Goal) -> Bool? {
@@ -99,14 +99,14 @@ struct GoalDetailView: View {
     }
 
     private func toggleOutcomeCompletion() {
-        guard goalStore.toggleCompletion(id: goalId, in: goals) else {
+        guard goalManager.toggleCompletion(id: goalId, in: goals) else {
             return
         }
         feedbackTrigger.toggle()
     }
 
     private func saveEdits(_ data: GoalFormData) {
-        goalStore.updateGoal(
+        goalManager.updateGoal(
             id: goalId,
             in: goals,
             name: data.name,

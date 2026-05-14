@@ -4,7 +4,7 @@ import SwiftUI
 struct GoalRowView: View {
     let goal: Goal
 
-    let goalStore: GoalStore
+    let goalManager: GoalManager
 
     var body: some View {
         NavigationLink(value: goal.id) {
@@ -26,7 +26,7 @@ struct GoalRowView: View {
         }
         .swipeActions {
             Button(role: .destructive) {
-                goalStore.deleteGoal(goal)
+                goalManager.deleteGoal(goal)
             } label: {
                 Label("Delete", systemImage: "trash")
             }
@@ -69,14 +69,14 @@ struct GoalRowView: View {
             goals[2],
         ],
     )
-    let goalStore = GoalStore(modelContext: container.mainContext)
+    let goalManager = GoalManager(modelContext: container.mainContext)
 
     NavigationStack {
         List {
             ForEach(goals) { goal in
                 GoalRowView(
                     goal: goal,
-                    goalStore: goalStore,
+                    goalManager: goalManager,
                 )
             }
         }

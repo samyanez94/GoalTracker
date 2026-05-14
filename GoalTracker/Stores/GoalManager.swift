@@ -1,5 +1,5 @@
 //
-//  GoalStore.swift
+//  GoalManager.swift
 //  GoalTracker
 //
 //  Created by Samuel Yanez on 5/2/26.
@@ -8,8 +8,13 @@
 import Foundation
 import SwiftData
 
+/// Coordinates goal write actions using SwiftData's model context.
+///
+/// `GoalManager` does not own or cache goal state. SwiftUI views read goals with
+/// `@Query`, then pass the current model values here when an action needs to
+/// create, update, delete, reorder, or save a goal.
 @MainActor
-struct GoalStore {
+struct GoalManager {
     private let modelContext: ModelContext
 
     private let sorter: GoalSorter

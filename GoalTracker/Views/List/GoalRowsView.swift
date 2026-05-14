@@ -9,7 +9,7 @@ import SwiftUI
 
 struct GoalRowsView: View {
     let goals: [Goal]
-    let goalStore: GoalStore
+    let goalManager: GoalManager
     @Binding var sortMode: GoalSortMode
     let onMove: (IndexSet, Int, GoalSortMode) -> Void
 
@@ -17,7 +17,7 @@ struct GoalRowsView: View {
         ForEach(goals) { goal in
             GoalRowView(
                 goal: goal,
-                goalStore: goalStore,
+                goalManager: goalManager,
             )
         }
         .onMove { source, destination in

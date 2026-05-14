@@ -11,7 +11,7 @@ struct GoalSectionView: View {
     let title: String
     let goals: [Goal]
     @Binding var isExpanded: Bool
-    let goalStore: GoalStore
+    let goalManager: GoalManager
     @Binding var sortMode: GoalSortMode
     let onMove: (IndexSet, Int, GoalSortMode) -> Void
 
@@ -20,7 +20,7 @@ struct GoalSectionView: View {
             Section(isExpanded: $isExpanded) {
                 GoalRowsView(
                     goals: goals,
-                    goalStore: goalStore,
+                    goalManager: goalManager,
                     sortMode: $sortMode,
                     onMove: onMove,
                 )
