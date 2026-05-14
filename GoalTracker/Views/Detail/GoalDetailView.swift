@@ -5,18 +5,21 @@
 //  Created by Samuel Yanez on 5/2/26.
 //
 
+import SwiftData
 import SwiftUI
 
 struct GoalDetailView: View {
     @Environment(\.dismiss) private var dismiss
+
+    @Environment(\.modelContext) private var modelContext
+
+    @Query private var goals: [Goal]
 
     @State private var editingGoal: Goal?
 
     @State private var feedbackTrigger = false
 
     let goalId: Goal.ID
-
-    let goalStore: GoalStore
 
     var body: some View {
         if let goal {
@@ -43,7 +46,7 @@ struct GoalDetailView: View {
                                 }
                             }
                             Button(role: .destructive) {
-                                goalStore.deleteGoal(id: goal.id)
+                                goalStore.deleteGoal(goal)
                                 dismiss()
                             } label: {
                                 Label("Delete", systemImage: "trash")
@@ -65,6 +68,7 @@ struct GoalDetailView: View {
                     GoalDetailBottomActionView(
                         goal: goal,
                         goalId: goalId,
+                        goals: goals,
                         goalStore: goalStore,
                         feedbackTrigger: $feedbackTrigger,
                     ) {
@@ -80,7 +84,11 @@ struct GoalDetailView: View {
     }
 
     private var goal: Goal? {
-        goalStore.goals.first { $0.id == goalId }
+        goals.first { $0.id == goalId }
+    }
+
+    private var goalStore: GoalStore {
+        GoalStore(modelContext: modelContext)
     }
 
     private func outcomeIsCompleted(for goal: Goal) -> Bool? {
@@ -91,7 +99,7 @@ struct GoalDetailView: View {
     }
 
     private func toggleOutcomeCompletion() {
-        guard goalStore.toggleCompletion(id: goalId) else {
+        guard goalStore.toggleCompletion(id: goalId, in: goals) else {
             return
         }
         feedbackTrigger.toggle()
@@ -100,6 +108,7 @@ struct GoalDetailView: View {
     private func saveEdits(_ data: GoalFormData) {
         goalStore.updateGoal(
             id: goalId,
+            in: goals,
             name: data.name,
             details: data.normalizedDetails,
             dueDate: data.dueDate,
@@ -115,13 +124,12 @@ struct GoalDetailView: View {
         createdAt: Date(),
         progress: .measurable(currentValue: 1, targetValue: 5),
     )
-    let goalStore = GoalStore(goals: [goal])
+    let container = GoalPreviewContainer.make(goals: [goal])
+
     NavigationStack {
-        GoalDetailView(
-            goalId: goal.id,
-            goalStore: goalStore,
-        )
+        GoalDetailView(goalId: goal.id)
     }
+    .modelContainer(container)
 }
 
 #Preview("Completed Goal") {
@@ -131,14 +139,12 @@ struct GoalDetailView: View {
         createdAt: Date(),
         progress: .measurable(currentValue: 20, targetValue: 20),
     )
-    let goalStore = GoalStore(goals: [goal])
+    let container = GoalPreviewContainer.make(goals: [goal])
 
     NavigationStack {
-        GoalDetailView(
-            goalId: goal.id,
-            goalStore: goalStore,
-        )
+        GoalDetailView(goalId: goal.id)
     }
+    .modelContainer(container)
 }
 
 #Preview("One-off Goal") {
@@ -148,12 +154,10 @@ struct GoalDetailView: View {
         createdAt: Date(),
         progress: .outcomePending,
     )
-    let goalStore = GoalStore(goals: [goal])
+    let container = GoalPreviewContainer.make(goals: [goal])
 
     NavigationStack {
-        GoalDetailView(
-            goalId: goal.id,
-            goalStore: goalStore,
-        )
+        GoalDetailView(goalId: goal.id)
     }
+    .modelContainer(container)
 }

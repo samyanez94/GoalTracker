@@ -1,10 +1,4 @@
-//
-//  GoalRowView.swift
-//  GoalTracker
-//
-//  Created by Samuel Yanez on 5/4/26.
-//
-
+import SwiftData
 import SwiftUI
 
 struct GoalRowView: View {
@@ -32,7 +26,7 @@ struct GoalRowView: View {
         }
         .swipeActions {
             Button(role: .destructive) {
-                goalStore.deleteGoal(id: goal.id)
+                goalStore.deleteGoal(goal)
             } label: {
                 Label("Delete", systemImage: "trash")
             }
@@ -46,34 +40,40 @@ struct GoalRowView: View {
 }
 
 #Preview {
-    let goalStore = GoalStore(
+    let goals = [
+        Goal(
+            name: "Run a 5K",
+            details: "Build up endurance with three runs per week.",
+            dueDate: Calendar.current.date(byAdding: .day, value: 1, to: Date()),
+            createdAt: Date(),
+            progress: .measurable(currentValue: 2, targetValue: 5),
+        ),
+        Goal(
+            name: "File taxes",
+            details: nil,
+            dueDate: Calendar.current.date(byAdding: .day, value: -1, to: Date()),
+            createdAt: Date(),
+            progress: .outcomePending,
+        ),
+        Goal(
+            name: "Travel to Japan",
+            details: "Plan and take the trip.",
+            createdAt: Date(),
+            progress: .outcomeCompleted,
+        ),
+    ]
+    let container = GoalPreviewContainer.make(
         goals: [
-            Goal(
-                name: "Run a 5K",
-                details: "Build up endurance with three runs per week.",
-                dueDate: Calendar.current.date(byAdding: .day, value: 1, to: Date()),
-                createdAt: Date(),
-                progress: .measurable(currentValue: 2, targetValue: 5),
-            ),
-            Goal(
-                name: "File taxes",
-                details: nil,
-                dueDate: Calendar.current.date(byAdding: .day, value: -1, to: Date()),
-                createdAt: Date(),
-                progress: .outcomePending,
-            ),
-            Goal(
-                name: "Travel to Japan",
-                details: "Plan and take the trip.",
-                createdAt: Date(),
-                progress: .outcomeCompleted,
-            ),
+            goals[0],
+            goals[1],
+            goals[2],
         ],
     )
+    let goalStore = GoalStore(modelContext: container.mainContext)
 
     NavigationStack {
         List {
-            ForEach(goalStore.goals) { goal in
+            ForEach(goals) { goal in
                 GoalRowView(
                     goal: goal,
                     goalStore: goalStore,
@@ -81,4 +81,5 @@ struct GoalRowView: View {
             }
         }
     }
+    .modelContainer(container)
 }

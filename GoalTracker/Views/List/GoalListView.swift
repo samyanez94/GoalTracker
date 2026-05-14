@@ -5,10 +5,13 @@
 //  Created by Samuel Yanez on 5/2/26.
 //
 
+import SwiftData
 import SwiftUI
 
 struct GoalListView: View {
-    let goalStore: GoalStore
+    @Environment(\.modelContext) private var modelContext
+
+    @Query private var goals: [Goal]
 
     @State private var isPresentingGoalFormView = false
 
@@ -20,10 +23,12 @@ struct GoalListView: View {
 
     @State private var isCompletedSectionExpanded = true
 
+    private let sorter = GoalSorter()
+
     var body: some View {
         NavigationStack {
             Group {
-                if goalStore.goals.isEmpty {
+                if goals.isEmpty {
                     Text("No goals yet")
                         .font(.body)
                         .foregroundStyle(.secondary)
@@ -33,7 +38,7 @@ struct GoalListView: View {
                         if isShowingCompletedGoals {
                             GoalSectionView(
                                 title: "Pending",
-                                goals: goalStore.pendingGoals(sortedBy: sortMode),
+                                goals: pendingGoals,
                                 isExpanded: $isPendingSectionExpanded,
                                 goalStore: goalStore,
                                 sortMode: $sortMode,
@@ -41,7 +46,7 @@ struct GoalListView: View {
                             )
                             GoalSectionView(
                                 title: "Completed",
-                                goals: goalStore.completedGoals(sortedBy: sortMode),
+                                goals: completedGoals,
                                 isExpanded: $isCompletedSectionExpanded,
                                 goalStore: goalStore,
                                 sortMode: $sortMode,
@@ -49,7 +54,7 @@ struct GoalListView: View {
                             )
                         } else {
                             GoalRowsView(
-                                goals: goalStore.pendingGoals(sortedBy: sortMode),
+                                goals: pendingGoals,
                                 goalStore: goalStore,
                                 sortMode: $sortMode,
                                 onMove: movePendingGoals,
@@ -106,17 +111,33 @@ struct GoalListView: View {
                                 createdAt: Date(),
                                 progress: data.progress,
                             ),
+                            in: goals,
                         )
                     }
                 }
             }
             .navigationDestination(for: Goal.ID.self) { goalId in
-                GoalDetailView(
-                    goalId: goalId,
-                    goalStore: goalStore,
-                )
+                GoalDetailView(goalId: goalId)
             }
         }
+    }
+
+    private var goalStore: GoalStore {
+        GoalStore(modelContext: modelContext)
+    }
+
+    private var pendingGoals: [Goal] {
+        sorter.sorted(
+            goals.filter { !$0.isCompleted },
+            by: sortMode,
+        )
+    }
+
+    private var completedGoals: [Goal] {
+        sorter.sorted(
+            goals.filter(\.isCompleted),
+            by: sortMode,
+        )
     }
 
     private func movePendingGoals(
@@ -125,6 +146,7 @@ struct GoalListView: View {
         sortedBy sortMode: GoalSortMode,
     ) {
         goalStore.movePendingGoals(
+            in: goals,
             from: source,
             to: destination,
             sortedBy: sortMode,
@@ -137,6 +159,7 @@ struct GoalListView: View {
         sortedBy sortMode: GoalSortMode,
     ) {
         goalStore.moveCompletedGoals(
+            in: goals,
             from: source,
             to: destination,
             sortedBy: sortMode,
@@ -145,19 +168,20 @@ struct GoalListView: View {
 }
 
 #Preview {
-    GoalListView(
-        goalStore: GoalStore(
-            goals: [
-                Goal(
-                    name: "Run 100 miles",
-                    details: nil,
-                    createdAt: Date(),
-                    progress: .measurable(
-                        currentValue: 20,
-                        targetValue: 100,
-                    ),
-                )
-            ],
-        ),
+    let container = GoalPreviewContainer.make(
+        goals: [
+            Goal(
+                name: "Run 100 miles",
+                details: nil,
+                createdAt: Date(),
+                progress: .measurable(
+                    currentValue: 20,
+                    targetValue: 100,
+                ),
+            )
+        ],
     )
+
+    GoalListView()
+        .modelContainer(container)
 }

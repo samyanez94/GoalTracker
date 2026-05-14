@@ -6,103 +6,44 @@
 //
 
 import Foundation
-import Observation
 import SwiftData
 
 @MainActor
-@Observable
-final class GoalStore {
-    private(set) var goals: [Goal]
+struct GoalStore {
+    private let modelContext: ModelContext
 
-    @ObservationIgnored private let modelContainer: ModelContainer?
-
-    @ObservationIgnored private let modelContext: ModelContext
-
-    @ObservationIgnored private let sorter: GoalSorter
+    private let sorter: GoalSorter
 
     init(
         modelContext: ModelContext,
         sorter: GoalSorter? = nil,
     ) {
-        modelContainer = nil
         self.modelContext = modelContext
         self.sorter = sorter ?? GoalSorter()
-        goals = Self.fetchGoals(from: modelContext)
     }
 
-    init(
-        goals: [Goal] = [],
-        sorter: GoalSorter? = nil,
+    func addGoal(
+        _ goal: Goal,
+        in goals: [Goal],
     ) {
-        let modelContainer = Self.makeInMemoryContainer()
-        let modelContext = modelContainer.mainContext
-        for goal in goals {
-            modelContext.insert(goal)
-        }
-        try? modelContext.save()
-        self.modelContainer = modelContainer
-        self.modelContext = modelContext
-        self.sorter = sorter ?? GoalSorter()
-        self.goals = Self.fetchGoals(from: modelContext)
-    }
-
-    func pendingGoals(sortedBy sortMode: GoalSortMode) -> [Goal] {
-        sorter.sorted(
-            goals.filter { !$0.isCompleted },
-            by: sortMode,
-        )
-    }
-
-    func completedGoals(sortedBy sortMode: GoalSortMode) -> [Goal] {
-        sorter.sorted(
-            goals.filter(\.isCompleted),
-            by: sortMode,
-        )
-    }
-
-    func addGoal(_ goal: Goal) {
         goal.sortOrder = sorter.nextSortOrder(
             in: goals,
             isCompleted: goal.isCompleted,
         )
         modelContext.insert(goal)
-        goals.append(goal)
         saveChanges()
-    }
-
-    @discardableResult
-    func updateGoal(_ updatedGoal: Goal) -> Bool {
-        guard let index = goals.firstIndex(where: { $0.id == updatedGoal.id }) else {
-            return false
-        }
-        let goal = goals[index]
-        let isCompleted = goal.isCompleted
-        goal.name = updatedGoal.name
-        goal.details = updatedGoal.details
-        goal.dueDate = updatedGoal.dueDate
-        goal.progress = updatedGoal.progress
-        if goal.isCompleted != isCompleted {
-            goal.sortOrder = sorter.nextSortOrder(
-                in: goals,
-                isCompleted: goal.isCompleted,
-            )
-        } else {
-            goal.sortOrder = updatedGoal.sortOrder
-        }
-        goals[index] = goal
-        saveChanges()
-        return true
     }
 
     @discardableResult
     func updateGoal(
         id: Goal.ID,
+        in goals: [Goal],
         name: String,
         details: String?,
         dueDate: Date?,
         progress: GoalProgress,
     ) -> Bool {
-        updateGoal(id: id) { goal in
+        updateGoal(id: id, in: goals) { goal in
             goal.name = name
             goal.details = details
             goal.dueDate = dueDate
@@ -112,39 +53,53 @@ final class GoalStore {
     }
 
     @discardableResult
-    func toggleCompletion(id: Goal.ID) -> Bool {
-        updateGoal(id: id) { goal in
+    func toggleCompletion(
+        id: Goal.ID,
+        in goals: [Goal],
+    ) -> Bool {
+        updateGoal(id: id, in: goals) { goal in
             goal.toggleCompletion()
         }
     }
 
     @discardableResult
-    func completeGoal(id: Goal.ID) -> Bool {
-        updateGoal(id: id) { goal in
+    func completeGoal(
+        id: Goal.ID,
+        in goals: [Goal],
+    ) -> Bool {
+        updateGoal(id: id, in: goals) { goal in
             goal.complete()
         }
     }
 
     @discardableResult
-    func incrementProgress(id: Goal.ID) -> Bool {
-        updateGoal(id: id) { goal in
+    func incrementProgress(
+        id: Goal.ID,
+        in goals: [Goal],
+    ) -> Bool {
+        updateGoal(id: id, in: goals) { goal in
             goal.incrementProgress()
         }
     }
 
     @discardableResult
-    func decrementProgress(id: Goal.ID) -> Bool {
-        updateGoal(id: id) { goal in
+    func decrementProgress(
+        id: Goal.ID,
+        in goals: [Goal],
+    ) -> Bool {
+        updateGoal(id: id, in: goals) { goal in
             goal.decrementProgress()
         }
     }
 
     func movePendingGoals(
+        in goals: [Goal],
         from source: IndexSet,
         to destination: Int,
         sortedBy sortMode: GoalSortMode = .manual,
     ) {
         moveGoals(
+            in: goals,
             matching: { !$0.isCompleted },
             from: source,
             to: destination,
@@ -153,11 +108,13 @@ final class GoalStore {
     }
 
     func moveCompletedGoals(
+        in goals: [Goal],
         from source: IndexSet,
         to destination: Int,
         sortedBy sortMode: GoalSortMode = .manual,
     ) {
         moveGoals(
+            in: goals,
             matching: { $0.isCompleted },
             from: source,
             to: destination,
@@ -165,37 +122,9 @@ final class GoalStore {
         )
     }
 
-    func deleteGoal(id: Goal.ID) {
-        guard let index = goals.firstIndex(where: { $0.id == id }) else {
-            return
-        }
-        let goal = goals.remove(at: index)
+    func deleteGoal(_ goal: Goal) {
         modelContext.delete(goal)
         saveChanges()
-    }
-
-    private static func makeInMemoryContainer() -> ModelContainer {
-        do {
-            return try ModelContainer(
-                for: Goal.self,
-                GoalProgressEntry.self,
-                configurations: ModelConfiguration(
-                    UUID().uuidString,
-                    isStoredInMemoryOnly: true,
-                ),
-            )
-        } catch {
-            preconditionFailure("Failed to create in-memory model container: \(error)")
-        }
-    }
-
-    private static func fetchGoals(from modelContext: ModelContext) -> [Goal] {
-        do {
-            return try modelContext.fetch(FetchDescriptor<Goal>())
-        } catch {
-            print("Failed to fetch goals: \(error)")
-            return []
-        }
     }
 
     @discardableResult
@@ -210,6 +139,7 @@ final class GoalStore {
     }
 
     private func moveGoals(
+        in goals: [Goal],
         matching predicate: (Goal) -> Bool,
         from source: IndexSet,
         to destination: Int,
@@ -222,11 +152,7 @@ final class GoalStore {
             sortedBy: sortMode,
         )
         for (sortOrder, goal) in sectionGoals.enumerated() {
-            guard let index = goals.firstIndex(where: { $0.id == goal.id }) else {
-                continue
-            }
             goal.sortOrder = sortOrder
-            goals[index] = goal
         }
         saveChanges()
     }
@@ -234,13 +160,13 @@ final class GoalStore {
     @discardableResult
     private func updateGoal(
         id: Goal.ID,
+        in goals: [Goal],
         _ mutate: (Goal) -> Bool,
     ) -> Bool {
-        guard let index = goals.firstIndex(where: { $0.id == id }) else {
+        guard let goal = goals.first(where: { $0.id == id }) else {
             return false
         }
-        let isCompleted = goals[index].isCompleted
-        let goal = goals[index]
+        let isCompleted = goal.isCompleted
         guard mutate(goal) else {
             return false
         }
@@ -250,7 +176,6 @@ final class GoalStore {
                 isCompleted: goal.isCompleted,
             )
         }
-        goals[index] = goal
         saveChanges()
         return true
     }

@@ -121,6 +121,60 @@ struct GoalProgressUnitTests {
         #expect(unit.category == .custom)
     }
 
+    @Test
+    func `Goal progress encodes unit as flattened fields`() throws {
+        let progress = GoalProgress.measurable(
+            currentValue: 1,
+            targetValue: 5,
+            unit: .minutes,
+        )
+        let data = try JSONEncoder().encode(progress)
+        let json = try #require(String(data: data, encoding: .utf8))
+
+        #expect(json.contains(#""unitId":"time.minutes""#))
+        #expect(!json.contains(#""unit":{"#))
+    }
+
+    @Test
+    func `Goal progress decodes flattened preset unit`() throws {
+        let data = """
+            {
+                "kind": "measurable",
+                "currentValue": 1,
+                "targetValue": 5,
+                "step": 1,
+                "unitId": "time.minutes"
+            }
+            """.data(using: .utf8)!
+
+        let progress = try JSONDecoder().decode(GoalProgress.self, from: data)
+
+        #expect(progress.unit == .minutes)
+    }
+
+    @Test
+    func `Goal progress decodes flattened custom unit`() throws {
+        let data = """
+            {
+                "kind": "measurable",
+                "currentValue": 1,
+                "targetValue": 5,
+                "step": 1,
+                "unitId": "custom.pages",
+                "unitCategory": "custom",
+                "unitTitle": "Pages",
+                "unitAbbreviatedTitle": "pg",
+                "unitSuffix": "pg"
+            }
+            """.data(using: .utf8)!
+
+        let progress = try JSONDecoder().decode(GoalProgress.self, from: data)
+
+        #expect(progress.unit?.id == "custom.pages")
+        #expect(progress.unit?.title == "Pages")
+        #expect(progress.unit?.suffix == "pg")
+    }
+
     private func decodeUnit(_ json: String) throws -> GoalProgressUnit {
         let data = json.data(using: .utf8)!
         return try JSONDecoder().decode(GoalProgressUnit.self, from: data)

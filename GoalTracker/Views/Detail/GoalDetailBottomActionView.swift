@@ -10,6 +10,7 @@ import SwiftUI
 struct GoalDetailBottomActionView: View {
     let goal: Goal
     let goalId: Goal.ID
+    let goals: [Goal]
     let goalStore: GoalStore
     @Binding var feedbackTrigger: Bool
     let onDismiss: () -> Void
@@ -24,7 +25,7 @@ struct GoalDetailBottomActionView: View {
             )
         } else {
             CompleteGoalButton(isCompleted: goal.isCompleted) {
-                if goalStore.completeGoal(id: goalId) {
+                if goalStore.completeGoal(id: goalId, in: goals) {
                     feedbackTrigger.toggle()
                 }
                 onDismiss()
@@ -37,14 +38,14 @@ struct GoalDetailBottomActionView: View {
     }
 
     private func decrementProgress() {
-        guard goalStore.decrementProgress(id: goalId) else {
+        guard goalStore.decrementProgress(id: goalId, in: goals) else {
             return
         }
         feedbackTrigger.toggle()
     }
 
     private func incrementProgress() {
-        guard goalStore.incrementProgress(id: goalId) else {
+        guard goalStore.incrementProgress(id: goalId, in: goals) else {
             return
         }
         feedbackTrigger.toggle()

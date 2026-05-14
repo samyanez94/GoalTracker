@@ -20,6 +20,19 @@ nonisolated struct GoalProgress: Codable {
     /// The optional unit used when displaying measurable progress values.
     private(set) var unit: GoalProgressUnit?
 
+    private enum CodingKeys: String, CodingKey {
+        case kind
+        case currentValue
+        case targetValue
+        case step
+        case unitId
+        case unitCategory
+        case unitTitle
+        case unitAbbreviatedTitle
+        case unitPrefix
+        case unitSuffix
+    }
+
     static let outcomePending = GoalProgress(
         kind: .outcome,
         currentValue: 0,
@@ -179,7 +192,18 @@ nonisolated struct GoalProgress: Codable {
         let currentValue = try container.decode(Double.self, forKey: .currentValue)
         let targetValue = try container.decode(Double.self, forKey: .targetValue)
         let step = try container.decodeIfPresent(Double.self, forKey: .step) ?? 1
-        let unit = try container.decodeIfPresent(GoalProgressUnit.self, forKey: .unit)
+        let unitId = try container.decodeIfPresent(String.self, forKey: .unitId)
+        let unitCategory = try container.decodeIfPresent(
+            GoalProgressUnit.Category.self,
+            forKey: .unitCategory,
+        )
+        let unitTitle = try container.decodeIfPresent(String.self, forKey: .unitTitle)
+        let unitAbbreviatedTitle = try container.decodeIfPresent(
+            String.self,
+            forKey: .unitAbbreviatedTitle,
+        )
+        let unitPrefix = try container.decodeIfPresent(String.self, forKey: .unitPrefix)
+        let unitSuffix = try container.decodeIfPresent(String.self, forKey: .unitSuffix)
         guard
             Self.isValid(
                 currentValue: currentValue,
@@ -199,7 +223,53 @@ nonisolated struct GoalProgress: Codable {
         self.currentValue = currentValue
         self.targetValue = targetValue
         self.step = step
-        self.unit = unit
+        unit = Self.decodedUnit(
+            id: unitId,
+            category: unitCategory,
+            title: unitTitle,
+            abbreviatedTitle: unitAbbreviatedTitle,
+            prefix: unitPrefix,
+            suffix: unitSuffix,
+        )
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(kind, forKey: .kind)
+        try container.encode(currentValue, forKey: .currentValue)
+        try container.encode(targetValue, forKey: .targetValue)
+        try container.encode(step, forKey: .step)
+        try container.encodeIfPresent(unit?.id, forKey: .unitId)
+        try container.encodeIfPresent(unit?.category, forKey: .unitCategory)
+        try container.encodeIfPresent(unit?.title, forKey: .unitTitle)
+        try container.encodeIfPresent(unit?.abbreviatedTitle, forKey: .unitAbbreviatedTitle)
+        try container.encodeIfPresent(unit?.prefix, forKey: .unitPrefix)
+        try container.encodeIfPresent(unit?.suffix, forKey: .unitSuffix)
+    }
+
+    private static func decodedUnit(
+        id: String?,
+        category: GoalProgressUnit.Category?,
+        title: String?,
+        abbreviatedTitle: String?,
+        prefix: String?,
+        suffix: String?,
+    ) -> GoalProgressUnit? {
+        guard let id else {
+            return nil
+        }
+        if let preset = GoalProgressUnit.preset(withID: id) {
+            return preset
+        }
+        let fallbackTitle = title ?? abbreviatedTitle ?? id
+        return GoalProgressUnit(
+            id: id,
+            category: category ?? .custom,
+            title: fallbackTitle,
+            abbreviatedTitle: abbreviatedTitle ?? fallbackTitle,
+            prefix: prefix,
+            suffix: suffix,
+        )
     }
 
     private var upperBound: Double {
