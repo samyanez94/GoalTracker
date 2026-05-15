@@ -41,7 +41,7 @@ enum GoalTrackerMigrationPlan: SchemaMigrationPlan {
 enum GoalTrackerModelContainer {
     @MainActor
     static func make(isStoredInMemoryOnly: Bool = false) throws -> ModelContainer {
-        let schema = Schema(GoalTrackerSchemaV1.models)
+        let schema = Schema(versionedSchema: GoalTrackerSchemaV1.self)
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: isStoredInMemoryOnly,
