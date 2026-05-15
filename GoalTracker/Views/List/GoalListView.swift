@@ -17,13 +17,13 @@ struct GoalListView: View {
 
     @State private var saveFailure: GoalSaveFailure?
 
-    @AppStorage("goalSortMode") private var sortMode: GoalSortMode = .creationDate
+    @AppStorage(AppStorageKey.goalSortMode) private var sortMode: GoalSortMode = .creationDate
 
-    @AppStorage("isShowingCompletedGoals") private var isShowingCompletedGoals = true
+    @AppStorage(AppStorageKey.isShowingCompletedGoals) private var isShowingCompletedGoals = true
 
-    @AppStorage("isPendingSectionExpanded") private var isPendingSectionExpanded = true
+    @AppStorage(AppStorageKey.isPendingSectionExpanded) private var isPendingSectionExpanded = true
 
-    @AppStorage("isCompletedSectionExpanded") private var isCompletedSectionExpanded = true
+    @AppStorage(AppStorageKey.isCompletedSectionExpanded) private var isCompletedSectionExpanded = true
 
     private let sorter = GoalSorter()
 
