@@ -9,7 +9,7 @@ struct GoalRowView: View {
     @State private var saveFailure: GoalSaveFailure?
 
     var body: some View {
-        NavigationLink(value: goal.id) {
+        NavigationLink(value: goal) {
             HStack(spacing: 12) {
                 CircularGoalProgressView(
                     progress: goal.progress.fractionCompleted,

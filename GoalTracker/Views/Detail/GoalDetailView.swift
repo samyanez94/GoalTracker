@@ -13,87 +13,66 @@ struct GoalDetailView: View {
 
     @Environment(\.modelContext) private var modelContext
 
-    @Query private var goals: [Goal]
-
-    @State private var editingGoal: Goal?
+    @State private var isPresentingEditForm = false
 
     @State private var feedbackTrigger = false
 
     @State private var saveFailure: GoalSaveFailure?
 
-    let goalId: Goal.ID
-
-    init(goalId: Goal.ID) {
-        self.goalId = goalId
-        _goals = Query(
-            filter: #Predicate<Goal> { goal in
-                goal.id == goalId
-            },
-        )
-    }
+    let goal: Goal
 
     var body: some View {
-        if let goal {
-            GoalDetailContent(goal: goal)
-                .navigationTitle("Goal")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Menu("Goal Actions", systemImage: "ellipsis") {
+        GoalDetailContent(goal: goal)
+            .navigationTitle("Goal")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu("Goal Actions", systemImage: "ellipsis") {
+                        Button {
+                            isPresentingEditForm = true
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        if let outcomeIsCompleted = outcomeIsCompleted(for: goal) {
                             Button {
-                                editingGoal = goal
+                                toggleOutcomeCompletion()
                             } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            if let outcomeIsCompleted = outcomeIsCompleted(for: goal) {
-                                Button {
-                                    toggleOutcomeCompletion()
-                                } label: {
-                                    Label(
-                                        outcomeIsCompleted ? "Mark as Pending" : "Complete",
-                                        systemImage: outcomeIsCompleted
-                                            ? "circle" : "checkmark.circle",
-                                    )
-                                }
-                            }
-                            Button(role: .destructive) {
-                                deleteGoal(goal)
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                                Label(
+                                    outcomeIsCompleted ? "Mark as Pending" : "Complete",
+                                    systemImage: outcomeIsCompleted
+                                        ? "circle" : "checkmark.circle",
+                                )
                             }
                         }
-                        .labelStyle(.iconOnly)
-                    }
-                }
-                .sheet(item: $editingGoal) { currentGoal in
-                    NavigationStack {
-                        GoalFormView(
-                            mode: .edit(GoalFormData(goal: currentGoal)),
-                        ) { data in
-                            try saveEdits(data)
+                        Button(role: .destructive) {
+                            deleteGoal(goal)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
                     }
+                    .labelStyle(.iconOnly)
                 }
-                .safeAreaInset(edge: .bottom) {
-                    GoalDetailBottomActionView(
-                        goal: goal,
-                        goalManager: goalManager,
-                        feedbackTrigger: $feedbackTrigger,
-                    ) {
-                        dismiss()
+            }
+            .sheet(isPresented: $isPresentingEditForm) {
+                NavigationStack {
+                    GoalFormView(
+                        mode: .edit(GoalFormData(goal: goal)),
+                    ) { data in
+                        try updateGoal(data)
                     }
                 }
-                .sensoryFeedback(.impact(weight: .light), trigger: feedbackTrigger)
-                .goalSaveFailureAlert(failure: $saveFailure)
-        } else {
-            ContentUnavailableView("Goal Not Found", systemImage: "target")
-                .navigationTitle("Goal")
-                .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-
-    private var goal: Goal? {
-        goals.first { $0.id == goalId }
+            }
+            .safeAreaInset(edge: .bottom) {
+                GoalDetailBottomActionView(
+                    goal: goal,
+                    goalManager: goalManager,
+                    feedbackTrigger: $feedbackTrigger,
+                ) {
+                    dismiss()
+                }
+            }
+            .sensoryFeedback(.impact(weight: .light), trigger: feedbackTrigger)
+            .goalSaveFailureAlert(failure: $saveFailure)
     }
 
     private var goalManager: GoalManager {
@@ -109,9 +88,7 @@ struct GoalDetailView: View {
 
     private func toggleOutcomeCompletion() {
         do {
-            guard let goal,
-                try goalManager.toggleCompletion(goal)
-            else {
+            guard try goalManager.toggleCompletion(goal) else {
                 return
             }
             feedbackTrigger.toggle()
@@ -120,10 +97,7 @@ struct GoalDetailView: View {
         }
     }
 
-    private func saveEdits(_ data: GoalFormData) throws {
-        guard let goal else {
-            return
-        }
+    private func updateGoal(_ data: GoalFormData) throws {
         try goalManager.updateGoal(
             goal,
             name: data.name,
@@ -153,7 +127,7 @@ struct GoalDetailView: View {
     let container = GoalPreviewContainer.make(goals: [goal])
 
     NavigationStack {
-        GoalDetailView(goalId: goal.id)
+        GoalDetailView(goal: goal)
     }
     .modelContainer(container)
 }
@@ -168,7 +142,7 @@ struct GoalDetailView: View {
     let container = GoalPreviewContainer.make(goals: [goal])
 
     NavigationStack {
-        GoalDetailView(goalId: goal.id)
+        GoalDetailView(goal: goal)
     }
     .modelContainer(container)
 }
@@ -183,7 +157,7 @@ struct GoalDetailView: View {
     let container = GoalPreviewContainer.make(goals: [goal])
 
     NavigationStack {
-        GoalDetailView(goalId: goal.id)
+        GoalDetailView(goal: goal)
     }
     .modelContainer(container)
 }

@@ -111,8 +111,8 @@ struct GoalListView: View {
                     }
                 }
             }
-            .navigationDestination(for: Goal.ID.self) { goalId in
-                GoalDetailView(goalId: goalId)
+            .navigationDestination(for: Goal.self) { goal in
+                GoalDetailView(goal: goal)
             }
             .goalSaveFailureAlert(failure: $saveFailure)
         }
