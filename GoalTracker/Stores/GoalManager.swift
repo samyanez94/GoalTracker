@@ -15,32 +15,75 @@ import SwiftData
 /// create, update, delete, reorder, or save a goal.
 @MainActor
 struct GoalManager {
+    enum SaveError: LocalizedError {
+        case failed(Error)
+
+        var errorDescription: String? {
+            "Your changes could not be saved."
+        }
+    }
+
     private let modelContext: ModelContext
 
     private let sorter: GoalSorter
 
     private let dateProvider: () -> Date
 
+    private let saveContext: () throws -> Void
+
+    private let rollbackContext: () -> Void
+
+    private struct GoalSnapshot {
+        let name: String
+        let details: String?
+        let dueDate: Date?
+        let sortOrder: Int
+        let progress: GoalProgress
+        let progressEntries: [GoalProgressEntry]?
+
+        init(goal: Goal) {
+            name = goal.name
+            details = goal.details
+            dueDate = goal.dueDate
+            sortOrder = goal.sortOrder
+            progress = goal.progress
+            progressEntries = goal.progressEntries
+        }
+
+        func restore(_ goal: Goal) {
+            goal.name = name
+            goal.details = details
+            goal.dueDate = dueDate
+            goal.sortOrder = sortOrder
+            goal.progress = progress
+            goal.progressEntries = progressEntries
+        }
+    }
+
     init(
         modelContext: ModelContext,
         sorter: GoalSorter? = nil,
         dateProvider: @escaping () -> Date = Date.init,
+        saveContext: (() throws -> Void)? = nil,
+        rollbackContext: (() -> Void)? = nil,
     ) {
         self.modelContext = modelContext
         self.sorter = sorter ?? GoalSorter()
         self.dateProvider = dateProvider
+        self.saveContext = saveContext ?? { try modelContext.save() }
+        self.rollbackContext = rollbackContext ?? { modelContext.rollback() }
     }
 
     func addGoal(
         _ goal: Goal,
         in goals: [Goal],
-    ) {
+    ) throws {
         goal.sortOrder = sorter.nextSortOrder(
             in: goals,
             isCompleted: goal.isCompleted,
         )
         modelContext.insert(goal)
-        saveChanges()
+        try saveChanges()
     }
 
     @discardableResult
@@ -51,8 +94,8 @@ struct GoalManager {
         details: String?,
         dueDate: Date?,
         progress: GoalProgress,
-    ) -> Bool {
-        updateGoal(id: id, in: goals) { goal in
+    ) throws -> Bool {
+        try updateGoal(id: id, in: goals) { goal in
             let previousProgress = goal.progress
             goal.name = name
             goal.details = details
@@ -75,8 +118,8 @@ struct GoalManager {
     func toggleCompletion(
         id: Goal.ID,
         in goals: [Goal],
-    ) -> Bool {
-        updateProgress(id: id, in: goals) { goal in
+    ) throws -> Bool {
+        try updateProgress(id: id, in: goals) { goal in
             goal.toggleCompletion()
         }
     }
@@ -85,8 +128,8 @@ struct GoalManager {
     func completeGoal(
         id: Goal.ID,
         in goals: [Goal],
-    ) -> Bool {
-        updateProgress(id: id, in: goals) { goal in
+    ) throws -> Bool {
+        try updateProgress(id: id, in: goals) { goal in
             goal.complete()
         }
     }
@@ -95,8 +138,8 @@ struct GoalManager {
     func incrementProgress(
         id: Goal.ID,
         in goals: [Goal],
-    ) -> Bool {
-        updateProgress(id: id, in: goals) { goal in
+    ) throws -> Bool {
+        try updateProgress(id: id, in: goals) { goal in
             goal.incrementProgress()
         }
     }
@@ -105,8 +148,8 @@ struct GoalManager {
     func decrementProgress(
         id: Goal.ID,
         in goals: [Goal],
-    ) -> Bool {
-        updateProgress(id: id, in: goals) { goal in
+    ) throws -> Bool {
+        try updateProgress(id: id, in: goals) { goal in
             goal.decrementProgress()
         }
     }
@@ -116,8 +159,8 @@ struct GoalManager {
         from source: IndexSet,
         to destination: Int,
         sortedBy sortMode: GoalSortMode = .manual,
-    ) {
-        moveGoals(
+    ) throws {
+        try moveGoals(
             in: goals,
             matching: { !$0.isCompleted },
             from: source,
@@ -131,8 +174,8 @@ struct GoalManager {
         from source: IndexSet,
         to destination: Int,
         sortedBy sortMode: GoalSortMode = .manual,
-    ) {
-        moveGoals(
+    ) throws {
+        try moveGoals(
             in: goals,
             matching: { $0.isCompleted },
             from: source,
@@ -141,19 +184,31 @@ struct GoalManager {
         )
     }
 
-    func deleteGoal(_ goal: Goal) {
+    func deleteGoal(_ goal: Goal) throws {
         modelContext.delete(goal)
-        saveChanges()
+        try saveDeletedGoal()
     }
 
-    @discardableResult
-    private func saveChanges() -> Bool {
+    private func saveChanges(
+        restoreOnFailure: () -> Void = {},
+    ) throws {
         do {
-            try modelContext.save()
-            return true
+            try saveContext()
         } catch {
-            print("Failed to save goals: \(error)")
-            return false
+            rollbackContext()
+            restoreOnFailure()
+            throw SaveError.failed(error)
+        }
+    }
+
+    private func saveDeletedGoal() throws {
+        do {
+            try saveContext()
+        } catch {
+            Task { @MainActor in
+                rollbackContext()
+            }
+            throw SaveError.failed(error)
         }
     }
 
@@ -163,17 +218,24 @@ struct GoalManager {
         from source: IndexSet,
         to destination: Int,
         sortedBy sortMode: GoalSortMode,
-    ) {
+    ) throws {
         let sectionGoals = sorter.reorderedGoals(
             goals.filter(predicate),
             from: source,
             to: destination,
             sortedBy: sortMode,
         )
+        let sortOrderSnapshots = sectionGoals.map { goal in
+            (goal, goal.sortOrder)
+        }
         for (sortOrder, goal) in sectionGoals.enumerated() {
             goal.sortOrder = sortOrder
         }
-        saveChanges()
+        try saveChanges {
+            for (goal, sortOrder) in sortOrderSnapshots {
+                goal.sortOrder = sortOrder
+            }
+        }
     }
 
     private func recordProgressChange(
@@ -216,10 +278,11 @@ struct GoalManager {
         id: Goal.ID,
         in goals: [Goal],
         _ mutate: (Goal) -> Bool,
-    ) -> Bool {
+    ) throws -> Bool {
         guard let goal = goals.first(where: { $0.id == id }) else {
             return false
         }
+        let snapshot = GoalSnapshot(goal: goal)
         let isCompleted = goal.isCompleted
         guard mutate(goal) else {
             return false
@@ -230,7 +293,9 @@ struct GoalManager {
                 isCompleted: goal.isCompleted,
             )
         }
-        saveChanges()
+        try saveChanges {
+            snapshot.restore(goal)
+        }
         return true
     }
 
@@ -239,10 +304,11 @@ struct GoalManager {
         id: Goal.ID,
         in goals: [Goal],
         _ mutate: (Goal) -> Bool,
-    ) -> Bool {
+    ) throws -> Bool {
         guard let goal = goals.first(where: { $0.id == id }) else {
             return false
         }
+        let snapshot = GoalSnapshot(goal: goal)
         let isCompleted = goal.isCompleted
         let isMeasurable = goal.progress.isMeasurable
         let currentValue = goal.progress.currentValue
@@ -261,7 +327,9 @@ struct GoalManager {
                 isCompleted: goal.isCompleted,
             )
         }
-        saveChanges()
+        try saveChanges {
+            snapshot.restore(goal)
+        }
         return true
     }
 }

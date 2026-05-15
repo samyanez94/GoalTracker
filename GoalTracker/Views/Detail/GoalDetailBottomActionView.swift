@@ -15,22 +15,32 @@ struct GoalDetailBottomActionView: View {
     @Binding var feedbackTrigger: Bool
     let onDismiss: () -> Void
 
+    @State private var saveFailure: GoalSaveFailure?
+
     var body: some View {
-        if let progress {
-            ProgressStepperControl(
-                canDecrement: progress.canDecrement,
-                canIncrement: progress.canIncrement,
-                onDecrement: decrementProgress,
-                onIncrement: incrementProgress,
-            )
-        } else {
-            CompleteGoalButton(isCompleted: goal.isCompleted) {
-                if goalManager.completeGoal(id: goalId, in: goals) {
-                    feedbackTrigger.toggle()
+        Group {
+            if let progress {
+                ProgressStepperControl(
+                    canDecrement: progress.canDecrement,
+                    canIncrement: progress.canIncrement,
+                    onDecrement: decrementProgress,
+                    onIncrement: incrementProgress,
+                )
+            } else {
+                CompleteGoalButton(isCompleted: goal.isCompleted) {
+                    do {
+                        guard try goalManager.completeGoal(id: goalId, in: goals) else {
+                            return
+                        }
+                        feedbackTrigger.toggle()
+                        onDismiss()
+                    } catch {
+                        saveFailure = .updateProgress
+                    }
                 }
-                onDismiss()
             }
         }
+        .goalSaveFailureAlert(failure: $saveFailure)
     }
 
     private var progress: GoalProgress? {
@@ -38,16 +48,24 @@ struct GoalDetailBottomActionView: View {
     }
 
     private func decrementProgress() {
-        guard goalManager.decrementProgress(id: goalId, in: goals) else {
-            return
+        do {
+            guard try goalManager.decrementProgress(id: goalId, in: goals) else {
+                return
+            }
+            feedbackTrigger.toggle()
+        } catch {
+            saveFailure = .updateProgress
         }
-        feedbackTrigger.toggle()
     }
 
     private func incrementProgress() {
-        guard goalManager.incrementProgress(id: goalId, in: goals) else {
-            return
+        do {
+            guard try goalManager.incrementProgress(id: goalId, in: goals) else {
+                return
+            }
+            feedbackTrigger.toggle()
+        } catch {
+            saveFailure = .updateProgress
         }
-        feedbackTrigger.toggle()
     }
 }

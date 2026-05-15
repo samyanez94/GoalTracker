@@ -73,15 +73,17 @@ struct GoalFormView: View {
 
     @FocusState private var isTextInputFocused: Bool
 
+    @State private var saveFailure: GoalSaveFailure?
+
     private let mode: GoalFormMode
 
     private let initialOutcomeIsCompleted: Bool
 
-    private let onSave: (GoalFormData) -> Void
+    private let onSave: (GoalFormData) throws -> Void
 
     init(
         mode: GoalFormMode,
-        onSave: @escaping (GoalFormData) -> Void,
+        onSave: @escaping (GoalFormData) throws -> Void,
     ) {
         self.mode = mode
         self.onSave = onSave
@@ -274,6 +276,7 @@ struct GoalFormView: View {
                 ProgressUnitSelectionView(selectedUnit: $selectedProgressUnit)
             }
         }
+        .goalSaveFailureAlert(failure: $saveFailure)
     }
 
     private func toggleDueDatePicker() {
@@ -300,15 +303,28 @@ struct GoalFormView: View {
             } else {
                 initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending
             }
-        onSave(
-            GoalFormData(
-                name: trimmedName,
-                details: details,
-                dueDate: hasDueDate ? dueDate : nil,
-                progress: progress,
-            ),
-        )
-        dismiss()
+        do {
+            try onSave(
+                GoalFormData(
+                    name: trimmedName,
+                    details: details,
+                    dueDate: hasDueDate ? dueDate : nil,
+                    progress: progress,
+                ),
+            )
+            dismiss()
+        } catch {
+            saveFailure = saveFailureKind
+        }
+    }
+
+    private var saveFailureKind: GoalSaveFailure {
+        switch mode {
+        case .create:
+            .addGoal
+        case .edit:
+            .updateGoal
+        }
     }
 }
 

@@ -19,6 +19,8 @@ struct GoalDetailView: View {
 
     @State private var feedbackTrigger = false
 
+    @State private var saveFailure: GoalSaveFailure?
+
     let goalId: Goal.ID
 
     var body: some View {
@@ -46,8 +48,7 @@ struct GoalDetailView: View {
                                 }
                             }
                             Button(role: .destructive) {
-                                goalManager.deleteGoal(goal)
-                                dismiss()
+                                deleteGoal(goal)
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
@@ -60,7 +61,7 @@ struct GoalDetailView: View {
                         GoalFormView(
                             mode: .edit(GoalFormData(goal: currentGoal)),
                         ) { data in
-                            saveEdits(data)
+                            try saveEdits(data)
                         }
                     }
                 }
@@ -76,6 +77,7 @@ struct GoalDetailView: View {
                     }
                 }
                 .sensoryFeedback(.impact(weight: .light), trigger: feedbackTrigger)
+                .goalSaveFailureAlert(failure: $saveFailure)
         } else {
             ContentUnavailableView("Goal Not Found", systemImage: "target")
                 .navigationTitle("Goal")
@@ -99,14 +101,18 @@ struct GoalDetailView: View {
     }
 
     private func toggleOutcomeCompletion() {
-        guard goalManager.toggleCompletion(id: goalId, in: goals) else {
-            return
+        do {
+            guard try goalManager.toggleCompletion(id: goalId, in: goals) else {
+                return
+            }
+            feedbackTrigger.toggle()
+        } catch {
+            saveFailure = .updateProgress
         }
-        feedbackTrigger.toggle()
     }
 
-    private func saveEdits(_ data: GoalFormData) {
-        goalManager.updateGoal(
+    private func saveEdits(_ data: GoalFormData) throws {
+        try goalManager.updateGoal(
             id: goalId,
             in: goals,
             name: data.name,
@@ -114,6 +120,15 @@ struct GoalDetailView: View {
             dueDate: data.dueDate,
             progress: data.progress,
         )
+    }
+
+    private func deleteGoal(_ goal: Goal) {
+        do {
+            try goalManager.deleteGoal(goal)
+            dismiss()
+        } catch {
+            saveFailure = .deleteGoal
+        }
     }
 }
 

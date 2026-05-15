@@ -15,6 +15,8 @@ struct GoalListView: View {
 
     @State private var isPresentingGoalFormView = false
 
+    @State private var saveFailure: GoalSaveFailure?
+
     @AppStorage("goalSortMode") private var sortMode: GoalSortMode = .manual
 
     @AppStorage("isShowingCompletedGoals") private var isShowingCompletedGoals = true
@@ -103,7 +105,7 @@ struct GoalListView: View {
             .sheet(isPresented: $isPresentingGoalFormView) {
                 NavigationStack {
                     GoalFormView(mode: .create) { data in
-                        goalManager.addGoal(
+                        try goalManager.addGoal(
                             Goal(
                                 name: data.name,
                                 details: data.normalizedDetails,
@@ -119,6 +121,7 @@ struct GoalListView: View {
             .navigationDestination(for: Goal.ID.self) { goalId in
                 GoalDetailView(goalId: goalId)
             }
+            .goalSaveFailureAlert(failure: $saveFailure)
         }
     }
 
@@ -145,12 +148,16 @@ struct GoalListView: View {
         to destination: Int,
         sortedBy sortMode: GoalSortMode,
     ) {
-        goalManager.movePendingGoals(
-            in: goals,
-            from: source,
-            to: destination,
-            sortedBy: sortMode,
-        )
+        do {
+            try goalManager.movePendingGoals(
+                in: goals,
+                from: source,
+                to: destination,
+                sortedBy: sortMode,
+            )
+        } catch {
+            saveFailure = .saveOrder
+        }
     }
 
     private func moveCompletedGoals(
@@ -158,12 +165,16 @@ struct GoalListView: View {
         to destination: Int,
         sortedBy sortMode: GoalSortMode,
     ) {
-        goalManager.moveCompletedGoals(
-            in: goals,
-            from: source,
-            to: destination,
-            sortedBy: sortMode,
-        )
+        do {
+            try goalManager.moveCompletedGoals(
+                in: goals,
+                from: source,
+                to: destination,
+                sortedBy: sortMode,
+            )
+        } catch {
+            saveFailure = .saveOrder
+        }
     }
 }
 

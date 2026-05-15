@@ -6,6 +6,8 @@ struct GoalRowView: View {
 
     let goalManager: GoalManager
 
+    @State private var saveFailure: GoalSaveFailure?
+
     var body: some View {
         NavigationLink(value: goal.id) {
             HStack(spacing: 12) {
@@ -26,11 +28,16 @@ struct GoalRowView: View {
         }
         .swipeActions {
             Button(role: .destructive) {
-                goalManager.deleteGoal(goal)
+                do {
+                    try goalManager.deleteGoal(goal)
+                } catch {
+                    saveFailure = .deleteGoal
+                }
             } label: {
                 Label("Delete", systemImage: "trash")
             }
         }
+        .goalSaveFailureAlert(failure: $saveFailure)
     }
 
     private func isPastDue(_ dueDate: Date) -> Bool {
