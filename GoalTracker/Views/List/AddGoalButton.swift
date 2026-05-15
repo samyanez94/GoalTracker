@@ -18,7 +18,7 @@ struct AddGoalButton: View {
             action()
         } label: {
             Label("Add Goal", systemImage: "plus")
-                .font(.system(size: 22, weight: .semibold))
+                .font(.title2.bold())
                 .labelStyle(.iconOnly)
                 .frame(width: 56, height: 56)
         }

@@ -178,10 +178,7 @@ struct GoalManager {
             goal: goal,
         )
         modelContext.insert(entry)
-        if goal.progressEntries == nil {
-            goal.progressEntries = []
-        }
-        goal.progressEntries?.append(entry)
+        goal.addProgressEntry(entry)
     }
 
     private func progressHistoryAmount(

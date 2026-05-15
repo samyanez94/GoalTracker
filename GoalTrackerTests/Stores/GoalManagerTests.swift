@@ -31,7 +31,7 @@ struct GoalManagerTests {
         #expect(entry.amount == 2)
         #expect(entry.date == entryDate)
         #expect(entry.goal?.id == goal.id)
-        #expect(goal.progressEntries?.count == 1)
+        #expect(goal.progressHistory.count == 1)
     }
 
     @Test

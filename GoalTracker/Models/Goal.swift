@@ -35,6 +35,14 @@ final class Goal {
     @Relationship(deleteRule: .cascade, inverse: \GoalProgressEntry.goal)
     var progressEntries: [GoalProgressEntry]? = []
 
+    /// The goal's progress history as a non-optional collection for app code.
+    ///
+    /// SwiftData relationships are optional when using CloudKit, but the rest of
+    /// the app can usually think of a missing relationship as an empty history.
+    var progressHistory: [GoalProgressEntry] {
+        progressEntries ?? []
+    }
+
     /// Whether the current progress has reached its target.
     var isCompleted: Bool {
         progress.isCompleted
@@ -63,6 +71,16 @@ final class Goal {
     @discardableResult
     func decrementProgress() -> Bool {
         progress.decrement()
+    }
+
+    /// Adds a dated progress entry while preserving CloudKit-compatible storage.
+    func addProgressEntry(_ entry: GoalProgressEntry) {
+        guard var entries = progressEntries else {
+            progressEntries = [entry]
+            return
+        }
+        entries.append(entry)
+        progressEntries = entries
     }
 
     init(
