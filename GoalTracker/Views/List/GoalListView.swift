@@ -31,7 +31,7 @@ struct GoalListView: View {
         NavigationStack {
             Group {
                 if goals.isEmpty {
-                    Text("No goals yet")
+                    Text("No goals")
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -42,19 +42,16 @@ struct GoalListView: View {
                                 title: "Pending",
                                 goals: pendingGoals,
                                 isExpanded: $isPendingSectionExpanded,
-                                goalManager: goalManager,
                             )
                             GoalSectionView(
                                 title: "Completed",
                                 goals: completedGoals,
                                 isExpanded: $isCompletedSectionExpanded,
-                                goalManager: goalManager,
                             )
                         } else {
-                            GoalRowsView(
-                                goals: pendingGoals,
-                                goalManager: goalManager,
-                            )
+                            ForEach(pendingGoals) { goal in
+                                GoalRowView(goal: goal)
+                            }
                         }
                     }
                 }
@@ -63,14 +60,6 @@ struct GoalListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Button {
-                            isShowingCompletedGoals.toggle()
-                        } label: {
-                            Label(
-                                isShowingCompletedGoals ? "Hide Completed" : "Show Completed",
-                                systemImage: isShowingCompletedGoals ? "eye.slash" : "eye",
-                            )
-                        }
                         Menu {
                             Picker("Sort", selection: $sortMode) {
                                 ForEach(GoalSortMode.allCases) { sortMode in
@@ -80,6 +69,14 @@ struct GoalListView: View {
                             }
                         } label: {
                             Label("Sort By", systemImage: "arrow.up.arrow.down")
+                        }
+                        Button {
+                            isShowingCompletedGoals.toggle()
+                        } label: {
+                            Label(
+                                isShowingCompletedGoals ? "Hide Completed" : "Show Completed",
+                                systemImage: isShowingCompletedGoals ? "eye.slash" : "eye",
+                            )
                         }
                     } label: {
                         Label("List Options", systemImage: "ellipsis")
@@ -135,24 +132,42 @@ struct GoalListView: View {
             by: sortMode,
         )
     }
-
 }
 
-#Preview {
+#Preview("No goals") {
+    let container = GoalPreviewContainer.make(
+        goals: [],
+    )
+    GoalListView()
+        .modelContainer(container)
+}
+
+#Preview("Three goals") {
     let container = GoalPreviewContainer.make(
         goals: [
             Goal(
-                name: "Run 100 miles",
+                name: "Travel to Switzerland",
+                details: nil,
+                createdAt: Date(),
+                progress: .outcomeCompleted,
+            ),
+            Goal(
+                name: "Climb Mount Kilimanjaro",
+                details: nil,
+                createdAt: Date(),
+                progress: .outcomePending,
+            ),
+            Goal(
+                name: "Run 10 marathons",
                 details: nil,
                 createdAt: Date(),
                 progress: .measurable(
-                    currentValue: 20,
-                    targetValue: 100,
+                    currentValue: 2,
+                    targetValue: 10
                 ),
             )
         ],
     )
-
     GoalListView()
         .modelContainer(container)
 }

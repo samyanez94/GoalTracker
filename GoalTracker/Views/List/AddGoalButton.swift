@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AddGoalButton: View {
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
     @State private var feedbackTrigger = false
 
@@ -20,7 +20,7 @@ struct AddGoalButton: View {
             Label("Add Goal", systemImage: "plus")
                 .font(.title2.bold())
                 .labelStyle(.iconOnly)
-                .frame(width: 56, height: 56)
+                .frame(width: 44, height: 44)
         }
         .tint(.blue)
         .buttonStyle(.glassProminent)
