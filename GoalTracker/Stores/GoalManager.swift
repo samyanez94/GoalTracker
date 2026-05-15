@@ -88,6 +88,24 @@ struct GoalManager {
 
     @discardableResult
     func updateGoal(
+        _ goal: Goal,
+        name: String,
+        details: String?,
+        dueDate: Date?,
+        progress: GoalProgress,
+    ) throws -> Bool {
+        try updateGoal(
+            id: goal.id,
+            in: fetchGoals(),
+            name: name,
+            details: details,
+            dueDate: dueDate,
+            progress: progress,
+        )
+    }
+
+    @discardableResult
+    func updateGoal(
         id: Goal.ID,
         in goals: [Goal],
         name: String,
@@ -116,12 +134,32 @@ struct GoalManager {
 
     @discardableResult
     func toggleCompletion(
+        _ goal: Goal,
+    ) throws -> Bool {
+        try toggleCompletion(
+            id: goal.id,
+            in: fetchGoals(),
+        )
+    }
+
+    @discardableResult
+    func toggleCompletion(
         id: Goal.ID,
         in goals: [Goal],
     ) throws -> Bool {
         try updateProgress(id: id, in: goals) { goal in
             goal.toggleCompletion()
         }
+    }
+
+    @discardableResult
+    func completeGoal(
+        _ goal: Goal,
+    ) throws -> Bool {
+        try completeGoal(
+            id: goal.id,
+            in: fetchGoals(),
+        )
     }
 
     @discardableResult
@@ -136,12 +174,32 @@ struct GoalManager {
 
     @discardableResult
     func incrementProgress(
+        _ goal: Goal,
+    ) throws -> Bool {
+        try incrementProgress(
+            id: goal.id,
+            in: fetchGoals(),
+        )
+    }
+
+    @discardableResult
+    func incrementProgress(
         id: Goal.ID,
         in goals: [Goal],
     ) throws -> Bool {
         try updateProgress(id: id, in: goals) { goal in
             goal.incrementProgress()
         }
+    }
+
+    @discardableResult
+    func decrementProgress(
+        _ goal: Goal,
+    ) throws -> Bool {
+        try decrementProgress(
+            id: goal.id,
+            in: fetchGoals(),
+        )
     }
 
     @discardableResult
@@ -271,6 +329,10 @@ struct GoalManager {
             return nil
         }
         return amount
+    }
+
+    private func fetchGoals() throws -> [Goal] {
+        try modelContext.fetch(FetchDescriptor<Goal>())
     }
 
     @discardableResult

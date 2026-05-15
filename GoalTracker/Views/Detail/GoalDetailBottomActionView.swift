@@ -9,10 +9,11 @@ import SwiftUI
 
 struct GoalDetailBottomActionView: View {
     let goal: Goal
-    let goalId: Goal.ID
-    let goals: [Goal]
+
     let goalManager: GoalManager
+
     @Binding var feedbackTrigger: Bool
+
     let onDismiss: () -> Void
 
     @State private var saveFailure: GoalSaveFailure?
@@ -29,7 +30,7 @@ struct GoalDetailBottomActionView: View {
             } else {
                 CompleteGoalButton(isCompleted: goal.isCompleted) {
                     do {
-                        guard try goalManager.completeGoal(id: goalId, in: goals) else {
+                        guard try goalManager.completeGoal(goal) else {
                             return
                         }
                         feedbackTrigger.toggle()
@@ -49,7 +50,7 @@ struct GoalDetailBottomActionView: View {
 
     private func decrementProgress() {
         do {
-            guard try goalManager.decrementProgress(id: goalId, in: goals) else {
+            guard try goalManager.decrementProgress(goal) else {
                 return
             }
             feedbackTrigger.toggle()
@@ -60,7 +61,7 @@ struct GoalDetailBottomActionView: View {
 
     private func incrementProgress() {
         do {
-            guard try goalManager.incrementProgress(id: goalId, in: goals) else {
+            guard try goalManager.incrementProgress(goal) else {
                 return
             }
             feedbackTrigger.toggle()

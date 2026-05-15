@@ -23,6 +23,15 @@ struct GoalDetailView: View {
 
     let goalId: Goal.ID
 
+    init(goalId: Goal.ID) {
+        self.goalId = goalId
+        _goals = Query(
+            filter: #Predicate<Goal> { goal in
+                goal.id == goalId
+            },
+        )
+    }
+
     var body: some View {
         if let goal {
             GoalDetailContent(goal: goal)
@@ -68,8 +77,6 @@ struct GoalDetailView: View {
                 .safeAreaInset(edge: .bottom) {
                     GoalDetailBottomActionView(
                         goal: goal,
-                        goalId: goalId,
-                        goals: goals,
                         goalManager: goalManager,
                         feedbackTrigger: $feedbackTrigger,
                     ) {
@@ -102,7 +109,9 @@ struct GoalDetailView: View {
 
     private func toggleOutcomeCompletion() {
         do {
-            guard try goalManager.toggleCompletion(id: goalId, in: goals) else {
+            guard let goal,
+                try goalManager.toggleCompletion(goal)
+            else {
                 return
             }
             feedbackTrigger.toggle()
@@ -112,9 +121,11 @@ struct GoalDetailView: View {
     }
 
     private func saveEdits(_ data: GoalFormData) throws {
+        guard let goal else {
+            return
+        }
         try goalManager.updateGoal(
-            id: goalId,
-            in: goals,
+            goal,
             name: data.name,
             details: data.normalizedDetails,
             dueDate: data.dueDate,
