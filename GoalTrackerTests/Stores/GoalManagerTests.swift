@@ -24,7 +24,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.incrementProgress(id: goal.id, in: [goal])
+        let didChange = try manager.incrementProgress(goal)
 
         let entry = try #require(fetchEntries(in: container).first)
         #expect(didChange)
@@ -43,7 +43,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.decrementProgress(id: goal.id, in: [goal])
+        let didChange = try manager.decrementProgress(goal)
 
         let entry = try #require(fetchEntries(in: container).first)
         #expect(didChange)
@@ -60,7 +60,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.completeGoal(id: goal.id, in: [goal])
+        let didChange = try manager.completeGoal(goal)
 
         let entry = try #require(fetchEntries(in: container).first)
         #expect(didChange)
@@ -77,7 +77,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.toggleCompletion(id: goal.id, in: [goal])
+        let didChange = try manager.toggleCompletion(goal)
 
         let entry = try #require(fetchEntries(in: container).first)
         #expect(didChange)
@@ -92,7 +92,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.completeGoal(id: goal.id, in: [goal])
+        let didChange = try manager.completeGoal(goal)
 
         #expect(didChange)
         #expect(try fetchEntries(in: container).isEmpty)
@@ -108,8 +108,7 @@ struct GoalManagerTests {
         let manager = makeManager(in: container)
 
         let didChange = try manager.updateGoal(
-            id: goal.id,
-            in: [goal],
+            goal,
             name: goal.name,
             details: goal.details,
             dueDate: goal.dueDate,
@@ -131,8 +130,7 @@ struct GoalManagerTests {
         let manager = makeManager(in: container)
 
         let didChange = try manager.updateGoal(
-            id: goal.id,
-            in: [goal],
+            goal,
             name: goal.name,
             details: goal.details,
             dueDate: goal.dueDate,
@@ -151,7 +149,7 @@ struct GoalManagerTests {
         )
         insert(goal, into: container)
         let manager = makeManager(in: container)
-        try manager.incrementProgress(id: goal.id, in: [goal])
+        try manager.incrementProgress(goal)
 
         try manager.deleteGoal(goal)
 
@@ -174,7 +172,7 @@ struct GoalManagerTests {
         )
 
         #expect(throws: GoalManager.SaveError.self) {
-            try manager.incrementProgress(id: goal.id, in: [goal])
+            try manager.incrementProgress(goal)
         }
         #expect(goal.progress.currentValue == 4)
         #expect(try fetchEntries(in: container).isEmpty)

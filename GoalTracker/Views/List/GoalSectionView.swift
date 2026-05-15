@@ -12,8 +12,6 @@ struct GoalSectionView: View {
     let goals: [Goal]
     @Binding var isExpanded: Bool
     let goalManager: GoalManager
-    @Binding var sortMode: GoalSortMode
-    let onMove: (IndexSet, Int, GoalSortMode) -> Void
 
     var body: some View {
         if !goals.isEmpty {
@@ -21,8 +19,6 @@ struct GoalSectionView: View {
                 GoalRowsView(
                     goals: goals,
                     goalManager: goalManager,
-                    sortMode: $sortMode,
-                    onMove: onMove,
                 )
             } header: {
                 CollapsibleSectionHeader(

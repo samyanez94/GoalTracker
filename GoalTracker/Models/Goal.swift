@@ -11,8 +11,8 @@ import SwiftData
 /// A goal the user wants to complete.
 ///
 /// `Goal` stores the current summary state for the goal, including its name,
-/// optional due date, manual sort order, and current progress. Dated progress
-/// history is stored separately in `progressEntries`.
+/// optional due date, and current progress. Dated progress history is stored
+/// separately in `progressEntries`.
 @Model
 final class Goal {
     /// A stable app-level identifier for navigation and lookups.
@@ -25,8 +25,6 @@ final class Goal {
     var createdAt: Date = Date()
     /// An optional target date for completing the goal.
     var dueDate: Date?
-    /// The user's manual ordering value within pending or completed sections.
-    var sortOrder: Int = 0
     /// The current progress summary for this goal.
     var progress: GoalProgress = GoalProgress.outcomePending
 
@@ -73,7 +71,6 @@ final class Goal {
         details: String?,
         dueDate: Date? = nil,
         createdAt: Date,
-        sortOrder: Int = 0,
         progress: GoalProgress,
         progressEntries: [GoalProgressEntry]? = [],
     ) {
@@ -82,7 +79,6 @@ final class Goal {
         self.details = details
         self.dueDate = dueDate
         self.createdAt = createdAt
-        self.sortOrder = sortOrder
         self.progress = progress
         self.progressEntries = progressEntries
     }

@@ -17,7 +17,7 @@ struct GoalListView: View {
 
     @State private var saveFailure: GoalSaveFailure?
 
-    @AppStorage("goalSortMode") private var sortMode: GoalSortMode = .manual
+    @AppStorage("goalSortMode") private var sortMode: GoalSortMode = .creationDate
 
     @AppStorage("isShowingCompletedGoals") private var isShowingCompletedGoals = true
 
@@ -43,23 +43,17 @@ struct GoalListView: View {
                                 goals: pendingGoals,
                                 isExpanded: $isPendingSectionExpanded,
                                 goalManager: goalManager,
-                                sortMode: $sortMode,
-                                onMove: movePendingGoals,
                             )
                             GoalSectionView(
                                 title: "Completed",
                                 goals: completedGoals,
                                 isExpanded: $isCompletedSectionExpanded,
                                 goalManager: goalManager,
-                                sortMode: $sortMode,
-                                onMove: moveCompletedGoals,
                             )
                         } else {
                             GoalRowsView(
                                 goals: pendingGoals,
                                 goalManager: goalManager,
-                                sortMode: $sortMode,
-                                onMove: movePendingGoals,
                             )
                         }
                     }
@@ -113,7 +107,6 @@ struct GoalListView: View {
                                 createdAt: Date(),
                                 progress: data.progress,
                             ),
-                            in: goals,
                         )
                     }
                 }
@@ -143,39 +136,6 @@ struct GoalListView: View {
         )
     }
 
-    private func movePendingGoals(
-        from source: IndexSet,
-        to destination: Int,
-        sortedBy sortMode: GoalSortMode,
-    ) {
-        do {
-            try goalManager.movePendingGoals(
-                in: goals,
-                from: source,
-                to: destination,
-                sortedBy: sortMode,
-            )
-        } catch {
-            saveFailure = .saveOrder
-        }
-    }
-
-    private func moveCompletedGoals(
-        from source: IndexSet,
-        to destination: Int,
-        sortedBy sortMode: GoalSortMode,
-    ) {
-        do {
-            try goalManager.moveCompletedGoals(
-                in: goals,
-                from: source,
-                to: destination,
-                sortedBy: sortMode,
-            )
-        } catch {
-            saveFailure = .saveOrder
-        }
-    }
 }
 
 #Preview {

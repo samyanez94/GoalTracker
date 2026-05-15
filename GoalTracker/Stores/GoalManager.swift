@@ -12,7 +12,7 @@ import SwiftData
 ///
 /// `GoalManager` does not own or cache goal state. SwiftUI views read goals with
 /// `@Query`, then pass the current model values here when an action needs to
-/// create, update, delete, reorder, or save a goal.
+/// create, update, delete, or save a goal.
 @MainActor
 struct GoalManager {
     enum SaveError: LocalizedError {
@@ -25,8 +25,6 @@ struct GoalManager {
 
     private let modelContext: ModelContext
 
-    private let sorter: GoalSorter
-
     private let dateProvider: () -> Date
 
     private let saveContext: () throws -> Void
@@ -37,7 +35,6 @@ struct GoalManager {
         let name: String
         let details: String?
         let dueDate: Date?
-        let sortOrder: Int
         let progress: GoalProgress
         let progressEntries: [GoalProgressEntry]?
 
@@ -45,7 +42,6 @@ struct GoalManager {
             name = goal.name
             details = goal.details
             dueDate = goal.dueDate
-            sortOrder = goal.sortOrder
             progress = goal.progress
             progressEntries = goal.progressEntries
         }
@@ -54,7 +50,6 @@ struct GoalManager {
             goal.name = name
             goal.details = details
             goal.dueDate = dueDate
-            goal.sortOrder = sortOrder
             goal.progress = progress
             goal.progressEntries = progressEntries
         }
@@ -62,13 +57,11 @@ struct GoalManager {
 
     init(
         modelContext: ModelContext,
-        sorter: GoalSorter? = nil,
         dateProvider: @escaping () -> Date = Date.init,
         saveContext: (() throws -> Void)? = nil,
         rollbackContext: (() -> Void)? = nil,
     ) {
         self.modelContext = modelContext
-        self.sorter = sorter ?? GoalSorter()
         self.dateProvider = dateProvider
         self.saveContext = saveContext ?? { try modelContext.save() }
         self.rollbackContext = rollbackContext ?? { modelContext.rollback() }
@@ -76,12 +69,7 @@ struct GoalManager {
 
     func addGoal(
         _ goal: Goal,
-        in goals: [Goal],
     ) throws {
-        goal.sortOrder = sorter.nextSortOrder(
-            in: goals,
-            isCompleted: goal.isCompleted,
-        )
         modelContext.insert(goal)
         try saveChanges()
     }
@@ -94,26 +82,7 @@ struct GoalManager {
         dueDate: Date?,
         progress: GoalProgress,
     ) throws -> Bool {
-        try updateGoal(
-            id: goal.id,
-            in: fetchGoals(),
-            name: name,
-            details: details,
-            dueDate: dueDate,
-            progress: progress,
-        )
-    }
-
-    @discardableResult
-    func updateGoal(
-        id: Goal.ID,
-        in goals: [Goal],
-        name: String,
-        details: String?,
-        dueDate: Date?,
-        progress: GoalProgress,
-    ) throws -> Bool {
-        try updateGoal(id: id, in: goals) { goal in
+        try updateGoal(goal) { goal in
             let previousProgress = goal.progress
             goal.name = name
             goal.details = details
@@ -136,18 +105,7 @@ struct GoalManager {
     func toggleCompletion(
         _ goal: Goal,
     ) throws -> Bool {
-        try toggleCompletion(
-            id: goal.id,
-            in: fetchGoals(),
-        )
-    }
-
-    @discardableResult
-    func toggleCompletion(
-        id: Goal.ID,
-        in goals: [Goal],
-    ) throws -> Bool {
-        try updateProgress(id: id, in: goals) { goal in
+        try updateProgress(goal) { goal in
             goal.toggleCompletion()
         }
     }
@@ -156,18 +114,7 @@ struct GoalManager {
     func completeGoal(
         _ goal: Goal,
     ) throws -> Bool {
-        try completeGoal(
-            id: goal.id,
-            in: fetchGoals(),
-        )
-    }
-
-    @discardableResult
-    func completeGoal(
-        id: Goal.ID,
-        in goals: [Goal],
-    ) throws -> Bool {
-        try updateProgress(id: id, in: goals) { goal in
+        try updateProgress(goal) { goal in
             goal.complete()
         }
     }
@@ -176,18 +123,7 @@ struct GoalManager {
     func incrementProgress(
         _ goal: Goal,
     ) throws -> Bool {
-        try incrementProgress(
-            id: goal.id,
-            in: fetchGoals(),
-        )
-    }
-
-    @discardableResult
-    func incrementProgress(
-        id: Goal.ID,
-        in goals: [Goal],
-    ) throws -> Bool {
-        try updateProgress(id: id, in: goals) { goal in
+        try updateProgress(goal) { goal in
             goal.incrementProgress()
         }
     }
@@ -196,50 +132,9 @@ struct GoalManager {
     func decrementProgress(
         _ goal: Goal,
     ) throws -> Bool {
-        try decrementProgress(
-            id: goal.id,
-            in: fetchGoals(),
-        )
-    }
-
-    @discardableResult
-    func decrementProgress(
-        id: Goal.ID,
-        in goals: [Goal],
-    ) throws -> Bool {
-        try updateProgress(id: id, in: goals) { goal in
+        try updateProgress(goal) { goal in
             goal.decrementProgress()
         }
-    }
-
-    func movePendingGoals(
-        in goals: [Goal],
-        from source: IndexSet,
-        to destination: Int,
-        sortedBy sortMode: GoalSortMode = .manual,
-    ) throws {
-        try moveGoals(
-            in: goals,
-            matching: { !$0.isCompleted },
-            from: source,
-            to: destination,
-            sortedBy: sortMode,
-        )
-    }
-
-    func moveCompletedGoals(
-        in goals: [Goal],
-        from source: IndexSet,
-        to destination: Int,
-        sortedBy sortMode: GoalSortMode = .manual,
-    ) throws {
-        try moveGoals(
-            in: goals,
-            matching: { $0.isCompleted },
-            from: source,
-            to: destination,
-            sortedBy: sortMode,
-        )
     }
 
     func deleteGoal(_ goal: Goal) throws {
@@ -267,32 +162,6 @@ struct GoalManager {
                 rollbackContext()
             }
             throw SaveError.failed(error)
-        }
-    }
-
-    private func moveGoals(
-        in goals: [Goal],
-        matching predicate: (Goal) -> Bool,
-        from source: IndexSet,
-        to destination: Int,
-        sortedBy sortMode: GoalSortMode,
-    ) throws {
-        let sectionGoals = sorter.reorderedGoals(
-            goals.filter(predicate),
-            from: source,
-            to: destination,
-            sortedBy: sortMode,
-        )
-        let sortOrderSnapshots = sectionGoals.map { goal in
-            (goal, goal.sortOrder)
-        }
-        for (sortOrder, goal) in sectionGoals.enumerated() {
-            goal.sortOrder = sortOrder
-        }
-        try saveChanges {
-            for (goal, sortOrder) in sortOrderSnapshots {
-                goal.sortOrder = sortOrder
-            }
         }
     }
 
@@ -331,29 +200,14 @@ struct GoalManager {
         return amount
     }
 
-    private func fetchGoals() throws -> [Goal] {
-        try modelContext.fetch(FetchDescriptor<Goal>())
-    }
-
     @discardableResult
     private func updateGoal(
-        id: Goal.ID,
-        in goals: [Goal],
+        _ goal: Goal,
         _ mutate: (Goal) -> Bool,
     ) throws -> Bool {
-        guard let goal = goals.first(where: { $0.id == id }) else {
-            return false
-        }
         let snapshot = GoalSnapshot(goal: goal)
-        let isCompleted = goal.isCompleted
         guard mutate(goal) else {
             return false
-        }
-        if goal.isCompleted != isCompleted {
-            goal.sortOrder = sorter.nextSortOrder(
-                in: goals,
-                isCompleted: goal.isCompleted,
-            )
         }
         try saveChanges {
             snapshot.restore(goal)
@@ -363,15 +217,10 @@ struct GoalManager {
 
     @discardableResult
     private func updateProgress(
-        id: Goal.ID,
-        in goals: [Goal],
+        _ goal: Goal,
         _ mutate: (Goal) -> Bool,
     ) throws -> Bool {
-        guard let goal = goals.first(where: { $0.id == id }) else {
-            return false
-        }
         let snapshot = GoalSnapshot(goal: goal)
-        let isCompleted = goal.isCompleted
         let isMeasurable = goal.progress.isMeasurable
         let currentValue = goal.progress.currentValue
         guard mutate(goal) else {
@@ -381,12 +230,6 @@ struct GoalManager {
             recordProgressChange(
                 for: goal,
                 amount: goal.progress.currentValue - currentValue,
-            )
-        }
-        if goal.isCompleted != isCompleted {
-            goal.sortOrder = sorter.nextSortOrder(
-                in: goals,
-                isCompleted: goal.isCompleted,
             )
         }
         try saveChanges {

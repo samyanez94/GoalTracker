@@ -8,7 +8,6 @@
 import Foundation
 
 enum GoalSortMode: String, CaseIterable, Identifiable {
-    case manual
     case dueDate
     case creationDate
     case name
@@ -19,8 +18,6 @@ enum GoalSortMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .manual:
-            "Manual"
         case .dueDate:
             "Due Date"
         case .creationDate:
