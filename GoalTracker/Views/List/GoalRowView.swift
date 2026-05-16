@@ -5,7 +5,7 @@ struct GoalRowView: View {
     @Environment(\.modelContext) private var modelContext
 
     @State private var saveFailure: GoalSaveFailure?
-    
+
     let goal: Goal
 
     var body: some View {
@@ -26,13 +26,24 @@ struct GoalRowView: View {
                 }
             }
         }
+        .contextMenu {
+            Button {
+                toggleCompletion()
+            } label: {
+                Label(
+                    goal.isCompleted ? "Mark as Pending" : "Mark as Completed",
+                    systemImage: goal.isCompleted ? "circle" : "checkmark.circle",
+                )
+            }
+            Button(role: .destructive) {
+                deleteGoal()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
         .swipeActions {
             Button(role: .destructive) {
-                do {
-                    try goalManager.deleteGoal(goal)
-                } catch {
-                    saveFailure = .deleteGoal
-                }
+                deleteGoal()
             } label: {
                 Label("Delete", systemImage: "trash")
             }
@@ -42,6 +53,22 @@ struct GoalRowView: View {
     
     private var goalManager: GoalManager {
         GoalManager(modelContext: modelContext)
+    }
+
+    private func toggleCompletion() {
+        do {
+            try goalManager.toggleCompletion(goal)
+        } catch {
+            saveFailure = .updateProgress
+        }
+    }
+
+    private func deleteGoal() {
+        do {
+            try goalManager.deleteGoal(goal)
+        } catch {
+            saveFailure = .deleteGoal
+        }
     }
 
     private func isPastDue(_ dueDate: Date) -> Bool {
