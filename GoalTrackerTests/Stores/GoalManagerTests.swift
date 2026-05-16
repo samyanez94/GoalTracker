@@ -13,10 +13,8 @@ import Testing
 
 @MainActor
 struct GoalManagerTests {
-    private let entryDate = Date(timeIntervalSinceReferenceDate: 123)
-
     @Test
-    func `Incrementing measurable progress writes a positive history entry`() throws {
+    func `Incrementing measurable progress updates current value`() throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
@@ -26,16 +24,12 @@ struct GoalManagerTests {
 
         let didChange = try manager.incrementProgress(goal)
 
-        let entry = try #require(fetchEntries(in: container).first)
         #expect(didChange)
-        #expect(entry.amount == 2)
-        #expect(entry.date == entryDate)
-        #expect(entry.goal?.id == goal.id)
-        #expect(goal.progressHistory.count == 1)
+        #expect(goal.progress.currentValue == 6)
     }
 
     @Test
-    func `Decrementing measurable progress writes a negative history entry`() throws {
+    func `Decrementing measurable progress updates current value`() throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
@@ -45,14 +39,12 @@ struct GoalManagerTests {
 
         let didChange = try manager.decrementProgress(goal)
 
-        let entry = try #require(fetchEntries(in: container).first)
         #expect(didChange)
-        #expect(entry.amount == -2)
-        #expect(entry.date == entryDate)
+        #expect(goal.progress.currentValue == 2)
     }
 
     @Test
-    func `Completing measurable progress writes the remaining delta`() throws {
+    func `Completing measurable progress sets current value to target`() throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
@@ -62,14 +54,12 @@ struct GoalManagerTests {
 
         let didChange = try manager.completeGoal(goal)
 
-        let entry = try #require(fetchEntries(in: container).first)
         #expect(didChange)
-        #expect(entry.amount == 6)
         #expect(goal.progress.currentValue == 10)
     }
 
     @Test
-    func `Resetting measurable progress writes a negative current value delta`() throws {
+    func `Toggling completed measurable progress resets current value`() throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 10, targetValue: 10, step: 2),
@@ -79,14 +69,12 @@ struct GoalManagerTests {
 
         let didChange = try manager.toggleCompletion(goal)
 
-        let entry = try #require(fetchEntries(in: container).first)
         #expect(didChange)
-        #expect(entry.amount == -10)
         #expect(goal.progress.currentValue == 0)
     }
 
     @Test
-    func `Outcome goals do not write progress history entries`() throws {
+    func `Completing outcome goal updates completion state`() throws {
         let container = try makeContainer()
         let goal = makeGoal(progress: .outcomePending)
         insert(goal, into: container)
@@ -95,11 +83,11 @@ struct GoalManagerTests {
         let didChange = try manager.completeGoal(goal)
 
         #expect(didChange)
-        #expect(try fetchEntries(in: container).isEmpty)
+        #expect(goal.progress.isCompleted)
     }
 
     @Test
-    func `Editing measurable current value writes a history entry`() throws {
+    func `Editing measurable current value updates progress`() throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
@@ -115,13 +103,12 @@ struct GoalManagerTests {
             progress: .measurable(currentValue: 7, targetValue: 10, step: 2),
         )
 
-        let entry = try #require(fetchEntries(in: container).first)
         #expect(didChange)
-        #expect(entry.amount == 3)
+        #expect(goal.progress.currentValue == 7)
     }
 
     @Test
-    func `Editing measurable target only does not write a history entry`() throws {
+    func `Editing measurable target only updates target value`() throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
@@ -138,22 +125,22 @@ struct GoalManagerTests {
         )
 
         #expect(didChange)
-        #expect(try fetchEntries(in: container).isEmpty)
+        #expect(goal.progress.currentValue == 4)
+        #expect(goal.progress.targetValue == 12)
     }
 
     @Test
-    func `Deleting a goal cascades progress history entries`() throws {
+    func `Deleting a goal removes it from the model context`() throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
         )
         insert(goal, into: container)
         let manager = makeManager(in: container)
-        try manager.incrementProgress(goal)
 
         try manager.deleteGoal(goal)
 
-        #expect(try fetchEntries(in: container).isEmpty)
+        #expect(try fetchGoals(in: container).isEmpty)
     }
 
     @Test
@@ -165,7 +152,6 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = GoalManager(
             modelContext: container.mainContext,
-            dateProvider: { entryDate },
             saveContext: {
                 throw TestSaveError.failed
             },
@@ -175,7 +161,6 @@ struct GoalManagerTests {
             try manager.incrementProgress(goal)
         }
         #expect(goal.progress.currentValue == 4)
-        #expect(try fetchEntries(in: container).isEmpty)
     }
 
     private func makeContainer() throws -> ModelContainer {
@@ -183,10 +168,7 @@ struct GoalManagerTests {
     }
 
     private func makeManager(in container: ModelContainer) -> GoalManager {
-        GoalManager(
-            modelContext: container.mainContext,
-            dateProvider: { entryDate },
-        )
+        GoalManager(modelContext: container.mainContext)
     }
 
     private func insert(
@@ -197,8 +179,8 @@ struct GoalManagerTests {
         try? container.mainContext.save()
     }
 
-    private func fetchEntries(in container: ModelContainer) throws -> [GoalProgressEntry] {
-        try container.mainContext.fetch(FetchDescriptor<GoalProgressEntry>())
+    private func fetchGoals(in container: ModelContainer) throws -> [Goal] {
+        try container.mainContext.fetch(FetchDescriptor<Goal>())
     }
 
     private func makeGoal(progress: GoalProgress) -> Goal {

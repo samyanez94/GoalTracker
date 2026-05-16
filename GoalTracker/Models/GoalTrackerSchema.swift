@@ -17,7 +17,6 @@ enum GoalTrackerSchemaV1: VersionedSchema {
     static var models: [any PersistentModel.Type] {
         [
             Goal.self,
-            GoalProgressEntry.self,
         ]
     }
 }

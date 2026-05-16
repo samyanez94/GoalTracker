@@ -11,8 +11,6 @@ import Foundation
 ///
 /// `GoalProgress` is the source of truth for where a goal stands right now.
 ///
-/// `GoalProgressEntry` records dated changes over time for future charts and
-/// calendars.
 nonisolated struct GoalProgress: Codable {
     /// Whether this progress represents a binary outcome or a measurable target.
     private(set) var kind: GoalProgressKind
