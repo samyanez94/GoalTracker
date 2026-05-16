@@ -33,16 +33,14 @@ struct GoalDetailView: View {
                         } label: {
                             Label("Edit", systemImage: "pencil")
                         }
-                        if let outcomeIsCompleted = outcomeIsCompleted(for: goal) {
-                            Button {
-                                toggleOutcomeCompletion()
-                            } label: {
-                                Label(
-                                    outcomeIsCompleted ? "Mark as Pending" : "Mark as Completed",
-                                    systemImage: outcomeIsCompleted
-                                        ? "circle" : "checkmark.circle",
-                                )
-                            }
+                        Button {
+                            toggleCompletion()
+                        } label: {
+                            let isCompleted = goal.progress.isCompleted
+                            Label(
+                                isCompleted ? "Mark as Pending" : "Mark as Completed",
+                                systemImage: isCompleted ? "circle" : "checkmark.circle",
+                            )
                         }
                         Button(role: .destructive) {
                             deleteGoal(goal)
@@ -78,14 +76,7 @@ struct GoalDetailView: View {
         GoalManager(modelContext: modelContext)
     }
 
-    private func outcomeIsCompleted(for goal: Goal) -> Bool? {
-        guard goal.progress.kind == .outcome else {
-            return nil
-        }
-        return goal.progress.isCompleted
-    }
-
-    private func toggleOutcomeCompletion() {
+    private func toggleCompletion() {
         do {
             guard try goalManager.toggleCompletion(goal) else {
                 return
