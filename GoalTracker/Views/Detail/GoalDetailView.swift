@@ -38,7 +38,7 @@ struct GoalDetailView: View {
                                 toggleOutcomeCompletion()
                             } label: {
                                 Label(
-                                    outcomeIsCompleted ? "Mark as Pending" : "Complete",
+                                    outcomeIsCompleted ? "Mark as Pending" : "Mark as Completed",
                                     systemImage: outcomeIsCompleted
                                         ? "circle" : "checkmark.circle",
                                 )

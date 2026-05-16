@@ -15,20 +15,41 @@ struct GoalSorterTests {
     private let sorter = GoalSorter()
 
     @Test
-    func `Due date sorting puts dated goals before undated goals`() {
+    func `Due date sorting ascending puts earlier dated goals before later dated goals`() {
         let goals = [
             goal(named: "Undated", dueDate: nil),
             goal(named: "Later", dueDate: date(3)),
             goal(named: "Sooner", dueDate: date(2)),
         ]
 
-        let sortedGoals = sorter.sorted(goals, by: .dueDate)
+        let sortedGoals = sorter.sorted(
+            goals,
+            by: .dueDate,
+            direction: .ascending,
+        )
 
         #expect(sortedGoals.map(\.name) == ["Sooner", "Later", "Undated"])
     }
 
     @Test
-    func `Creation date sorting puts newest goals first`() {
+    func `Due date sorting descending keeps undated goals after dated goals`() {
+        let goals = [
+            goal(named: "Undated", dueDate: nil),
+            goal(named: "Later", dueDate: date(3)),
+            goal(named: "Sooner", dueDate: date(2)),
+        ]
+
+        let sortedGoals = sorter.sorted(
+            goals,
+            by: .dueDate,
+            direction: .descending,
+        )
+
+        #expect(sortedGoals.map(\.name) == ["Later", "Sooner", "Undated"])
+    }
+
+    @Test
+    func `Creation date sorting descending puts newest goals first`() {
         let goals = [
             goal(named: "Oldest", createdAt: date(1)),
             goal(named: "Newest", createdAt: date(3)),
@@ -41,16 +62,54 @@ struct GoalSorterTests {
     }
 
     @Test
-    func `Name sorting uses localized standard order`() {
+    func `Creation date sorting ascending puts oldest goals first`() {
+        let goals = [
+            goal(named: "Oldest", createdAt: date(1)),
+            goal(named: "Newest", createdAt: date(3)),
+            goal(named: "Middle", createdAt: date(2)),
+        ]
+
+        let sortedGoals = sorter.sorted(
+            goals,
+            by: .creationDate,
+            direction: .ascending,
+        )
+
+        #expect(sortedGoals.map(\.name) == ["Oldest", "Middle", "Newest"])
+    }
+
+    @Test
+    func `Name sorting ascending uses localized standard order`() {
         let goals = [
             goal(named: "Goal 10"),
             goal(named: "Goal 2"),
             goal(named: "Goal 1"),
         ]
 
-        let sortedGoals = sorter.sorted(goals, by: .name)
+        let sortedGoals = sorter.sorted(
+            goals,
+            by: .name,
+            direction: .ascending,
+        )
 
         #expect(sortedGoals.map(\.name) == ["Goal 1", "Goal 2", "Goal 10"])
+    }
+
+    @Test
+    func `Name sorting descending reverses localized standard order`() {
+        let goals = [
+            goal(named: "Goal 10"),
+            goal(named: "Goal 2"),
+            goal(named: "Goal 1"),
+        ]
+
+        let sortedGoals = sorter.sorted(
+            goals,
+            by: .name,
+            direction: .descending,
+        )
+
+        #expect(sortedGoals.map(\.name) == ["Goal 10", "Goal 2", "Goal 1"])
     }
 
     private func goal(

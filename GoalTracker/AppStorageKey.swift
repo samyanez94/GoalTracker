@@ -11,6 +11,7 @@
 /// helps avoid accidental key drift between views.
 enum AppStorageKey {
     static let goalSortMode = "goalSortMode"
+    static let goalSortDirection = "goalSortDirection"
     static let isShowingCompletedGoals = "isShowingCompletedGoals"
     static let isPendingSectionExpanded = "isPendingSectionExpanded"
     static let isCompletedSectionExpanded = "isCompletedSectionExpanded"

@@ -19,6 +19,8 @@ struct GoalListView: View {
 
     @AppStorage(AppStorageKey.goalSortMode) private var sortMode: GoalSortMode = .creationDate
 
+    @AppStorage(AppStorageKey.goalSortDirection) private var sortDirection: GoalSortDirection = .descending
+
     @AppStorage(AppStorageKey.isShowingCompletedGoals) private var isShowingCompletedGoals = true
 
     @AppStorage(AppStorageKey.isPendingSectionExpanded) private var isPendingSectionExpanded = true
@@ -65,6 +67,12 @@ struct GoalListView: View {
                                 ForEach(GoalSortMode.allCases) { sortMode in
                                     Text(sortMode.title)
                                         .tag(sortMode)
+                                }
+                            }
+                            Picker("Direction", selection: $sortDirection) {
+                                ForEach(GoalSortDirection.allCases) { direction in
+                                    Text(direction.title)
+                                        .tag(direction)
                                 }
                             }
                         } label: {
@@ -123,6 +131,7 @@ struct GoalListView: View {
         sorter.sorted(
             goals.filter { !$0.isCompleted },
             by: sortMode,
+            direction: sortDirection,
         )
     }
 
@@ -130,6 +139,7 @@ struct GoalListView: View {
         sorter.sorted(
             goals.filter(\.isCompleted),
             by: sortMode,
+            direction: sortDirection,
         )
     }
 }
