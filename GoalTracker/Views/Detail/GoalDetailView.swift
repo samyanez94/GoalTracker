@@ -65,7 +65,6 @@ struct GoalDetailView: View {
             .safeAreaInset(edge: .bottom) {
                 GoalDetailBottomActionView(
                     goal: goal,
-                    goalManager: goalManager,
                     feedbackTrigger: $feedbackTrigger,
                 ) {
                     dismiss()
@@ -117,47 +116,28 @@ struct GoalDetailView: View {
     }
 }
 
-#Preview("Incomplete Goal") {
-    let goal = Goal(
-        name: "Run a 5K",
-        details: "Build up endurance with three runs per week.",
-        createdAt: Date(),
-        progress: .measurable(currentValue: 1, targetValue: 5),
-    )
-    let container = GoalPreviewContainer.make(goals: [goal])
-
+#Preview("Outcome goal") {
     NavigationStack {
-        GoalDetailView(goal: goal)
+        GoalDetailView(
+            goal: Goal(
+                name: "Travel to Japan",
+                details: "Plan and take the trip.",
+                createdAt: Date(),
+                progress: .outcomePending,
+            )
+        )
     }
-    .modelContainer(container)
 }
 
-#Preview("Completed Goal") {
-    let goal = Goal(
-        name: "Read every night",
-        details: "Read for at least 20 minutes before bed.",
-        createdAt: Date(),
-        progress: .measurable(currentValue: 20, targetValue: 20),
-    )
-    let container = GoalPreviewContainer.make(goals: [goal])
-
+#Preview("Measurable goal") {
     NavigationStack {
-        GoalDetailView(goal: goal)
+        GoalDetailView(
+            goal: Goal(
+                name: "Run a 5K",
+                details: "Build up endurance with three runs per week.",
+                createdAt: Date(),
+                progress: .measurable(currentValue: 1, targetValue: 5),
+            )
+        )
     }
-    .modelContainer(container)
-}
-
-#Preview("One-off Goal") {
-    let goal = Goal(
-        name: "Travel to Japan",
-        details: "Plan and take the trip.",
-        createdAt: Date(),
-        progress: .outcomePending,
-    )
-    let container = GoalPreviewContainer.make(goals: [goal])
-
-    NavigationStack {
-        GoalDetailView(goal: goal)
-    }
-    .modelContainer(container)
 }

@@ -5,12 +5,13 @@
 //  Created by Samuel Yanez on 5/13/26.
 //
 
+import SwiftData
 import SwiftUI
 
 struct GoalDetailBottomActionView: View {
-    let goal: Goal
+    @Environment(\.modelContext) private var modelContext
 
-    let goalManager: GoalManager
+    let goal: Goal
 
     @Binding var feedbackTrigger: Bool
 
@@ -42,6 +43,10 @@ struct GoalDetailBottomActionView: View {
             }
         }
         .goalSaveFailureAlert(failure: $saveFailure)
+    }
+
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
     }
 
     private var progress: GoalProgress? {
