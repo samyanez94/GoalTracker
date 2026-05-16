@@ -17,6 +17,8 @@ struct GoalListView: View {
 
     @State private var saveFailure: GoalSaveFailure?
 
+    @State private var searchText = ""
+
     @AppStorage(AppStorageKey.goalSortMode) private var sortMode: GoalSortMode = .creationDate
 
     @AppStorage(AppStorageKey.goalSortDirection) private var sortDirection: GoalSortDirection = .descending
@@ -29,11 +31,18 @@ struct GoalListView: View {
 
     private let sorter = GoalSorter()
 
+    private let searchFilter = GoalSearchFilter()
+
     var body: some View {
         NavigationStack {
             Group {
                 if goals.isEmpty {
                     Text("No goals")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if isSearching, visibleSearchResultsAreEmpty {
+                    Text("No matching goals")
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -59,47 +68,16 @@ struct GoalListView: View {
                 }
             }
             .navigationTitle("Goals")
+            .searchable(text: $searchText, prompt: "Search goals")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Menu {
-                            Picker("Sort", selection: $sortMode) {
-                                ForEach(GoalSortMode.allCases) { sortMode in
-                                    Text(sortMode.title)
-                                        .tag(sortMode)
-                                }
-                            }
-                            Picker("Direction", selection: $sortDirection) {
-                                ForEach(GoalSortDirection.allCases) { direction in
-                                    Text(direction.title)
-                                        .tag(direction)
-                                }
-                            }
-                        } label: {
-                            Label("Sort By", systemImage: "arrow.up.arrow.down")
-                        }
-                        Button {
-                            isShowingCompletedGoals.toggle()
-                        } label: {
-                            Label(
-                                isShowingCompletedGoals ? "Hide Completed" : "Show Completed",
-                                systemImage: isShowingCompletedGoals ? "eye.slash" : "eye",
-                            )
-                        }
-                    } label: {
-                        Label("List Options", systemImage: "ellipsis")
-                    }
+                GoalListBottomToolbar {
+                    isPresentingGoalFormView = true
                 }
-            }
-            .safeAreaInset(edge: .bottom) {
-                HStack {
-                    Spacer()
-                    AddGoalButton {
-                        isPresentingGoalFormView = true
-                    }
-                    .padding(.trailing, 24)
-                    .padding(.bottom, 8)
-                }
+                GoalListTopToolbar(
+                    sortMode: $sortMode,
+                    sortDirection: $sortDirection,
+                    isShowingCompletedGoals: $isShowingCompletedGoals,
+                )
             }
             .sheet(isPresented: $isPresentingGoalFormView) {
                 NavigationStack {
@@ -127,9 +105,24 @@ struct GoalListView: View {
         GoalManager(modelContext: modelContext)
     }
 
+    private var isSearching: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var searchedGoals: [Goal] {
+        searchFilter.filtered(
+            goals,
+            searchText: searchText,
+        )
+    }
+
+    private var visibleSearchResultsAreEmpty: Bool {
+        pendingGoals.isEmpty && (!isShowingCompletedGoals || completedGoals.isEmpty)
+    }
+
     private var pendingGoals: [Goal] {
         sorter.sorted(
-            goals.filter { !$0.isCompleted },
+            searchedGoals.filter { !$0.isCompleted },
             by: sortMode,
             direction: sortDirection,
         )
@@ -137,7 +130,7 @@ struct GoalListView: View {
 
     private var completedGoals: [Goal] {
         sorter.sorted(
-            goals.filter(\.isCompleted),
+            searchedGoals.filter(\.isCompleted),
             by: sortMode,
             direction: sortDirection,
         )
