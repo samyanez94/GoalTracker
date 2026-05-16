@@ -21,9 +21,9 @@ struct GoalFormModelTests {
         #expect(model.hasDueDate == false)
         #expect(model.isDueDatePickerExpanded == false)
         #expect(model.isProgressBased == false)
-        #expect(model.currentValue == 0)
-        #expect(model.targetValue == 1)
-        #expect(model.step == 1)
+        #expect(model.currentValue == nil)
+        #expect(model.targetValue == nil)
+        #expect(model.step == nil)
         #expect(model.selectedProgressUnit == nil)
         #expect(model.saveFailureKind == .addGoal)
         #expect(model.isSaveDisabled)
@@ -78,6 +78,18 @@ struct GoalFormModelTests {
         model.targetValue = 0
         model.step = 1
 
+        #expect(model.isSaveDisabled)
+    }
+
+    @Test
+    func `Empty measurable values disable saving`() {
+        let model = GoalFormModel(mode: .create)
+        model.name = "Read books"
+        model.isProgressBased = true
+
+        #expect(model.currentValue == nil)
+        #expect(model.targetValue == nil)
+        #expect(model.step == nil)
         #expect(model.isSaveDisabled)
     }
 

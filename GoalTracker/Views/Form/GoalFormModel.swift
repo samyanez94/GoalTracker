@@ -17,9 +17,9 @@ final class GoalFormModel {
     var dueDate: Date
     var isDueDatePickerExpanded = false
     var isProgressBased: Bool
-    var currentValue: Double
-    var targetValue: Double
-    var step: Double
+    var currentValue: Double?
+    var targetValue: Double?
+    var step: Double?
     var selectedProgressUnit: GoalProgressUnit?
 
     private let mode: GoalFormMode
@@ -43,9 +43,9 @@ final class GoalFormModel {
             selectedProgressUnit = data.progress.unit
         case .outcome:
             isProgressBased = false
-            currentValue = 0
-            targetValue = 1
-            step = 1
+            currentValue = nil
+            targetValue = nil
+            step = nil
             selectedProgressUnit = nil
         }
     }
@@ -102,7 +102,10 @@ final class GoalFormModel {
     }
 
     private var hasValidProgressValues: Bool {
-        GoalProgress.isValid(
+        guard let currentValue, let targetValue, let step else {
+            return false
+        }
+        return GoalProgress.isValid(
             currentValue: currentValue,
             targetValue: targetValue,
             step: step,
@@ -110,19 +113,25 @@ final class GoalFormModel {
     }
 
     private var progressStartsIncomplete: Bool {
-        currentValue < targetValue
+        guard let currentValue, let targetValue else {
+            return false
+        }
+        return currentValue < targetValue
     }
 
     private var progress: GoalProgress {
         if isProgressBased {
-            .measurable(
+            guard let currentValue, let targetValue, let step else {
+                preconditionFailure("Progress values must be valid before saving.")
+            }
+            return .measurable(
                 currentValue: currentValue,
                 targetValue: targetValue,
                 step: step,
                 unit: selectedProgressUnit,
             )
         } else {
-            initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending
+            return initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending
         }
     }
 }

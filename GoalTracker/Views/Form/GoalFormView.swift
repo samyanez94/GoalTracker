@@ -107,16 +107,19 @@ struct GoalFormView: View {
                 if model.isProgressBased {
                     ProgressTextFieldRow(
                         label: "Current",
+                        placeholder: "0",
                         value: $model.currentValue,
                         focus: $isTextInputFocused,
                     )
                     ProgressTextFieldRow(
                         label: "Target",
+                        placeholder: "1",
                         value: $model.targetValue,
                         focus: $isTextInputFocused,
                     )
                     ProgressTextFieldRow(
                         label: "Step",
+                        placeholder: "1",
                         value: $model.step,
                         focus: $isTextInputFocused,
                     )
