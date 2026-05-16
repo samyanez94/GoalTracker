@@ -28,7 +28,10 @@ struct DueDateSummaryButton: View {
                 }
                 Spacer()
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(.rect)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .buttonStyle(.plain)
     }
 }
