@@ -2,14 +2,13 @@
 //  GoalProgressTests.swift
 //  GoalTrackerTests
 //
-//  Created by Samuel Yanez on 5/14/26.
+//  Created by Samuel Yanez on 5/12/26.
 //
 
+import Foundation
 import Testing
 
 @testable import GoalTracker
-
-// MARK: - GoalProgressTests
 
 @MainActor
 struct GoalProgressTests {
@@ -124,6 +123,56 @@ struct GoalProgressTests {
         #expect(progress.currentValue == 0)
     }
 
+    @Test
+    func `Valid progress values decode successfully`() throws {
+        let progress = try decodeProgress(
+            """
+            {
+                "kind": "measurable",
+                "currentValue": 4,
+                "targetValue": 10,
+                "step": 2
+            }
+            """,
+        )
+
+        #expect(progress.kind == .measurable)
+        #expect(progress.currentValue == 4)
+        #expect(progress.targetValue == 10)
+        #expect(progress.step == 2)
+    }
+
+    @Test
+    func `Invalid progress values throw a data corrupted error`() {
+        #expect(throws: DecodingError.self) {
+            try decodeProgress(
+                """
+                {
+                    "kind": "measurable",
+                    "currentValue": 11,
+                    "targetValue": 10,
+                    "step": 1
+                }
+                """,
+            )
+        }
+    }
+
+    @Test
+    func `Missing step decodes with default of one`() throws {
+        let progress = try decodeProgress(
+            """
+            {
+                "kind": "measurable",
+                "currentValue": 4,
+                "targetValue": 10
+            }
+            """,
+        )
+
+        #expect(progress.step == 1)
+    }
+
     private func makeProgress(
         currentValue: Double,
         targetValue: Double,
@@ -134,5 +183,10 @@ struct GoalProgressTests {
             targetValue: targetValue,
             step: step,
         )
+    }
+
+    private func decodeProgress(_ json: String) throws -> GoalProgress {
+        let data = try #require(json.data(using: .utf8))
+        return try JSONDecoder().decode(GoalProgress.self, from: data)
     }
 }

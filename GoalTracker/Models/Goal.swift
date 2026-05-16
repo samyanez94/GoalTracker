@@ -39,11 +39,6 @@ extension GoalTrackerSchemaV1 {
         }
 
         @discardableResult
-        func markPending() -> Bool {
-            progress.reset()
-        }
-
-        @discardableResult
         func toggleCompletion() -> Bool {
             progress.toggleCompletion()
         }

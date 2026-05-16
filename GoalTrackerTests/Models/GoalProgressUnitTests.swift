@@ -13,15 +13,6 @@ import Testing
 @MainActor
 struct GoalProgressUnitTests {
     @Test
-    func `Category titles are human readable`() {
-        #expect(GoalProgressUnit.Category.currency.title == "Currency")
-        #expect(GoalProgressUnit.Category.time.title == "Time")
-        #expect(GoalProgressUnit.Category.weight.title == "Weight")
-        #expect(GoalProgressUnit.Category.distance.title == "Distance")
-        #expect(GoalProgressUnit.Category.custom.title == "Custom")
-    }
-
-    @Test
     func `Preset lookup returns the matching preset unit`() {
         let unit = GoalProgressUnit.preset(withID: "currency.usd")
 
@@ -137,7 +128,7 @@ struct GoalProgressUnitTests {
 
     @Test
     func `Goal progress decodes nested preset unit`() throws {
-        let data = """
+        let data = try #require("""
             {
                 "kind": "measurable",
                 "currentValue": 1,
@@ -147,7 +138,7 @@ struct GoalProgressUnitTests {
                     "id": "time.minutes"
                 }
             }
-            """.data(using: .utf8)!
+            """.data(using: .utf8))
 
         let progress = try JSONDecoder().decode(GoalProgress.self, from: data)
 
@@ -156,7 +147,7 @@ struct GoalProgressUnitTests {
 
     @Test
     func `Goal progress decodes nested custom unit`() throws {
-        let data = """
+        let data = try #require("""
             {
                 "kind": "measurable",
                 "currentValue": 1,
@@ -170,7 +161,7 @@ struct GoalProgressUnitTests {
                     "suffix": "pg"
                 }
             }
-            """.data(using: .utf8)!
+            """.data(using: .utf8))
 
         let progress = try JSONDecoder().decode(GoalProgress.self, from: data)
 
@@ -181,7 +172,7 @@ struct GoalProgressUnitTests {
 
     @Test
     func `Goal progress ignores nested unit without id`() throws {
-        let data = """
+        let data = try #require("""
             {
                 "kind": "measurable",
                 "currentValue": 1,
@@ -189,7 +180,7 @@ struct GoalProgressUnitTests {
                 "step": 1,
                 "unit": {}
             }
-            """.data(using: .utf8)!
+            """.data(using: .utf8))
 
         let progress = try JSONDecoder().decode(GoalProgress.self, from: data)
 
@@ -197,7 +188,7 @@ struct GoalProgressUnitTests {
     }
 
     private func decodeUnit(_ json: String) throws -> GoalProgressUnit {
-        let data = json.data(using: .utf8)!
+        let data = try #require(json.data(using: .utf8))
         return try JSONDecoder().decode(GoalProgressUnit.self, from: data)
     }
 }

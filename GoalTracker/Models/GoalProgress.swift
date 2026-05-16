@@ -141,11 +141,6 @@ nonisolated struct GoalProgress: Codable {
     }
 
     @discardableResult
-    mutating func markPending() -> Bool {
-        reset()
-    }
-
-    @discardableResult
     mutating func toggleCompletion() -> Bool {
         isCompleted ? reset() : complete()
     }
@@ -159,21 +154,11 @@ nonisolated struct GoalProgress: Codable {
     }
 
     @discardableResult
-    mutating func incrementProgress() -> Bool {
-        increment()
-    }
-
-    @discardableResult
     mutating func decrement() -> Bool {
         guard isMeasurable else {
             return false
         }
         return setCurrentValue(currentValue - step)
-    }
-
-    @discardableResult
-    mutating func decrementProgress() -> Bool {
-        decrement()
     }
 
     init(from decoder: Decoder) throws {

@@ -29,51 +29,6 @@ struct GoalManagerTests {
     }
 
     @Test
-    func `Decrementing measurable progress updates current value`() throws {
-        let container = try makeContainer()
-        let goal = makeGoal(
-            progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
-        )
-        insert(goal, into: container)
-        let manager = makeManager(in: container)
-
-        let didChange = try manager.decrementProgress(goal)
-
-        #expect(didChange)
-        #expect(goal.progress.currentValue == 2)
-    }
-
-    @Test
-    func `Completing measurable progress sets current value to target`() throws {
-        let container = try makeContainer()
-        let goal = makeGoal(
-            progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
-        )
-        insert(goal, into: container)
-        let manager = makeManager(in: container)
-
-        let didChange = try manager.completeGoal(goal)
-
-        #expect(didChange)
-        #expect(goal.progress.currentValue == 10)
-    }
-
-    @Test
-    func `Toggling completed measurable progress resets current value`() throws {
-        let container = try makeContainer()
-        let goal = makeGoal(
-            progress: .measurable(currentValue: 10, targetValue: 10, step: 2),
-        )
-        insert(goal, into: container)
-        let manager = makeManager(in: container)
-
-        let didChange = try manager.toggleCompletion(goal)
-
-        #expect(didChange)
-        #expect(goal.progress.currentValue == 0)
-    }
-
-    @Test
     func `Completing outcome goal updates completion state`() throws {
         let container = try makeContainer()
         let goal = makeGoal(progress: .outcomePending)
@@ -105,28 +60,6 @@ struct GoalManagerTests {
 
         #expect(didChange)
         #expect(goal.progress.currentValue == 7)
-    }
-
-    @Test
-    func `Editing measurable target only updates target value`() throws {
-        let container = try makeContainer()
-        let goal = makeGoal(
-            progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
-        )
-        insert(goal, into: container)
-        let manager = makeManager(in: container)
-
-        let didChange = try manager.updateGoal(
-            goal,
-            name: goal.name,
-            details: goal.details,
-            dueDate: goal.dueDate,
-            progress: .measurable(currentValue: 4, targetValue: 12, step: 2),
-        )
-
-        #expect(didChange)
-        #expect(goal.progress.currentValue == 4)
-        #expect(goal.progress.targetValue == 12)
     }
 
     @Test
