@@ -77,6 +77,60 @@ struct GoalManagerTests {
     }
 
     @Test
+    func `Deleting multiple goals removes them from the model context`() throws {
+        let container = try makeContainer()
+        let firstGoal = makeGoal(
+            name: "First Goal",
+            progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
+        )
+        let secondGoal = makeGoal(
+            name: "Second Goal",
+            progress: .outcomePending,
+        )
+        let retainedGoal = makeGoal(
+            name: "Retained Goal",
+            progress: .outcomeCompleted,
+        )
+        insert(firstGoal, into: container)
+        insert(secondGoal, into: container)
+        insert(retainedGoal, into: container)
+        let manager = makeManager(in: container)
+
+        try manager.deleteGoals([firstGoal, secondGoal])
+
+        let remainingGoalIDs = try Set(fetchGoals(in: container).map(\.id))
+        #expect(remainingGoalIDs == [retainedGoal.id])
+    }
+
+    @Test
+    func `Bulk delete save failure rolls back deletions and throws`() throws {
+        let container = try makeContainer()
+        let firstGoal = makeGoal(
+            name: "First Goal",
+            progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
+        )
+        let secondGoal = makeGoal(
+            name: "Second Goal",
+            progress: .outcomePending,
+        )
+        insert(firstGoal, into: container)
+        insert(secondGoal, into: container)
+        let manager = GoalManager(
+            modelContext: container.mainContext,
+            saveContext: {
+                throw TestSaveError.failed
+            },
+        )
+
+        #expect(throws: GoalManager.SaveError.self) {
+            try manager.deleteGoals([firstGoal, secondGoal])
+        }
+
+        let remainingGoalIDs = try Set(fetchGoals(in: container).map(\.id))
+        #expect(remainingGoalIDs == [firstGoal.id, secondGoal.id])
+    }
+
+    @Test
     func `Save failure rolls back progress changes and throws`() throws {
         let container = try makeContainer()
         let goal = makeGoal(
@@ -116,9 +170,12 @@ struct GoalManagerTests {
         try container.mainContext.fetch(FetchDescriptor<Goal>())
     }
 
-    private func makeGoal(progress: GoalProgress) -> Goal {
+    private func makeGoal(
+        name: String = "Test Goal",
+        progress: GoalProgress,
+    ) -> Goal {
         Goal(
-            name: "Test Goal",
+            name: name,
             details: nil,
             createdAt: Date(timeIntervalSinceReferenceDate: 0),
             progress: progress,

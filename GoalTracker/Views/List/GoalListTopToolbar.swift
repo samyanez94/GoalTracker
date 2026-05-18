@@ -12,35 +12,48 @@ struct GoalListTopToolbar: ToolbarContent {
     @Binding var sortDirection: GoalSortDirection
     @Binding var isShowingCompletedGoals: Bool
 
+    let isSelectingGoals: Bool
+    let canSelectGoals: Bool
+    let onSelectGoals: () -> Void
+    let onFinishSelectingGoals: () -> Void
+
     var body: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Menu {
+            if isSelectingGoals {
+                Button("Done", systemImage: "checkmark", action: onFinishSelectingGoals)
+            } else {
                 Menu {
-                    Picker("Sort", selection: $sortMode) {
-                        ForEach(GoalSortMode.allCases) { sortMode in
-                            Text(sortMode.title)
-                                .tag(sortMode)
-                        }
+                    Button(action: onSelectGoals) {
+                        Label("Select Goals", systemImage: "checkmark.circle")
                     }
-                    Picker("Direction", selection: $sortDirection) {
-                        ForEach(GoalSortDirection.allCases) { direction in
-                            Text(direction.title)
-                                .tag(direction)
+                    .disabled(!canSelectGoals)
+                    Menu {
+                        Picker("Sort", selection: $sortMode) {
+                            ForEach(GoalSortMode.allCases) { sortMode in
+                                Text(sortMode.title)
+                                    .tag(sortMode)
+                            }
                         }
+                        Picker("Direction", selection: $sortDirection) {
+                            ForEach(GoalSortDirection.allCases) { direction in
+                                Text(direction.title)
+                                    .tag(direction)
+                            }
+                        }
+                    } label: {
+                        Label("Sort By", systemImage: "arrow.up.arrow.down")
+                    }
+                    Button {
+                        isShowingCompletedGoals.toggle()
+                    } label: {
+                        Label(
+                            isShowingCompletedGoals ? "Hide Completed" : "Show Completed",
+                            systemImage: isShowingCompletedGoals ? "eye.slash" : "eye",
+                        )
                     }
                 } label: {
-                    Label("Sort By", systemImage: "arrow.up.arrow.down")
+                    Label("List Options", systemImage: "ellipsis")
                 }
-                Button {
-                    isShowingCompletedGoals.toggle()
-                } label: {
-                    Label(
-                        isShowingCompletedGoals ? "Hide Completed" : "Show Completed",
-                        systemImage: isShowingCompletedGoals ? "eye.slash" : "eye",
-                    )
-                }
-            } label: {
-                Label("List Options", systemImage: "ellipsis")
             }
         }
     }

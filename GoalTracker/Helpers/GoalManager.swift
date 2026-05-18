@@ -125,6 +125,13 @@ struct GoalManager {
         try saveDeletedGoal()
     }
 
+    func deleteGoals(_ goals: [Goal]) throws {
+        for goal in goals {
+            modelContext.delete(goal)
+        }
+        try saveDeletedGoal()
+    }
+
     private func saveChanges(
         restoreOnFailure: () -> Void = {},
     ) throws {
@@ -141,9 +148,7 @@ struct GoalManager {
         do {
             try saveContext()
         } catch {
-            Task { @MainActor in
-                rollbackContext()
-            }
+            rollbackContext()
             throw SaveError.failed(error)
         }
     }

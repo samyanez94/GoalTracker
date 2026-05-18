@@ -13,11 +13,15 @@ struct GoalListView: View {
 
     @Query private var goals: [Goal]
 
+    @State private var editMode = EditMode.inactive
+
     @State private var isPresentingGoalFormView = false
 
     @State private var saveFailure: GoalSaveFailure?
 
     @State private var searchText = ""
+
+    @State private var selectedGoalIDs = Set<UUID>()
 
     @AppStorage(AppStorageKey.goalSortMode) private var sortMode: GoalSortMode = .creationDate
 
@@ -47,7 +51,7 @@ struct GoalListView: View {
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    List {
+                    List(selection: $selectedGoalIDs) {
                         if isShowingCompletedGoals {
                             GoalSectionView(
                                 title: "Pending",
@@ -62,21 +66,38 @@ struct GoalListView: View {
                         } else {
                             ForEach(pendingGoals) { goal in
                                 GoalRowView(goal: goal)
+                                    .tag(goal.id)
                             }
                         }
                     }
                 }
             }
             .navigationTitle("Goals")
+            .environment(\.editMode, $editMode)
             .searchable(text: $searchText, prompt: "Search goals")
             .toolbar {
-                GoalListBottomToolbar {
-                    isPresentingGoalFormView = true
-                }
+                GoalListBottomToolbar(
+                    isSelectingGoals: isSelectingGoals,
+                    selectedGoalCount: selectedGoals.count,
+                    onAddGoal: {
+                        isPresentingGoalFormView = true
+                    },
+                    onDeleteSelectedGoals: {
+                        deleteSelectedGoals()
+                    }
+                )
                 GoalListTopToolbar(
                     sortMode: $sortMode,
                     sortDirection: $sortDirection,
                     isShowingCompletedGoals: $isShowingCompletedGoals,
+                    isSelectingGoals: isSelectingGoals,
+                    canSelectGoals: !visibleSelectableGoals.isEmpty,
+                    onSelectGoals: {
+                        editMode = .active
+                    },
+                    onFinishSelectingGoals: {
+                        finishSelectingGoals()
+                    }
                 )
             }
             .sheet(isPresented: $isPresentingGoalFormView) {
@@ -98,6 +119,9 @@ struct GoalListView: View {
                 GoalDetailView(goal: goal)
             }
             .goalSaveFailureAlert(failure: $saveFailure)
+            .onChange(of: visibleGoalIDs) { _, _ in
+                pruneSelectedGoalIDs()
+            }
         }
     }
 
@@ -107,6 +131,10 @@ struct GoalListView: View {
 
     private var isSearching: Bool {
         !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var isSelectingGoals: Bool {
+        editMode.isEditing
     }
 
     private var searchedGoals: [Goal] {
@@ -134,6 +162,48 @@ struct GoalListView: View {
             by: sortMode,
             direction: sortDirection,
         )
+    }
+
+    private var visibleSelectableGoals: [Goal] {
+        if isShowingCompletedGoals {
+            let visiblePendingGoals = isPendingSectionExpanded ? pendingGoals : []
+            let visibleCompletedGoals = isCompletedSectionExpanded ? completedGoals : []
+            return visiblePendingGoals + visibleCompletedGoals
+        } else {
+            return pendingGoals
+        }
+    }
+
+    private var visibleGoalIDs: Set<UUID> {
+        Set(visibleSelectableGoals.map(\.id))
+    }
+
+    private var selectedGoals: [Goal] {
+        visibleSelectableGoals.filter { goal in
+            selectedGoalIDs.contains(goal.id)
+        }
+    }
+
+    private func finishSelectingGoals() {
+        selectedGoalIDs.removeAll()
+        editMode = .inactive
+    }
+
+    private func deleteSelectedGoals() {
+        pruneSelectedGoalIDs()
+        guard !selectedGoals.isEmpty else {
+            return
+        }
+        do {
+            try goalManager.deleteGoals(selectedGoals)
+            finishSelectingGoals()
+        } catch {
+            saveFailure = .deleteGoal
+        }
+    }
+
+    private func pruneSelectedGoalIDs() {
+        selectedGoalIDs.formIntersection(visibleGoalIDs)
     }
 }
 

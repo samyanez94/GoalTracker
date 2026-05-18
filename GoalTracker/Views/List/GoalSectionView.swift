@@ -19,6 +19,7 @@ struct GoalSectionView: View {
             Section(isExpanded: $isExpanded) {
                 ForEach(goals) { goal in
                     GoalRowView(goal: goal)
+                        .tag(goal.id)
                 }
             } header: {
                 CollapsibleSectionHeader(

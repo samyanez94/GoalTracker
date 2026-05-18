@@ -8,14 +8,29 @@
 import SwiftUI
 
 struct GoalListBottomToolbar: ToolbarContent {
+    let isSelectingGoals: Bool
+    let selectedGoalCount: Int
     let onAddGoal: () -> Void
+    let onDeleteSelectedGoals: () -> Void
 
     var body: some ToolbarContent {
-        DefaultToolbarItem(kind: .search, placement: .bottomBar)
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        ToolbarItem(placement: .bottomBar) {
-            Button("Add Goal", systemImage: "plus", action: onAddGoal)
-                .buttonStyle(.glassProminent)
+        if isSelectingGoals {
+            ToolbarItem(placement: .bottomBar) {
+                Button(
+                    selectedGoalCount == 1 ? "Delete Goal" : "Delete Goals",
+                    systemImage: "trash",
+                    role: .destructive,
+                    action: onDeleteSelectedGoals,
+                )
+                .disabled(selectedGoalCount == 0)
+            }
+        } else {
+            DefaultToolbarItem(kind: .search, placement: .bottomBar)
+            ToolbarSpacer(.flexible, placement: .bottomBar)
+            ToolbarItem(placement: .bottomBar) {
+                Button("Add Goal", systemImage: "plus", action: onAddGoal)
+                    .buttonStyle(.glassProminent)
+            }
         }
     }
 }
