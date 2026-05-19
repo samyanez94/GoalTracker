@@ -27,6 +27,8 @@ extension GoalTrackerSchemaV1 {
         var dueDate: Date?
         /// The current progress summary for this goal.
         var progress: GoalProgress = GoalProgress.outcomePending
+        /// Reusable tags associated with this goal.
+        var tags: [Tag] = []
 
         /// Whether the current progress has reached its target.
         var isCompleted: Bool {
