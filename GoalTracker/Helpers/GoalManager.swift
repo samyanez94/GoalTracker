@@ -63,6 +63,7 @@ struct GoalManager {
         self.rollbackContext = rollbackContext ?? { modelContext.rollback() }
     }
 
+    /// Inserts a new goal into the model context and saves the change.
     func addGoal(
         _ goal: Goal,
     ) throws {
@@ -70,6 +71,12 @@ struct GoalManager {
         try saveChanges()
     }
 
+    /// Updates a goal's editable fields and saves the change.
+    ///
+    /// When `tags` is provided, the goal's tag relationship is replaced and any
+    /// tags that are no longer attached to a goal are deleted.
+    ///
+    /// - Returns: `true` when the goal was mutated and saved.
     @discardableResult
     func updateGoal(
         _ goal: Goal,
@@ -99,6 +106,9 @@ struct GoalManager {
         return didChange
     }
 
+    /// Toggles a goal between completed and incomplete states, then saves the change.
+    ///
+    /// - Returns: `true` when the goal's progress changed.
     @discardableResult
     func toggleCompletion(
         _ goal: Goal,
@@ -108,6 +118,9 @@ struct GoalManager {
         }
     }
 
+    /// Marks a goal as complete and saves the change.
+    ///
+    /// - Returns: `true` when the goal's progress changed.
     @discardableResult
     func completeGoal(
         _ goal: Goal,
@@ -117,6 +130,9 @@ struct GoalManager {
         }
     }
 
+    /// Advances a measurable goal by its configured step and saves the change.
+    ///
+    /// - Returns: `true` when the goal's progress changed.
     @discardableResult
     func incrementProgress(
         _ goal: Goal,
@@ -126,6 +142,9 @@ struct GoalManager {
         }
     }
 
+    /// Reduces a measurable goal by its configured step and saves the change.
+    ///
+    /// - Returns: `true` when the goal's progress changed.
     @discardableResult
     func decrementProgress(
         _ goal: Goal,
@@ -135,15 +154,20 @@ struct GoalManager {
         }
     }
 
+    /// Deletes a single goal and removes any of its tags that are no longer used.
     func deleteGoal(_ goal: Goal) throws {
         try deleteGoals([goal])
     }
 
+    /// Deletes a tag and saves the change.
+    ///
+    /// SwiftData updates goal relationships for the deleted tag.
     func deleteTag(_ tag: Tag) throws {
         modelContext.delete(tag)
         try saveChanges()
     }
 
+    /// Deletes multiple goals and removes any tags that are no longer used.
     func deleteGoals(_ goals: [Goal]) throws {
         let deletedGoalIds = Set(goals.map(\.id))
         let candidateTags = goals.flatMap(\.tags)
@@ -158,6 +182,10 @@ struct GoalManager {
         }
     }
 
+    /// Deletes tags that are not attached to any goal.
+    ///
+    /// Pass `protectedTags` to keep tags that should survive this cleanup, such as
+    /// tags currently selected in a goal form that has not been saved yet.
     func deleteUnusedTags(excluding protectedTags: [Tag] = []) throws {
         try saveDeletedGoal {
             try deleteUnusedTags(
