@@ -18,7 +18,7 @@ struct TagFlowLayout: Layout {
     ) -> CGSize {
         let rows = makeRows(
             for: subviews,
-            proposalWidth: proposal.width ?? 0,
+            availableWidth: proposal.width ?? 0,
         )
         return CGSize(
             width: proposal.width ?? rows.map(\.width).max() ?? 0,
@@ -35,15 +35,14 @@ struct TagFlowLayout: Layout {
         cache: inout Void,
     ) {
         var y = bounds.minY
-        for row in makeRows(for: subviews, proposalWidth: bounds.width) {
+        for row in makeRows(for: subviews, availableWidth: bounds.width) {
             var x = bounds.minX
-            for index in row.itemIndices {
-                let size = subviews[index].sizeThatFits(.unspecified)
-                subviews[index].place(
+            for item in row.items {
+                subviews[item.index].place(
                     at: CGPoint(x: x, y: y),
-                    proposal: ProposedViewSize(size),
+                    proposal: ProposedViewSize(item.size),
                 )
-                x += size.width + spacing
+                x += item.size.width + spacing
             }
             y += row.height + spacing
         }
@@ -51,47 +50,57 @@ struct TagFlowLayout: Layout {
 
     private func makeRows(
         for subviews: Subviews,
-        proposalWidth: CGFloat,
+        availableWidth: CGFloat,
     ) -> [Row] {
-        guard proposalWidth > 0 else {
+        let items = subviews.indices.map { index in
+            MeasuredItem(
+                index: index,
+                size: subviews[index].sizeThatFits(.unspecified),
+            )
+        }
+
+        guard availableWidth > 0 else {
             return [
                 Row(
-                    itemIndices: subviews.indices.map { $0 },
-                    width: subviews.reduce(0) { $0 + $1.sizeThatFits(.unspecified).width },
-                    height: subviews.map { $0.sizeThatFits(.unspecified).height }.max() ?? 0,
+                    items: items,
+                    width: items.reduce(0) { totalWidth, item in
+                        totalWidth + item.size.width
+                    },
+                    height: items.map { item in
+                        item.size.height
+                    }.max() ?? 0,
                 )
             ]
         }
 
         var rows: [Row] = []
-        var currentIndices: [Subviews.Index] = []
+        var currentItems: [MeasuredItem] = []
         var currentWidth: CGFloat = 0
         var currentHeight: CGFloat = 0
 
-        for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
+        for item in items {
             let proposedWidth =
-                currentIndices.isEmpty ? size.width : currentWidth + spacing + size.width
+                currentItems.isEmpty ? item.size.width : currentWidth + spacing + item.size.width
 
-            if proposedWidth > proposalWidth, currentIndices.isEmpty == false {
+            if proposedWidth > availableWidth, currentItems.isEmpty == false {
                 appendRow(
-                    itemIndices: currentIndices,
+                    items: currentItems,
                     width: currentWidth,
                     height: currentHeight,
                     to: &rows,
                 )
-                currentIndices = [index]
-                currentWidth = size.width
-                currentHeight = size.height
+                currentItems = [item]
+                currentWidth = item.size.width
+                currentHeight = item.size.height
             } else {
-                currentIndices.append(index)
+                currentItems.append(item)
                 currentWidth = proposedWidth
-                currentHeight = max(currentHeight, size.height)
+                currentHeight = max(currentHeight, item.size.height)
             }
         }
 
         appendRow(
-            itemIndices: currentIndices,
+            items: currentItems,
             width: currentWidth,
             height: currentHeight,
             to: &rows,
@@ -101,27 +110,34 @@ struct TagFlowLayout: Layout {
     }
 
     private func appendRow(
-        itemIndices: [Subviews.Index],
+        items: [MeasuredItem],
         width: CGFloat,
         height: CGFloat,
         to rows: inout [Row],
     ) {
-        guard itemIndices.isEmpty == false else {
+        guard items.isEmpty == false else {
             return
         }
         rows.append(
             Row(
-                itemIndices: itemIndices,
+                items: items,
                 width: width,
                 height: height,
             ),
         )
     }
 
+    // MARK: - MeasuredItem
+
+    private struct MeasuredItem {
+        var index: Int
+        var size: CGSize
+    }
+
     // MARK: - Row
 
     private struct Row {
-        var itemIndices: [Int]
+        var items: [MeasuredItem]
         var width: CGFloat
         var height: CGFloat
     }
