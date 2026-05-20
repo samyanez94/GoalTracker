@@ -11,6 +11,7 @@ enum GoalSaveFailure: String, Identifiable {
     case addGoal
     case updateGoal
     case deleteGoal
+    case deleteTag
     case updateProgress
 
     var id: Self {
@@ -23,6 +24,8 @@ enum GoalSaveFailure: String, Identifiable {
             "Couldn't Save Goal"
         case .deleteGoal:
             "Couldn't Delete Goal"
+        case .deleteTag:
+            "Couldn't Delete Tag"
         case .updateProgress:
             "Couldn't Update Goal"
         }
@@ -34,6 +37,8 @@ enum GoalSaveFailure: String, Identifiable {
             "Your changes weren't saved. Please try again."
         case .deleteGoal:
             "The goal wasn't deleted. Please try again."
+        case .deleteTag:
+            "The tag wasn't deleted. Please try again."
         case .updateProgress:
             "Your progress change wasn't saved. Please try again."
         }

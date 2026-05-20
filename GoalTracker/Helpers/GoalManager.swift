@@ -139,6 +139,11 @@ struct GoalManager {
         try deleteGoals([goal])
     }
 
+    func deleteTag(_ tag: Tag) throws {
+        modelContext.delete(tag)
+        try saveChanges()
+    }
+
     func deleteGoals(_ goals: [Goal]) throws {
         let deletedGoalIds = Set(goals.map(\.id))
         let candidateTags = goals.flatMap(\.tags)
@@ -255,6 +260,7 @@ struct GoalManager {
     }
 
     private func fetchTags() throws -> [Tag] {
-        try modelContext.fetch(FetchDescriptor<Tag>(sortBy: [SortDescriptor<Tag>(\.normalizedName)]))
+        try modelContext.fetch(
+            FetchDescriptor<Tag>(sortBy: [SortDescriptor<Tag>(\.normalizedName)]))
     }
 }

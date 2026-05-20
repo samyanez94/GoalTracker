@@ -156,6 +156,22 @@ struct GoalManagerTests {
     }
 
     @Test
+    func `Deleting a tag removes it from goals`() throws {
+        let container = try makeContainer()
+        let tag = Tag(name: "Health")
+        let goal = makeGoal(progress: .outcomePending)
+        goal.tags = [tag]
+        insert(goal, into: container)
+        let manager = makeManager(in: container)
+
+        try manager.deleteTag(tag)
+
+        let fetchedGoal = try #require(try fetchGoals(in: container).first)
+        #expect(try fetchTags(in: container).isEmpty)
+        #expect(fetchedGoal.tags.isEmpty)
+    }
+
+    @Test
     func `Deleting unused tags keeps protected form selections`() throws {
         let container = try makeContainer()
         let protectedTag = Tag(name: "Selected")

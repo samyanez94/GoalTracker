@@ -10,6 +10,7 @@ import SwiftUI
 struct TagChip: View {
     let name: String
     let isSelected: Bool
+    var isSelectionEnabled = true
     let action: () -> Void
 
     var body: some View {

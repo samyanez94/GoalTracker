@@ -16,6 +16,10 @@ struct TagSelectionView: View {
 
     @Query(sort: [SortDescriptor<Tag>(\.normalizedName)]) private var availableTags: [Tag]
 
+    @State private var isEditing = false
+
+    @State private var saveFailure: GoalSaveFailure?
+
     @State private var newTagName = ""
 
     @FocusState private var newTagFieldIsFocused: Bool
@@ -30,12 +34,13 @@ struct TagSelectionView: View {
                 Section {
                     TagFlowLayout {
                         ForEach(availableTags, id: \.normalizedName) { tag in
-                            TagChip(
-                                name: tag.name,
+                            EditableTagChip(
+                                tag: tag,
                                 isSelected: isSelected(tag),
-                            ) {
-                                toggleSelection(of: tag)
-                            }
+                                isEditing: isEditing,
+                                toggleSelection: toggleSelection,
+                                deleteTag: deleteTag,
+                            )
                         }
                     }
                 }
@@ -48,14 +53,27 @@ struct TagSelectionView: View {
                     .onChange(of: newTagName) { _, updatedName in
                         sanitizeNewTagName(updatedName)
                     }
+                    .onChange(of: newTagFieldIsFocused) { _, isFocused in
+                        if isFocused {
+                            isEditing = false
+                        }
+                    }
                     .onSubmit(addTag)
             }
         }
         .navigationTitle("Tags")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if !availableTags.isEmpty || isEditing {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(isEditing ? "Done" : "Edit", action: toggleEditMode)
+                }
+            }
+        }
         .onDisappear {
             try? GoalManager(modelContext: modelContext).deleteUnusedTags(excluding: selectedTags)
         }
+        .goalSaveFailureAlert(failure: $saveFailure)
     }
 
     private func isSelected(_ tag: Tag) -> Bool {
@@ -79,7 +97,8 @@ struct TagSelectionView: View {
         guard !sanitizedTagName.isEmpty else {
             return
         }
-        let tag = existingTag(named: sanitizedTagName) ?? createAvailableTag(named: sanitizedTagName)
+        let tag =
+            existingTag(named: sanitizedTagName) ?? createAvailableTag(named: sanitizedTagName)
         select(tag)
         resetNewTagField()
     }
@@ -105,11 +124,37 @@ struct TagSelectionView: View {
         return tag
     }
 
+    private func toggleEditMode() {
+        isEditing.toggle()
+        if isEditing {
+            newTagFieldIsFocused = false
+        }
+    }
+
+    private func deleteTag(_ tag: Tag) {
+        let tagWasSelected = isSelected(tag)
+        removeSelection(of: tag)
+        do {
+            try GoalManager(modelContext: modelContext).deleteTag(tag)
+        } catch {
+            if tagWasSelected {
+                select(tag)
+            }
+            saveFailure = .deleteTag
+        }
+    }
+
     private func select(_ tag: Tag) {
         guard !isSelected(tag) else {
             return
         }
         selectedTags.append(tag)
+    }
+
+    private func removeSelection(of tag: Tag) {
+        selectedTags.removeAll { selectedTag in
+            selectedTag.normalizedName == tag.normalizedName
+        }
     }
 
     private func resetNewTagField() {
