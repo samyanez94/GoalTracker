@@ -195,9 +195,7 @@ struct GoalFormView: View {
         .navigationDestination(for: GoalFormDestination.self) { destination in
             switch destination {
             case .tags:
-                List {}
-                    .navigationTitle("Tags")
-                    .navigationBarTitleDisplayMode(.inline)
+                TagSelectionView()
             case .progressUnit:
                 ProgressUnitSelectionView(selectedUnit: $model.selectedProgressUnit)
             }
