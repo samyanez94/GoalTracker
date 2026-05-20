@@ -241,6 +241,42 @@ struct GoalManagerTests {
     }
 
     @Test
+    func `Update save failure rolls back goal changes and tag cleanup`() throws {
+        let container = try makeContainer()
+        let oldTag = Tag(name: "Old")
+        let newTag = Tag(name: "New")
+        let goal = makeGoal(
+            name: "Original Goal",
+            progress: .outcomePending,
+        )
+        goal.tags = [oldTag]
+        insert(goal, into: container)
+        container.mainContext.insert(newTag)
+        try container.mainContext.save()
+        let manager = GoalManager(
+            modelContext: container.mainContext,
+            saveContext: {
+                throw TestSaveError.failed
+            },
+        )
+
+        #expect(throws: GoalManager.SaveError.self) {
+            try manager.updateGoal(
+                goal,
+                name: "Updated Goal",
+                details: goal.details,
+                dueDate: goal.dueDate,
+                progress: goal.progress,
+                tags: [newTag],
+            )
+        }
+
+        #expect(goal.name == "Original Goal")
+        #expect(goal.tags.map(\.name) == ["Old"])
+        #expect(Set(try fetchTags(in: container).map(\.name)) == ["Old", "New"])
+    }
+
+    @Test
     func `Save failure rolls back progress changes and throws`() throws {
         let container = try makeContainer()
         let goal = makeGoal(

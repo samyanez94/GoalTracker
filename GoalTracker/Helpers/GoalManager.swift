@@ -71,7 +71,7 @@ struct GoalManager {
         try saveChanges()
     }
 
-    /// Updates a goal's editable fields and saves the change.
+    /// Updates a goal's editable fields, cleans up unused tags, and saves the change.
     ///
     /// When `tags` is provided, the goal's tag relationship is replaced and any
     /// tags that are no longer attached to a goal are deleted.
@@ -86,24 +86,27 @@ struct GoalManager {
         progress: GoalProgress,
         tags: [Tag]? = nil,
     ) throws -> Bool {
+        let snapshot = GoalSnapshot(goal: goal)
         let previousTags = goal.tags
-        let didChange = try updateGoal(goal) { goal in
+        do {
             goal.name = name
             goal.details = details
             goal.dueDate = dueDate
             goal.progress = progress
             if let tags {
                 goal.tags = tags
+                try deleteUnusedTags(
+                    from: previousTags + tags,
+                    excluding: tags,
+                )
             }
-            return true
+            try saveContext()
+        } catch {
+            rollbackContext()
+            snapshot.restore(goal)
+            throw SaveError.failed(error)
         }
-        if let tags {
-            try deleteUnusedTags(
-                from: previousTags + tags,
-                excluding: tags,
-            )
-        }
-        return didChange
+        return true
     }
 
     /// Toggles a goal between completed and incomplete states, then saves the change.
