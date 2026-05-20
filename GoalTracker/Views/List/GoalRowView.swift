@@ -23,6 +23,7 @@ struct GoalRowView: View {
                             .font(.subheadline)
                             .foregroundStyle(isPastDue(dueDate) ? .red : .secondary)
                     }
+                    GoalTagSummaryText(tags: goal.tags)
                 }
             }
         }
