@@ -29,7 +29,7 @@ extension GoalTrackerSchemaV1 {
             normalizedName: String? = nil,
             createdAt: Date = Date(),
         ) {
-            let displayName = Self.trimmedName(from: name)
+            let displayName = Self.sanitizedName(from: name)
 
             self.id = id
             self.name = displayName
@@ -37,17 +37,25 @@ extension GoalTrackerSchemaV1 {
             self.createdAt = createdAt
         }
 
-        static func trimmedName(from name: String) -> String {
+        static func sanitizedName(from name: String) -> String {
             let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard trimmedName.starts(with: "#") else {
-                return trimmedName
+            let strippedName = if trimmedName.starts(with: "#") {
+                String(trimmedName.dropFirst())
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+            } else {
+                trimmedName
             }
-            return String(trimmedName.dropFirst())
-                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return String(strippedName.filter { character in
+                !character.isWhitespace
+            })
+        }
+
+        static func trimmedName(from name: String) -> String {
+            sanitizedName(from: name)
         }
 
         static func normalizedName(from name: String) -> String {
-            trimmedName(from: name).lowercased()
+            sanitizedName(from: name).lowercased()
         }
     }
 }

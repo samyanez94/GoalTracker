@@ -18,6 +18,9 @@ struct TagTests {
             (" Health ", "Health", "health"),
             ("#Health", "Health", "health"),
             ("#  Health  ", "Health", "health"),
+            ("Home Gym", "HomeGym", "homegym"),
+            ("Focus\tWork", "FocusWork", "focuswork"),
+            ("Morning\nRoutine", "MorningRoutine", "morningroutine"),
         ],
     )
     func `Tag initializer stores display name and normalized name`(

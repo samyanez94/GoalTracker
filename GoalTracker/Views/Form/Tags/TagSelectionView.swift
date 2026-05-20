@@ -45,6 +45,9 @@ struct TagSelectionView: View {
                     .focused($newTagFieldIsFocused)
                     .submitLabel(.done)
                     .textInputAutocapitalization(.words)
+                    .onChange(of: newTagName) { _, updatedName in
+                        sanitizeNewTagName(updatedName)
+                    }
                     .onSubmit(addTag)
             }
         }
@@ -72,13 +75,21 @@ struct TagSelectionView: View {
     }
 
     private func addTag() {
-        let trimmedTagName = Tag.trimmedName(from: newTagName)
-        guard !trimmedTagName.isEmpty else {
+        let sanitizedTagName = Tag.sanitizedName(from: newTagName)
+        guard !sanitizedTagName.isEmpty else {
             return
         }
-        let tag = existingTag(named: trimmedTagName) ?? createAvailableTag(named: trimmedTagName)
+        let tag = existingTag(named: sanitizedTagName) ?? createAvailableTag(named: sanitizedTagName)
         select(tag)
         resetNewTagField()
+    }
+
+    private func sanitizeNewTagName(_ name: String) {
+        let sanitizedName = Tag.sanitizedName(from: name)
+        guard sanitizedName != name else {
+            return
+        }
+        newTagName = sanitizedName
     }
 
     private func existingTag(named name: String) -> Tag? {
