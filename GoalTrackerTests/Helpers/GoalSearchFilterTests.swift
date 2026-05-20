@@ -46,6 +46,37 @@ struct GoalSearchFilterTests {
     }
 
     @Test
+    func `Search matches tag names`() {
+        let goals = [
+            goal(named: "Run a 5K", tags: [Tag(name: "Fitness")]),
+            goal(named: "Read books", tags: [Tag(name: "Learning")]),
+            goal(named: "Travel to Japan"),
+        ]
+
+        let filteredGoals = filter.filtered(
+            goals,
+            searchText: "fit",
+        )
+
+        #expect(filteredGoals.map(\.name) == ["Run a 5K"])
+    }
+
+    @Test
+    func `Search matches hash prefixed tag names`() {
+        let goals = [
+            goal(named: "Run a 5K", tags: [Tag(name: "Fitness")]),
+            goal(named: "Read books", tags: [Tag(name: "Learning")]),
+        ]
+
+        let filteredGoals = filter.filtered(
+            goals,
+            searchText: "#fitness",
+        )
+
+        #expect(filteredGoals.map(\.name) == ["Run a 5K"])
+    }
+
+    @Test
     func `Search uses localized standard matching`() {
         let goals = [
             goal(named: "Goal 10"),
@@ -97,13 +128,16 @@ struct GoalSearchFilterTests {
     private func goal(
         named name: String,
         details: String? = nil,
+        tags: [GoalTrackerSchemaV1.Tag] = [],
         progress: GoalProgress = .outcomePending,
     ) -> Goal {
-        Goal(
+        let goal = Goal(
             name: name,
             details: details,
             createdAt: Date(timeIntervalSinceReferenceDate: 0),
             progress: progress,
         )
+        goal.tags = tags
+        return goal
     }
 }
