@@ -63,6 +63,52 @@ struct GoalManagerTests {
     }
 
     @Test
+    func `Editing goal updates selected tags`() throws {
+        let container = try makeContainer()
+        let goal = makeGoal(progress: .outcomePending)
+        let healthTag = Tag(name: "Health")
+        let runningTag = Tag(name: "Running")
+        insert(goal, into: container)
+        let manager = makeManager(in: container)
+
+        let didChange = try manager.updateGoal(
+            goal,
+            name: goal.name,
+            details: goal.details,
+            dueDate: goal.dueDate,
+            progress: goal.progress,
+            tags: [healthTag, runningTag],
+        )
+
+        #expect(didChange)
+        #expect(Set(goal.tags.map(\.name)) == ["Health", "Running"])
+    }
+
+    @Test
+    func `Editing goal deletes tags that are no longer used`() throws {
+        let container = try makeContainer()
+        let oldTag = Tag(name: "Old")
+        let newTag = Tag(name: "New")
+        let goal = makeGoal(progress: .outcomePending)
+        goal.tags = [oldTag]
+        insert(goal, into: container)
+        container.mainContext.insert(newTag)
+        try container.mainContext.save()
+        let manager = makeManager(in: container)
+
+        _ = try manager.updateGoal(
+            goal,
+            name: goal.name,
+            details: goal.details,
+            dueDate: goal.dueDate,
+            progress: goal.progress,
+            tags: [newTag],
+        )
+
+        #expect(Set(try fetchTags(in: container).map(\.name)) == ["New"])
+    }
+
+    @Test
     func `Deleting a goal removes it from the model context`() throws {
         let container = try makeContainer()
         let goal = makeGoal(
@@ -74,6 +120,54 @@ struct GoalManagerTests {
         try manager.deleteGoal(goal)
 
         #expect(try fetchGoals(in: container).isEmpty)
+    }
+
+    @Test
+    func `Deleting a goal deletes tags that are no longer used`() throws {
+        let container = try makeContainer()
+        let tag = Tag(name: "Solo")
+        let goal = makeGoal(progress: .outcomePending)
+        goal.tags = [tag]
+        insert(goal, into: container)
+        let manager = makeManager(in: container)
+
+        try manager.deleteGoal(goal)
+
+        #expect(try fetchGoals(in: container).isEmpty)
+        #expect(try fetchTags(in: container).isEmpty)
+    }
+
+    @Test
+    func `Deleting a goal keeps tags used by another goal`() throws {
+        let container = try makeContainer()
+        let tag = Tag(name: "Shared")
+        let deletedGoal = makeGoal(name: "Deleted Goal", progress: .outcomePending)
+        let retainedGoal = makeGoal(name: "Retained Goal", progress: .outcomePending)
+        deletedGoal.tags = [tag]
+        retainedGoal.tags = [tag]
+        insert(deletedGoal, into: container)
+        insert(retainedGoal, into: container)
+        let manager = makeManager(in: container)
+
+        try manager.deleteGoal(deletedGoal)
+
+        #expect(try fetchGoals(in: container).map(\.id) == [retainedGoal.id])
+        #expect(try fetchTags(in: container).map(\.name) == ["Shared"])
+    }
+
+    @Test
+    func `Deleting unused tags keeps protected form selections`() throws {
+        let container = try makeContainer()
+        let protectedTag = Tag(name: "Selected")
+        let unusedTag = Tag(name: "Unused")
+        container.mainContext.insert(protectedTag)
+        container.mainContext.insert(unusedTag)
+        try container.mainContext.save()
+        let manager = makeManager(in: container)
+
+        try manager.deleteUnusedTags(excluding: [protectedTag])
+
+        #expect(try fetchTags(in: container).map(\.name) == ["Selected"])
     }
 
     @Test
@@ -168,6 +262,14 @@ struct GoalManagerTests {
 
     private func fetchGoals(in container: ModelContainer) throws -> [Goal] {
         try container.mainContext.fetch(FetchDescriptor<Goal>())
+    }
+
+    private func fetchTags(in container: ModelContainer) throws -> [GoalTrackerSchemaV1.Tag] {
+        try container.mainContext.fetch(
+            FetchDescriptor<GoalTrackerSchemaV1.Tag>(
+                sortBy: [SortDescriptor<GoalTrackerSchemaV1.Tag>(\.normalizedName)],
+            ),
+        )
     }
 
     private func makeGoal(

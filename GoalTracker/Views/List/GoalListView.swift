@@ -103,15 +103,15 @@ struct GoalListView: View {
             .sheet(isPresented: $isPresentingGoalFormView) {
                 NavigationStack {
                     GoalFormView(mode: .create) { data in
-                        try goalManager.addGoal(
-                            Goal(
-                                name: data.name,
-                                details: data.normalizedDetails,
-                                dueDate: data.dueDate,
-                                createdAt: Date(),
-                                progress: data.progress,
-                            ),
+                        let goal = Goal(
+                            name: data.name,
+                            details: data.normalizedDetails,
+                            dueDate: data.dueDate,
+                            createdAt: Date(),
+                            progress: data.progress,
                         )
+                        goal.tags = data.tags
+                        try goalManager.addGoal(goal)
                     }
                 }
             }

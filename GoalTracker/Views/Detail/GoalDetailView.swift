@@ -94,6 +94,7 @@ struct GoalDetailView: View {
             details: data.normalizedDetails,
             dueDate: data.dueDate,
             progress: data.progress,
+            tags: data.tags,
         )
     }
 

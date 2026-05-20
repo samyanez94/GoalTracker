@@ -34,12 +34,14 @@ struct GoalManager {
         let details: String?
         let dueDate: Date?
         let progress: GoalProgress
+        let tags: [Tag]
 
         init(goal: Goal) {
             name = goal.name
             details = goal.details
             dueDate = goal.dueDate
             progress = goal.progress
+            tags = goal.tags
         }
 
         func restore(_ goal: Goal) {
@@ -47,6 +49,7 @@ struct GoalManager {
             goal.details = details
             goal.dueDate = dueDate
             goal.progress = progress
+            goal.tags = tags
         }
     }
 
@@ -74,14 +77,26 @@ struct GoalManager {
         details: String?,
         dueDate: Date?,
         progress: GoalProgress,
+        tags: [Tag]? = nil,
     ) throws -> Bool {
-        try updateGoal(goal) { goal in
+        let previousTags = goal.tags
+        let didChange = try updateGoal(goal) { goal in
             goal.name = name
             goal.details = details
             goal.dueDate = dueDate
             goal.progress = progress
+            if let tags {
+                goal.tags = tags
+            }
             return true
         }
+        if let tags {
+            try deleteUnusedTags(
+                from: previousTags + tags,
+                excluding: tags,
+            )
+        }
+        return didChange
     }
 
     @discardableResult
@@ -121,15 +136,30 @@ struct GoalManager {
     }
 
     func deleteGoal(_ goal: Goal) throws {
-        modelContext.delete(goal)
-        try saveDeletedGoal()
+        try deleteGoals([goal])
     }
 
     func deleteGoals(_ goals: [Goal]) throws {
+        let deletedGoalIds = Set(goals.map(\.id))
+        let candidateTags = goals.flatMap(\.tags)
         for goal in goals {
             modelContext.delete(goal)
         }
-        try saveDeletedGoal()
+        try saveDeletedGoal {
+            try deleteUnusedTags(
+                from: candidateTags,
+                ignoringGoalsWithIds: deletedGoalIds,
+            )
+        }
+    }
+
+    func deleteUnusedTags(excluding protectedTags: [Tag] = []) throws {
+        try saveDeletedGoal {
+            try deleteUnusedTags(
+                from: fetchTags(),
+                excluding: protectedTags,
+            )
+        }
     }
 
     private func saveChanges(
@@ -144,8 +174,11 @@ struct GoalManager {
         }
     }
 
-    private func saveDeletedGoal() throws {
+    private func saveDeletedGoal(
+        beforeSave: () throws -> Void = {},
+    ) throws {
         do {
+            try beforeSave()
             try saveContext()
         } catch {
             rollbackContext()
@@ -181,5 +214,47 @@ struct GoalManager {
             snapshot.restore(goal)
         }
         return true
+    }
+
+    private func deleteUnusedTags(
+        from candidateTags: [Tag],
+        excluding protectedTags: [Tag] = [],
+        ignoringGoalsWithIds ignoredGoalIds: Set<UUID> = [],
+    ) throws {
+        let protectedTagIds = Set(protectedTags.map(\.id))
+        var checkedTagIds: Set<UUID> = []
+        for tag in candidateTags where !protectedTagIds.contains(tag.id) {
+            guard !checkedTagIds.contains(tag.id) else {
+                continue
+            }
+            checkedTagIds.insert(tag.id)
+            guard try !isTagUsed(tag, ignoringGoalsWithIds: ignoredGoalIds) else {
+                continue
+            }
+            modelContext.delete(tag)
+        }
+    }
+
+    private func isTagUsed(
+        _ tag: Tag,
+        ignoringGoalsWithIds ignoredGoalIds: Set<UUID>,
+    ) throws -> Bool {
+        let goals = try fetchGoals()
+        return goals.contains { goal in
+            guard !ignoredGoalIds.contains(goal.id) else {
+                return false
+            }
+            return goal.tags.contains { goalTag in
+                goalTag.id == tag.id
+            }
+        }
+    }
+
+    private func fetchGoals() throws -> [Goal] {
+        try modelContext.fetch(FetchDescriptor<Goal>())
+    }
+
+    private func fetchTags() throws -> [Tag] {
+        try modelContext.fetch(FetchDescriptor<Tag>(sortBy: [SortDescriptor<Tag>(\.normalizedName)]))
     }
 }

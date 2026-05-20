@@ -5,29 +5,36 @@
 //  Created by Samuel Yanez on 5/19/26.
 //
 
+import SwiftData
 import SwiftUI
 
 struct TagSelectionView: View {
 
-    @State private var tagNames = sampleTagNames
+    @Environment(\.modelContext) private var modelContext
 
-    @State private var selectedTagNames: [String] = []
+    @Binding private var selectedTags: [Tag]
+
+    @Query(sort: [SortDescriptor<Tag>(\.normalizedName)]) private var availableTags: [Tag]
 
     @State private var newTagName = ""
 
     @FocusState private var newTagFieldIsFocused: Bool
 
+    init(selectedTags: Binding<[Tag]>) {
+        _selectedTags = selectedTags
+    }
+
     var body: some View {
         Form {
-            if !tagNames.isEmpty {
+            if !availableTags.isEmpty {
                 Section {
                     TagFlowLayout {
-                        ForEach(tagNames, id: \.self) { tagName in
+                        ForEach(availableTags, id: \.normalizedName) { tag in
                             TagChip(
-                                name: tagName,
-                                isSelected: isSelected(tagName),
+                                name: tag.name,
+                                isSelected: isSelected(tag),
                             ) {
-                                toggleSelection(of: tagName)
+                                toggleSelection(of: tag)
                             }
                         }
                     }
@@ -43,23 +50,24 @@ struct TagSelectionView: View {
         }
         .navigationTitle("Tags")
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func isSelected(_ tagName: String) -> Bool {
-        let normalizedName = Tag.normalizedName(from: tagName)
-        return selectedTagNames.contains {
-            Tag.normalizedName(from: $0) == normalizedName
+        .onDisappear {
+            try? GoalManager(modelContext: modelContext).deleteUnusedTags(excluding: selectedTags)
         }
     }
 
-    private func toggleSelection(of tagName: String) {
-        let normalizedName = Tag.normalizedName(from: tagName)
-        if let index = selectedTagNames.firstIndex(where: {
-            Tag.normalizedName(from: $0) == normalizedName
+    private func isSelected(_ tag: Tag) -> Bool {
+        selectedTags.contains { selectedTag in
+            selectedTag.normalizedName == tag.normalizedName
+        }
+    }
+
+    private func toggleSelection(of tag: Tag) {
+        if let index = selectedTags.firstIndex(where: { selectedTag in
+            selectedTag.normalizedName == tag.normalizedName
         }) {
-            selectedTagNames.remove(at: index)
+            selectedTags.remove(at: index)
         } else {
-            selectedTagNames.append(tagName)
+            select(tag)
         }
     }
 
@@ -68,35 +76,40 @@ struct TagSelectionView: View {
         guard !trimmedTagName.isEmpty else {
             return
         }
-        let normalizedName = Tag.normalizedName(from: trimmedTagName)
-        if let existingTagName = tagNames.first(where: {
-            Tag.normalizedName(from: $0) == normalizedName
-        }) {
-            if !isSelected(existingTagName) {
-                selectedTagNames.append(existingTagName)
-            }
-            newTagName = ""
-            newTagFieldIsFocused = true
+        let tag = existingTag(named: trimmedTagName) ?? createAvailableTag(named: trimmedTagName)
+        select(tag)
+        resetNewTagField()
+    }
+
+    private func existingTag(named name: String) -> Tag? {
+        let normalizedName = Tag.normalizedName(from: name)
+        return availableTags.first { tag in
+            tag.normalizedName == normalizedName
+        }
+    }
+
+    private func createAvailableTag(named name: String) -> Tag {
+        let tag = Tag(name: name)
+        modelContext.insert(tag)
+        return tag
+    }
+
+    private func select(_ tag: Tag) {
+        guard !isSelected(tag) else {
             return
         }
-        tagNames.append(trimmedTagName)
-        selectedTagNames.append(trimmedTagName)
+        selectedTags.append(tag)
+    }
+
+    private func resetNewTagField() {
         newTagName = ""
         newTagFieldIsFocused = true
     }
 }
 
-extension TagSelectionView {
-
-    private static let sampleTagNames = [
-        "YOLO",
-        "Fun",
-        "2026",
-    ]
-}
-
 #Preview {
     NavigationStack {
-        TagSelectionView()
+        TagSelectionView(selectedTags: .constant([]))
     }
+    .modelContainer(GoalPreviewContainer.make(goals: []))
 }

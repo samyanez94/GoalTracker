@@ -195,7 +195,7 @@ struct GoalFormView: View {
         .navigationDestination(for: GoalFormDestination.self) { destination in
             switch destination {
             case .tags:
-                TagSelectionView()
+                TagSelectionView(selectedTags: $model.selectedTags)
             case .progressUnit:
                 ProgressUnitSelectionView(selectedUnit: $model.selectedProgressUnit)
             }

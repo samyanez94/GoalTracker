@@ -59,4 +59,25 @@ struct TagTests {
         #expect(fetchedTag.normalizedName == "health")
         #expect(fetchedTag.goals.map(\.id) == [goal.id])
     }
+
+    @Test
+    func `Alphabetical sort descriptor sorts tags by normalized name`() throws {
+        let container = try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
+        for tag in [
+            Tag(name: "Zebra"),
+            Tag(name: "apple"),
+            Tag(name: "Banana"),
+        ] {
+            container.mainContext.insert(tag)
+        }
+        try container.mainContext.save()
+
+        let tags = try container.mainContext.fetch(
+            FetchDescriptor<GoalTrackerSchemaV1.Tag>(
+                sortBy: [SortDescriptor<GoalTrackerSchemaV1.Tag>(\.normalizedName)],
+            ),
+        )
+
+        #expect(tags.map(\.name) == ["apple", "Banana", "Zebra"])
+    }
 }
