@@ -19,7 +19,7 @@ struct EditableTagChip: View {
             TagChip(
                 name: tag.name,
                 isSelected: isSelected,
-                isSelectionEnabled: !isEditing,
+                isEnabled: !isEditing,
             ) {
                 toggleSelection(tag)
             }

@@ -30,10 +30,10 @@ struct TagSelectionView: View {
 
     var body: some View {
         Form {
-            if !availableTags.isEmpty {
+            if hasAvailableTags {
                 Section {
                     TagFlowLayout {
-                        ForEach(availableTags, id: \.normalizedName) { tag in
+                        ForEach(availableTags, id: \.id) { tag in
                             EditableTagChip(
                                 tag: tag,
                                 isSelected: isSelected(tag),
@@ -54,9 +54,7 @@ struct TagSelectionView: View {
                         sanitizeNewTagName(updatedName)
                     }
                     .onChange(of: newTagFieldIsFocused) { _, isFocused in
-                        if isFocused {
-                            isEditing = false
-                        }
+                        handleNewTagFieldFocusChanged(isFocused)
                     }
                     .onSubmit(addTag)
             }
@@ -64,7 +62,7 @@ struct TagSelectionView: View {
         .navigationTitle("Tags")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if !availableTags.isEmpty || isEditing {
+            if canShowEditButton {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(isEditing ? "Done" : "Edit", action: toggleEditMode)
                 }
@@ -73,7 +71,18 @@ struct TagSelectionView: View {
         .onDisappear {
             try? GoalManager(modelContext: modelContext).deleteUnusedTags(excluding: selectedTags)
         }
+        .onChange(of: availableTags.isEmpty) { _, tagsAreEmpty in
+            handleAvailableTagsEmptyChanged(tagsAreEmpty)
+        }
         .goalSaveFailureAlert(failure: $saveFailure)
+    }
+
+    private var hasAvailableTags: Bool {
+        !availableTags.isEmpty
+    }
+
+    private var canShowEditButton: Bool {
+        hasAvailableTags || isEditing
     }
 
     private func isSelected(_ tag: Tag) -> Bool {
@@ -83,6 +92,9 @@ struct TagSelectionView: View {
     }
 
     private func toggleSelection(of tag: Tag) {
+        guard !isEditing else {
+            return
+        }
         if let index = selectedTags.firstIndex(where: { selectedTag in
             selectedTag.normalizedName == tag.normalizedName
         }) {
@@ -128,6 +140,18 @@ struct TagSelectionView: View {
         isEditing.toggle()
         if isEditing {
             newTagFieldIsFocused = false
+        }
+    }
+
+    private func handleNewTagFieldFocusChanged(_ isFocused: Bool) {
+        if isFocused {
+            isEditing = false
+        }
+    }
+
+    private func handleAvailableTagsEmptyChanged(_ tagsAreEmpty: Bool) {
+        if tagsAreEmpty {
+            isEditing = false
         }
     }
 

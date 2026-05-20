@@ -10,7 +10,7 @@ import SwiftUI
 struct TagChip: View {
     let name: String
     let isSelected: Bool
-    var isSelectionEnabled = true
+    var isEnabled = true
     let action: () -> Void
 
     var body: some View {
@@ -24,5 +24,6 @@ struct TagChip: View {
                 .clipShape(.capsule)
         }
         .buttonStyle(.plain)
+        .allowsHitTesting(isEnabled)
     }
 }
