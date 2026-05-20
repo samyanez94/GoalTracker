@@ -5,6 +5,7 @@
 //  Created by Samuel Yanez on 5/3/26.
 //
 
+import SwiftData
 import SwiftUI
 
 enum GoalFormMode {
@@ -38,11 +39,15 @@ private enum GoalFormDestination: Hashable {
 struct GoalFormView: View {
     @Environment(\.dismiss) private var dismiss
 
+    @Environment(\.modelContext) private var modelContext
+
     @State private var model: GoalFormModel
 
     @FocusState private var isTextInputFocused: Bool
 
     @State private var saveFailure: GoalSaveFailure?
+
+    @State private var didSave = false
 
     private let mode: GoalFormMode
 
@@ -200,6 +205,9 @@ struct GoalFormView: View {
                 ProgressUnitSelectionView(selectedUnit: $model.selectedProgressUnit)
             }
         }
+        .onDisappear {
+            deleteUnusedTags()
+        }
         .goalSaveFailureAlert(failure: $saveFailure)
     }
 
@@ -209,10 +217,18 @@ struct GoalFormView: View {
         }
         do {
             try onSave(model.makeFormData())
+            didSave = true
             dismiss()
         } catch {
             saveFailure = model.saveFailureKind
         }
+    }
+
+    private func deleteUnusedTags() {
+        guard !didSave else {
+            return
+        }
+        try? GoalManager(modelContext: modelContext).deleteUnusedTags()
     }
 
     private func tagSelectionSummary(for tags: [Tag]) -> String {
