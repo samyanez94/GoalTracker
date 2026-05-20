@@ -177,7 +177,7 @@ struct GoalManager {
         for goal in goals {
             modelContext.delete(goal)
         }
-        try saveDeletedGoal {
+        try saveDeletionChanges {
             try deleteUnusedTags(
                 from: candidateTags,
                 ignoringGoalsWithIds: deletedGoalIds,
@@ -190,7 +190,7 @@ struct GoalManager {
     /// Pass `protectedTags` to keep tags that should survive this cleanup, such as
     /// tags currently selected in a goal form that has not been saved yet.
     func deleteUnusedTags(excluding protectedTags: [Tag] = []) throws {
-        try saveDeletedGoal {
+        try saveDeletionChanges {
             try deleteUnusedTags(
                 from: fetchTags(),
                 excluding: protectedTags,
@@ -210,7 +210,7 @@ struct GoalManager {
         }
     }
 
-    private func saveDeletedGoal(
+    private func saveDeletionChanges(
         beforeSave: () throws -> Void = {},
     ) throws {
         do {
@@ -220,21 +220,6 @@ struct GoalManager {
             rollbackContext()
             throw SaveError.failed(error)
         }
-    }
-
-    @discardableResult
-    private func updateGoal(
-        _ goal: Goal,
-        _ mutate: (Goal) -> Bool,
-    ) throws -> Bool {
-        let snapshot = GoalSnapshot(goal: goal)
-        guard mutate(goal) else {
-            return false
-        }
-        try saveChanges {
-            snapshot.restore(goal)
-        }
-        return true
     }
 
     @discardableResult
