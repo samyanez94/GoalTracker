@@ -20,7 +20,7 @@ struct TagChip: View {
                 .foregroundStyle(isSelected ? .white : .secondary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(isSelected ? .blue : Color(.secondarySystemBackground))
+                .background(isSelected ? .blue : .gray.opacity(0.12))
                 .clipShape(.capsule)
         }
         .buttonStyle(.plain)
