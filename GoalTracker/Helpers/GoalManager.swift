@@ -258,32 +258,29 @@ struct GoalManager {
         ignoringGoalsWithIds ignoredGoalIds: Set<UUID> = [],
     ) throws {
         let protectedTagIds = Set(protectedTags.map(\.id))
+        let usedTagIds = try usedTagIds(ignoringGoalsWithIds: ignoredGoalIds)
         var checkedTagIds: Set<UUID> = []
         for tag in candidateTags where !protectedTagIds.contains(tag.id) {
             guard !checkedTagIds.contains(tag.id) else {
                 continue
             }
             checkedTagIds.insert(tag.id)
-            guard try !isTagUsed(tag, ignoringGoalsWithIds: ignoredGoalIds) else {
+            guard !usedTagIds.contains(tag.id) else {
                 continue
             }
             modelContext.delete(tag)
         }
     }
 
-    private func isTagUsed(
-        _ tag: Tag,
+    private func usedTagIds(
         ignoringGoalsWithIds ignoredGoalIds: Set<UUID>,
-    ) throws -> Bool {
+    ) throws -> Set<UUID> {
         let goals = try fetchGoals()
-        return goals.contains { goal in
-            guard !ignoredGoalIds.contains(goal.id) else {
-                return false
-            }
-            return goal.tags.contains { goalTag in
-                goalTag.id == tag.id
-            }
+        return Set(goals.lazy.filter { goal in
+            !ignoredGoalIds.contains(goal.id)
         }
+        .flatMap(\.tags)
+        .map(\.id))
     }
 
     private func fetchGoals() throws -> [Goal] {
