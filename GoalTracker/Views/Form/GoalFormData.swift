@@ -12,12 +12,14 @@ struct GoalFormData {
     var details: String
     var dueDate: Date?
     var progress: GoalProgress
+    var tags: [Tag]
 
     static let empty = GoalFormData(
         name: "",
         details: "",
         dueDate: nil,
         progress: .outcomePending,
+        tags: [],
     )
 
     init(goal: Goal) {
@@ -25,6 +27,7 @@ struct GoalFormData {
         details = goal.details ?? ""
         dueDate = goal.dueDate
         progress = goal.progress
+        tags = goal.tags
     }
 
     init(
@@ -32,11 +35,13 @@ struct GoalFormData {
         details: String,
         dueDate: Date? = nil,
         progress: GoalProgress,
+        tags: [Tag] = [],
     ) {
         self.name = name
         self.details = details
         self.dueDate = dueDate
         self.progress = progress
+        self.tags = tags
     }
 
     var normalizedDetails: String? {

@@ -25,6 +25,7 @@ struct GoalFormModelTests {
         #expect(model.targetValue == nil)
         #expect(model.step == nil)
         #expect(model.selectedProgressUnit == nil)
+        #expect(model.selectedTags.isEmpty)
         #expect(model.saveFailureKind == .addGoal)
         #expect(model.isSaveDisabled)
     }
@@ -32,6 +33,10 @@ struct GoalFormModelTests {
     @Test
     func `Edit mode initializes from measurable form data`() {
         let dueDate = Date(timeIntervalSinceReferenceDate: 123)
+        let tags = [
+            Tag(name: "Health"),
+            Tag(name: "Running"),
+        ]
         let model = GoalFormModel(
             mode: .edit(
                 GoalFormData(
@@ -44,6 +49,7 @@ struct GoalFormModelTests {
                         step: 2,
                         unit: .miles,
                     ),
+                    tags: tags,
                 ),
             ),
         )
@@ -57,6 +63,7 @@ struct GoalFormModelTests {
         #expect(model.targetValue == 10)
         #expect(model.step == 2)
         #expect(model.selectedProgressUnit == .miles)
+        #expect(model.selectedTags.map(\.name) == ["Health", "Running"])
         #expect(model.saveFailureKind == .updateGoal)
     }
 
@@ -146,6 +153,28 @@ struct GoalFormModelTests {
         #expect(data.name == "Write draft")
         #expect(data.details == "   ")
         #expect(data.normalizedDetails == nil)
+    }
+
+    @Test
+    func `Form data preserves selected tags`() {
+        let tags = [
+            Tag(name: "Health"),
+            Tag(name: "Running"),
+        ]
+        let model = GoalFormModel(
+            mode: .edit(
+                GoalFormData(
+                    name: "Run",
+                    details: "",
+                    progress: .outcomePending,
+                    tags: tags,
+                ),
+            ),
+        )
+
+        let data = model.makeFormData()
+
+        #expect(data.tags.map(\.name) == ["Health", "Running"])
     }
 
     @Test

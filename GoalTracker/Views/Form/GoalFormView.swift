@@ -31,6 +31,7 @@ enum GoalFormMode {
 }
 
 private enum GoalFormDestination: Hashable {
+    case tags
     case progressUnit
 }
 
@@ -73,6 +74,27 @@ struct GoalFormView: View {
                 .lineLimit(1...6)
             }
             Section {
+                NavigationLink(value: GoalFormDestination.tags) {
+                    HStack {
+                        Image(systemName: "number")
+                            .foregroundStyle(.secondary)
+                        Text("Tags")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        if model.selectedTags.isEmpty == false {
+                            Text(tagSelectionSummary(for: model.selectedTags))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            } header: {
+                Text("Organization")
+            } footer: {
+                Text("Use tags to group related goals.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 HStack {
                     DueDateSummaryButton(
                         hasDueDate: model.hasDueDate,
@@ -97,6 +119,8 @@ struct GoalFormView: View {
                     )
                     .datePickerStyle(.graphical)
                 }
+            } header: {
+                Text("Date")
             } footer: {
                 Text("Set a due date to help you know when to complete this goal.")
                     .font(.footnote)
@@ -170,6 +194,10 @@ struct GoalFormView: View {
         }
         .navigationDestination(for: GoalFormDestination.self) { destination in
             switch destination {
+            case .tags:
+                List {}
+                    .navigationTitle("Tags")
+                    .navigationBarTitleDisplayMode(.inline)
             case .progressUnit:
                 ProgressUnitSelectionView(selectedUnit: $model.selectedProgressUnit)
             }
@@ -187,6 +215,10 @@ struct GoalFormView: View {
         } catch {
             saveFailure = model.saveFailureKind
         }
+    }
+
+    private func tagSelectionSummary(for tags: [Tag]) -> String {
+        "\(tags.count) Selected"
     }
 }
 

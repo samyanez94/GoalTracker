@@ -21,6 +21,7 @@ final class GoalFormModel {
     var targetValue: Double?
     var step: Double?
     var selectedProgressUnit: GoalProgressUnit?
+    var selectedTags: [Tag]
 
     private let mode: GoalFormMode
     private let initialOutcomeIsCompleted: Bool
@@ -32,6 +33,7 @@ final class GoalFormModel {
         details = data.details
         hasDueDate = data.dueDate != nil
         dueDate = data.dueDate ?? Date()
+        selectedTags = data.tags
         initialOutcomeIsCompleted = data.progress.isCompleted
 
         switch data.progress.kind {
@@ -94,6 +96,7 @@ final class GoalFormModel {
             details: details,
             dueDate: hasDueDate ? dueDate : nil,
             progress: progress,
+            tags: selectedTags,
         )
     }
 
