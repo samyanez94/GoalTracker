@@ -41,6 +41,7 @@ struct GoalReminderTests {
 
     @Test
     func `Presets convert to expected reminders`() {
+        #expect(GoalReminderPreset.onDueDate.reminder == GoalReminder(secondsBeforeDueDate: 0))
         #expect(GoalReminderPreset.oneDayBefore.reminder == GoalReminder(secondsBeforeDueDate: 86_400))
         #expect(GoalReminderPreset.oneWeekBefore.reminder == GoalReminder(secondsBeforeDueDate: 604_800))
         #expect(GoalReminderPreset.oneMonthBefore.reminder == GoalReminder(secondsBeforeDueDate: 2_592_000))
@@ -48,6 +49,7 @@ struct GoalReminderTests {
 
     @Test
     func `Preset lookup returns matching reminder preset`() {
+        #expect(GoalReminderPreset.preset(for: .onDueDate) == .onDueDate)
         #expect(GoalReminderPreset.preset(for: .daysBeforeDueDate(1)) == .oneDayBefore)
         #expect(GoalReminderPreset.preset(for: .daysBeforeDueDate(7)) == .oneWeekBefore)
         #expect(GoalReminderPreset.preset(for: .daysBeforeDueDate(30)) == .oneMonthBefore)
@@ -66,7 +68,11 @@ struct GoalReminderTests {
         let oneDayBefore = GoalReminder.daysBeforeDueDate(1)
         let oneWeekBefore = GoalReminder.daysBeforeDueDate(7)
         let oneMonthBefore = GoalReminder.daysBeforeDueDate(30)
+        let onDueDate = GoalReminder.onDueDate
 
+        #expect(onDueDate.reminderDate(before: dueDate, calendar: calendar) == calendar.date(
+            from: DateComponents(year: 2026, month: 5, day: 21, hour: 9),
+        ))
         #expect(oneDayBefore.reminderDate(before: dueDate, calendar: calendar) == calendar.date(
             from: DateComponents(year: 2026, month: 5, day: 20, hour: 9),
         ))
@@ -90,7 +96,13 @@ struct GoalReminderTests {
 
         let thirtyMinutesBefore = GoalReminder.minutesBeforeDueDate(30)
         let oneHourBefore = GoalReminder.hoursBeforeDueDate(1)
+        let onDueDate = GoalReminder.onDueDate
 
+        #expect(onDueDate.reminderDate(
+            before: dueDate,
+            dueDateIncludesTime: true,
+            calendar: calendar,
+        ) == calendar.date(from: DateComponents(year: 2026, month: 5, day: 21, hour: 17)))
         #expect(thirtyMinutesBefore.reminderDate(
             before: dueDate,
             dueDateIncludesTime: true,

@@ -148,6 +148,40 @@ struct GoalFormModelTests {
     }
 
     @Test
+    func `Enabling due date defaults reminder to due date`() {
+        let model = GoalFormModel(mode: .create)
+
+        model.hasDueDate = true
+        model.setDueDateEnabled(true)
+
+        #expect(model.reminder == .onDueDate)
+    }
+
+    @Test
+    func `Enabling due date preserves existing reminder`() {
+        let reminder = GoalReminder.daysBeforeDueDate(1)
+        let model = GoalFormModel(mode: .create)
+        model.reminder = reminder
+
+        model.hasDueDate = true
+        model.setDueDateEnabled(true)
+
+        #expect(model.reminder == reminder)
+    }
+
+    @Test
+    func `Disabling due date clears reminder`() {
+        let model = GoalFormModel(mode: .create)
+        model.hasDueDate = true
+        model.setDueDateEnabled(true)
+
+        model.hasDueDate = false
+        model.setDueDateEnabled(false)
+
+        #expect(model.reminder == nil)
+    }
+
+    @Test
     func `Edit mode preserves reminder in form data`() {
         let reminder = GoalReminder.daysBeforeDueDate(30)
         let model = GoalFormModel(

@@ -11,13 +11,20 @@ struct GoalReminderPickerRow: View {
     @Binding var reminder: GoalReminder?
 
     var body: some View {
-        Picker("Reminder", selection: $reminder) {
+        Picker(selection: $reminder) {
             Text("None")
                 .tag(nil as GoalReminder?)
             Divider()
             ForEach(GoalReminderPreset.allCases) { preset in
                 Text(preset.title)
                     .tag(preset.reminder as GoalReminder?)
+            }
+        } label: {
+            HStack {
+                Image(systemName: "bell.fill")
+                    .foregroundStyle(.secondary)
+                Text("Reminder")
+                    .foregroundStyle(.primary)
             }
         }
     }

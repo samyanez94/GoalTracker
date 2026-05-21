@@ -17,7 +17,6 @@ struct DueDateSummaryButton: View {
             HStack {
                 Image(systemName: "calendar")
                     .foregroundStyle(.secondary)
-                    .padding(.horizontal, 4)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Due Date")
                     if hasDueDate {

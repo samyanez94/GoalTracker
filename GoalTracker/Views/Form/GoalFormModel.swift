@@ -90,6 +90,11 @@ final class GoalFormModel {
 
     func setDueDateEnabled(_ isEnabled: Bool) {
         isDueDatePickerExpanded = isEnabled
+        if isEnabled {
+            reminder = reminder ?? GoalReminderPreset.onDueDate.reminder
+        } else {
+            reminder = nil
+        }
     }
 
     func makeFormData() -> GoalFormData {

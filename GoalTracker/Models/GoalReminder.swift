@@ -16,7 +16,7 @@ nonisolated struct GoalReminder: Codable, Hashable {
     let secondsBeforeDueDate: Int
 
     init(secondsBeforeDueDate: Int) {
-        precondition(secondsBeforeDueDate > 0, "Goal reminders must be before the due date.")
+        precondition(secondsBeforeDueDate >= 0, "Goal reminders cannot be after the due date.")
         self.secondsBeforeDueDate = secondsBeforeDueDate
     }
 
@@ -91,6 +91,10 @@ nonisolated struct GoalReminder: Codable, Hashable {
         GoalReminder(
             secondsBeforeDueDate: days * 24 * 60 * 60,
         )
+    }
+
+    static var onDueDate: GoalReminder {
+        GoalReminder(secondsBeforeDueDate: 0)
     }
 
     static func hoursBeforeDueDate(_ hours: Int) -> GoalReminder {
