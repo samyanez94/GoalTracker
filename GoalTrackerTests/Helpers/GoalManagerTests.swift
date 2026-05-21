@@ -11,10 +11,12 @@ import Testing
 
 @testable import GoalTracker
 
+// MARK: - GoalManagerTests
+
 @MainActor
 struct GoalManagerTests {
     @Test
-    func `Incrementing measurable progress updates current value`() throws {
+    func `Incrementing measurable progress updates current value`() async throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
@@ -22,27 +24,27 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.incrementProgress(goal)
+        let didChange = try await manager.incrementProgress(goal)
 
         #expect(didChange)
         #expect(goal.progress.currentValue == 6)
     }
 
     @Test
-    func `Completing outcome goal updates completion state`() throws {
+    func `Completing outcome goal updates completion state`() async throws {
         let container = try makeContainer()
         let goal = makeGoal(progress: .outcomePending)
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.completeGoal(goal)
+        let didChange = try await manager.completeGoal(goal)
 
         #expect(didChange)
         #expect(goal.progress.isCompleted)
     }
 
     @Test
-    func `Editing measurable current value updates progress`() throws {
+    func `Editing measurable current value updates progress`() async throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
@@ -50,7 +52,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.updateGoal(
+        let didChange = try await manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -63,14 +65,18 @@ struct GoalManagerTests {
     }
 
     @Test
-    func `Editing goal updates reminder`() throws {
+    func `Editing goal updates reminder`() async throws {
         let container = try makeContainer()
-        let goal = makeGoal(progress: .outcomePending)
+        let scheduler = FakeGoalReminderScheduler()
+        let goal = makeGoal(
+            dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
+            progress: .outcomePending,
+        )
         let reminder = GoalReminder.daysBeforeDueDate(7)
         insert(goal, into: container)
-        let manager = makeManager(in: container)
+        let manager = makeManager(in: container, notificationScheduler: scheduler)
 
-        let didChange = try manager.updateGoal(
+        let didChange = try await manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -81,10 +87,12 @@ struct GoalManagerTests {
 
         #expect(didChange)
         #expect(goal.reminder == reminder)
+        #expect(scheduler.requestAuthorizationCount == 0)
+        #expect(scheduler.scheduledGoalIds == [goal.id])
     }
 
     @Test
-    func `Editing goal updates selected tags`() throws {
+    func `Editing goal updates selected tags`() async throws {
         let container = try makeContainer()
         let goal = makeGoal(progress: .outcomePending)
         let healthTag = Tag(name: "Health")
@@ -92,7 +100,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.updateGoal(
+        let didChange = try await manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -106,7 +114,7 @@ struct GoalManagerTests {
     }
 
     @Test
-    func `Editing goal deletes tags that are no longer used`() throws {
+    func `Editing goal deletes tags that are no longer used`() async throws {
         let container = try makeContainer()
         let oldTag = Tag(name: "Old")
         let newTag = Tag(name: "New")
@@ -117,7 +125,7 @@ struct GoalManagerTests {
         try container.mainContext.save()
         let manager = makeManager(in: container)
 
-        _ = try manager.updateGoal(
+        _ = try await manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -130,7 +138,7 @@ struct GoalManagerTests {
     }
 
     @Test
-    func `Deleting a goal removes it from the model context`() throws {
+    func `Deleting a goal removes it from the model context`() async throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
@@ -138,13 +146,13 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        try manager.deleteGoal(goal)
+        try await manager.deleteGoal(goal)
 
         #expect(try fetchGoals(in: container).isEmpty)
     }
 
     @Test
-    func `Deleting a goal deletes tags that are no longer used`() throws {
+    func `Deleting a goal deletes tags that are no longer used`() async throws {
         let container = try makeContainer()
         let tag = Tag(name: "Solo")
         let goal = makeGoal(progress: .outcomePending)
@@ -152,14 +160,14 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        try manager.deleteGoal(goal)
+        try await manager.deleteGoal(goal)
 
         #expect(try fetchGoals(in: container).isEmpty)
         #expect(try fetchTags(in: container).isEmpty)
     }
 
     @Test
-    func `Deleting a goal keeps tags used by another goal`() throws {
+    func `Deleting a goal keeps tags used by another goal`() async throws {
         let container = try makeContainer()
         let tag = Tag(name: "Shared")
         let deletedGoal = makeGoal(name: "Deleted Goal", progress: .outcomePending)
@@ -170,7 +178,7 @@ struct GoalManagerTests {
         insert(retainedGoal, into: container)
         let manager = makeManager(in: container)
 
-        try manager.deleteGoal(deletedGoal)
+        try await manager.deleteGoal(deletedGoal)
 
         #expect(try fetchGoals(in: container).map(\.id) == [retainedGoal.id])
         #expect(try fetchTags(in: container).map(\.name) == ["Shared"])
@@ -208,7 +216,7 @@ struct GoalManagerTests {
     }
 
     @Test
-    func `Deleting multiple goals removes them from the model context`() throws {
+    func `Deleting multiple goals removes them from the model context`() async throws {
         let container = try makeContainer()
         let firstGoal = makeGoal(
             name: "First Goal",
@@ -227,14 +235,14 @@ struct GoalManagerTests {
         insert(retainedGoal, into: container)
         let manager = makeManager(in: container)
 
-        try manager.deleteGoals([firstGoal, secondGoal])
+        try await manager.deleteGoals([firstGoal, secondGoal])
 
         let remainingGoalIDs = try Set(fetchGoals(in: container).map(\.id))
         #expect(remainingGoalIDs == [retainedGoal.id])
     }
 
     @Test
-    func `Bulk delete save failure rolls back deletions and throws`() throws {
+    func `Bulk delete save failure rolls back deletions and throws`() async throws {
         let container = try makeContainer()
         let firstGoal = makeGoal(
             name: "First Goal",
@@ -253,8 +261,8 @@ struct GoalManagerTests {
             },
         )
 
-        #expect(throws: GoalManager.SaveError.self) {
-            try manager.deleteGoals([firstGoal, secondGoal])
+        await #expect(throws: GoalManager.SaveError.self) {
+            try await manager.deleteGoals([firstGoal, secondGoal])
         }
 
         let remainingGoalIDs = try Set(fetchGoals(in: container).map(\.id))
@@ -262,7 +270,7 @@ struct GoalManagerTests {
     }
 
     @Test
-    func `Update save failure rolls back goal changes and tag cleanup`() throws {
+    func `Update save failure rolls back goal changes and tag cleanup`() async throws {
         let container = try makeContainer()
         let oldTag = Tag(name: "Old")
         let newTag = Tag(name: "New")
@@ -281,8 +289,8 @@ struct GoalManagerTests {
             },
         )
 
-        #expect(throws: GoalManager.SaveError.self) {
-            try manager.updateGoal(
+        await #expect(throws: GoalManager.SaveError.self) {
+            try await manager.updateGoal(
                 goal,
                 name: "Updated Goal",
                 details: goal.details,
@@ -300,7 +308,7 @@ struct GoalManagerTests {
     }
 
     @Test
-    func `Save failure rolls back progress changes and throws`() throws {
+    func `Save failure rolls back progress changes and throws`() async throws {
         let container = try makeContainer()
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
@@ -313,18 +321,118 @@ struct GoalManagerTests {
             },
         )
 
-        #expect(throws: GoalManager.SaveError.self) {
-            try manager.incrementProgress(goal)
+        await #expect(throws: GoalManager.SaveError.self) {
+            try await manager.incrementProgress(goal)
         }
         #expect(goal.progress.currentValue == 4)
+    }
+
+    @Test
+    func `Adding a goal with a reminder schedules notification reminder`() async throws {
+        let container = try makeContainer()
+        let scheduler = FakeGoalReminderScheduler()
+        let goal = makeGoal(
+            dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
+            reminder: .daysBeforeDueDate(1),
+            progress: .outcomePending,
+        )
+        let manager = makeManager(in: container, notificationScheduler: scheduler)
+
+        try await manager.addGoal(goal)
+
+        #expect(scheduler.requestAuthorizationCount == 0)
+        #expect(scheduler.scheduledGoalIds == [goal.id])
+        #expect(scheduler.canceledGoalIds.isEmpty)
+    }
+
+    @Test
+    func `Editing a goal without reminder eligibility cancels notification reminder`() async throws {
+        let container = try makeContainer()
+        let scheduler = FakeGoalReminderScheduler()
+        let goal = makeGoal(
+            dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
+            reminder: .daysBeforeDueDate(1),
+            progress: .outcomePending,
+        )
+        insert(goal, into: container)
+        let manager = makeManager(in: container, notificationScheduler: scheduler)
+
+        _ = try await manager.updateGoal(
+            goal,
+            name: goal.name,
+            details: goal.details,
+            dueDate: nil,
+            reminder: nil,
+            progress: goal.progress,
+        )
+
+        #expect(scheduler.scheduledGoalIds.isEmpty)
+        #expect(scheduler.canceledGoalIds == [goal.id])
+    }
+
+    @Test
+    func `Completing a goal cancels notification reminder`() async throws {
+        let container = try makeContainer()
+        let scheduler = FakeGoalReminderScheduler()
+        let goal = makeGoal(
+            dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
+            reminder: .daysBeforeDueDate(1),
+            progress: .outcomePending,
+        )
+        insert(goal, into: container)
+        let manager = makeManager(in: container, notificationScheduler: scheduler)
+
+        _ = try await manager.completeGoal(goal)
+
+        #expect(scheduler.scheduledGoalIds.isEmpty)
+        #expect(scheduler.canceledGoalIds == [goal.id])
+    }
+
+    @Test
+    func `Restoring a completed goal schedules notification reminder`() async throws {
+        let container = try makeContainer()
+        let scheduler = FakeGoalReminderScheduler()
+        let goal = makeGoal(
+            dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
+            reminder: .daysBeforeDueDate(1),
+            progress: .outcomeCompleted,
+        )
+        insert(goal, into: container)
+        let manager = makeManager(in: container, notificationScheduler: scheduler)
+
+        _ = try await manager.toggleCompletion(goal)
+
+        #expect(scheduler.requestAuthorizationCount == 0)
+        #expect(scheduler.scheduledGoalIds == [goal.id])
+    }
+
+    @Test
+    func `Deleting goals cancels notification reminders`() async throws {
+        let container = try makeContainer()
+        let scheduler = FakeGoalReminderScheduler()
+        let firstGoal = makeGoal(name: "First Goal", progress: .outcomePending)
+        let secondGoal = makeGoal(name: "Second Goal", progress: .outcomePending)
+        insert(firstGoal, into: container)
+        insert(secondGoal, into: container)
+        let manager = makeManager(in: container, notificationScheduler: scheduler)
+
+        try await manager.deleteGoals([firstGoal, secondGoal])
+
+        #expect(Set(scheduler.canceledGoalIds) == [firstGoal.id, secondGoal.id])
     }
 
     private func makeContainer() throws -> ModelContainer {
         try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
     }
 
-    private func makeManager(in container: ModelContainer) -> GoalManager {
-        GoalManager(modelContext: container.mainContext)
+    private func makeManager(
+        in container: ModelContainer,
+        notificationScheduler: FakeGoalReminderScheduler = FakeGoalReminderScheduler(),
+    ) -> GoalManager {
+        GoalManager(
+            modelContext: container.mainContext,
+            notificationScheduler: notificationScheduler,
+        )
     }
 
     private func insert(
@@ -349,11 +457,15 @@ struct GoalManagerTests {
 
     private func makeGoal(
         name: String = "Test Goal",
+        dueDate: Date? = nil,
+        reminder: GoalReminder? = nil,
         progress: GoalProgress,
     ) -> Goal {
         Goal(
             name: name,
             details: nil,
+            dueDate: dueDate,
+            reminder: reminder,
             createdAt: Date(timeIntervalSinceReferenceDate: 0),
             progress: progress,
         )
@@ -361,5 +473,36 @@ struct GoalManagerTests {
 
     private enum TestSaveError: Error {
         case failed
+    }
+}
+
+// MARK: - FakeGoalReminderScheduler
+
+@MainActor
+private final class FakeGoalReminderScheduler: GoalReminderScheduling {
+    var authorizationResult = true
+
+    var requestAuthorizationCount = 0
+
+    var scheduledGoalIds: [UUID] = []
+
+    var canceledGoalIds: [UUID] = []
+
+    func requestAuthorizationIfNeeded() async throws -> Bool {
+        requestAuthorizationCount += 1
+        return authorizationResult
+    }
+
+    func scheduleReminder(for goal: Goal) async throws -> Bool {
+        scheduledGoalIds.append(goal.id)
+        return true
+    }
+
+    func cancelReminder(for goalId: UUID) {
+        canceledGoalIds.append(goalId)
+    }
+
+    func cancelReminders(for goalIds: [UUID]) {
+        canceledGoalIds.append(contentsOf: goalIds)
     }
 }

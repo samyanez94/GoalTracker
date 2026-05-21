@@ -103,6 +103,9 @@ struct GoalListView: View {
             .sheet(isPresented: $isPresentingGoalFormView) {
                 NavigationStack {
                     GoalFormView(mode: .create) { data in
+                        await GoalReminderAuthorizationRequester.requestAuthorizationIfNeeded(
+                            for: data,
+                        )
                         let goal = Goal(
                             name: data.name,
                             details: data.normalizedDetails,
@@ -112,7 +115,7 @@ struct GoalListView: View {
                             progress: data.progress,
                         )
                         goal.tags = data.tags
-                        try goalManager.addGoal(goal)
+                        try await goalManager.addGoal(goal)
                     }
                 }
             }
@@ -192,14 +195,17 @@ struct GoalListView: View {
 
     private func deleteSelectedGoals() {
         pruneSelectedGoalIDs()
-        guard !selectedGoals.isEmpty else {
+        let goalsToDelete = selectedGoals
+        guard !goalsToDelete.isEmpty else {
             return
         }
-        do {
-            try goalManager.deleteGoals(selectedGoals)
-            finishSelectingGoals()
-        } catch {
-            saveFailure = .deleteGoal
+        Task { @MainActor in
+            do {
+                try await goalManager.deleteGoals(goalsToDelete)
+                finishSelectingGoals()
+            } catch {
+                saveFailure = .deleteGoal
+            }
         }
     }
 

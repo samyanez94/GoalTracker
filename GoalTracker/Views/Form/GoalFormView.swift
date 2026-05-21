@@ -49,13 +49,15 @@ struct GoalFormView: View {
 
     @State private var didSave = false
 
+    @State private var isSaving = false
+
     private let mode: GoalFormMode
 
-    private let onSave: (GoalFormData) throws -> Void
+    private let onSave: @MainActor (GoalFormData) async throws -> Void
 
     init(
         mode: GoalFormMode,
-        onSave: @escaping (GoalFormData) throws -> Void,
+        onSave: @escaping @MainActor (GoalFormData) async throws -> Void,
     ) {
         self.mode = mode
         self.onSave = onSave
@@ -187,8 +189,8 @@ struct GoalFormView: View {
                     .labelStyle(.iconOnly)
                     .tint(.blue)
                     .buttonStyle(.glassProminent)
-                    .disabled(model.isSaveDisabled)
-                    .opacity(model.isSaveDisabled ? 0.5 : 1)
+                    .disabled(model.isSaveDisabled || isSaving)
+                    .opacity(model.isSaveDisabled || isSaving ? 0.5 : 1)
             }
         }
         .onChange(of: model.hasDueDate) { _, hasDueDate in
@@ -215,15 +217,20 @@ struct GoalFormView: View {
     }
 
     private func save() {
-        guard !model.isSaveDisabled else {
+        guard !model.isSaveDisabled, !isSaving else {
             return
         }
-        do {
-            try onSave(model.makeFormData())
-            didSave = true
-            dismiss()
-        } catch {
-            saveFailure = model.saveFailureKind
+        let formData = model.makeFormData()
+        isSaving = true
+        Task { @MainActor in
+            do {
+                try await onSave(formData)
+                didSave = true
+                dismiss()
+            } catch {
+                saveFailure = model.saveFailureKind
+                isSaving = false
+            }
         }
     }
 

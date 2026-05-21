@@ -54,7 +54,7 @@ struct GoalRowView: View {
                 GoalFormView(
                     mode: .edit(GoalFormData(goal: goal)),
                 ) { data in
-                    try updateGoal(data)
+                    try await updateGoal(data)
                 }
             }
         }
@@ -73,27 +73,33 @@ struct GoalRowView: View {
     }
 
     private func toggleCompletion() {
-        do {
-            try goalManager.toggleCompletion(goal)
-        } catch {
-            saveFailure = .updateProgress
+        Task { @MainActor in
+            do {
+                try await goalManager.toggleCompletion(goal)
+            } catch {
+                saveFailure = .updateProgress
+            }
         }
     }
 
     private func deleteGoal() {
-        do {
-            try goalManager.deleteGoal(goal)
-        } catch {
-            saveFailure = .deleteGoal
+        Task { @MainActor in
+            do {
+                try await goalManager.deleteGoal(goal)
+            } catch {
+                saveFailure = .deleteGoal
+            }
         }
     }
 
-    private func updateGoal(_ data: GoalFormData) throws {
-        try goalManager.updateGoal(
+    private func updateGoal(_ data: GoalFormData) async throws {
+        await GoalReminderAuthorizationRequester.requestAuthorizationIfNeeded(for: data)
+        try await goalManager.updateGoal(
             goal,
             name: data.name,
             details: data.normalizedDetails,
             dueDate: data.dueDate,
+            reminder: data.reminder,
             progress: data.progress,
             tags: data.tags,
         )

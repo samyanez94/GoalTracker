@@ -34,6 +34,27 @@ enum GoalNotificationAuthorizationStatus {
     case authorized
 }
 
+/// The reminder scheduling behavior `GoalManager` needs when goal state changes.
+@MainActor
+protocol GoalReminderScheduling {
+    /// Requests notification authorization if needed.
+    ///
+    /// - Returns: `true` when reminders may be scheduled.
+    func requestAuthorizationIfNeeded() async throws -> Bool
+
+    /// Schedules or replaces the pending reminder for a goal.
+    ///
+    /// - Returns: `true` when a notification request was scheduled.
+    @discardableResult
+    func scheduleReminder(for goal: Goal) async throws -> Bool
+
+    /// Cancels the pending reminder for a goal.
+    func cancelReminder(for goalId: UUID)
+
+    /// Cancels pending reminders for multiple goals.
+    func cancelReminders(for goalIds: [UUID])
+}
+
 extension UNUserNotificationCenter: GoalNotificationCenterClient {
     func authorizationStatus() async -> GoalNotificationAuthorizationStatus {
         switch await notificationSettings().authorizationStatus {
@@ -54,7 +75,7 @@ extension UNUserNotificationCenter: GoalNotificationCenterClient {
 /// This type owns notification request construction and skip rules. It does not persist
 /// goals or decide when goal changes should trigger scheduling.
 @MainActor
-struct GoalNotificationScheduler {
+struct GoalNotificationScheduler: GoalReminderScheduling {
     private static let notificationIdentifierPrefix = "goal-reminder"
 
     private let notificationCenter: GoalNotificationCenterClient
@@ -141,7 +162,7 @@ struct GoalNotificationScheduler {
     }
 
     /// Cancels pending reminder notifications for multiple goals.
-    func cancelReminders(for goalIds: some Sequence<UUID>) {
+    func cancelReminders(for goalIds: [UUID]) {
         notificationCenter.removePendingNotificationRequests(
             withIdentifiers: goalIds.map(notificationIdentifier(for:)),
         )
