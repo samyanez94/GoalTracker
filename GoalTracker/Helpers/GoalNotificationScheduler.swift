@@ -133,10 +133,12 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
             return false
         }
 
-        let content = UNMutableNotificationContent()
-        content.title = goal.name
-        content.body = relativeDueDateDescription(for: dueDate)
-        content.sound = .default
+        let content = reminder.notificationContent(
+            goalName: goal.name,
+            dueDate: dueDate,
+            relativeTo: now(),
+            calendar: calendar,
+        )
 
         let trigger = UNCalendarNotificationTrigger(
             dateMatching: calendar.dateComponents(
@@ -171,31 +173,5 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
     /// Returns the stable pending-notification identifier for a goal reminder.
     func notificationIdentifier(for goalId: UUID) -> String {
         "\(Self.notificationIdentifierPrefix)-\(goalId.uuidString)"
-    }
-
-    private func relativeDueDateDescription(for dueDate: Date) -> String {
-        let currentDate = now()
-        if calendar.isDate(dueDate, inSameDayAs: currentDate) {
-            return "Today"
-        }
-        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
-            return GoalDueDateFormatter.string(from: dueDate)
-        }
-        if calendar.isDate(dueDate, inSameDayAs: tomorrow) {
-            return "Tomorrow"
-        }
-        guard let nextWeek = calendar.date(byAdding: .weekOfYear, value: 1, to: currentDate) else {
-            return GoalDueDateFormatter.string(from: dueDate)
-        }
-        if calendar.isDate(dueDate, equalTo: nextWeek, toGranularity: .weekOfYear) {
-            return "Next Week"
-        }
-        guard let nextMonth = calendar.date(byAdding: .month, value: 1, to: currentDate) else {
-            return GoalDueDateFormatter.string(from: dueDate)
-        }
-        if calendar.isDate(dueDate, equalTo: nextMonth, toGranularity: .month) {
-            return "Next Month"
-        }
-        return GoalDueDateFormatter.string(from: dueDate)
     }
 }

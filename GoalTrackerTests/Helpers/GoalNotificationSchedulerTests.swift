@@ -55,7 +55,7 @@ struct GoalNotificationSchedulerTests {
         #expect(didSchedule)
         #expect(request.identifier == "goal-reminder-\(goalID.uuidString)")
         #expect(request.content.title == "File taxes")
-        #expect(request.content.body == "Next Month")
+        #expect(request.content.body == "Complete by next month")
         #expect(trigger.dateComponents.year == 2026)
         #expect(trigger.dateComponents.month == 5)
         #expect(trigger.dateComponents.day == 20)
@@ -98,7 +98,7 @@ struct GoalNotificationSchedulerTests {
         let request = try #require(notificationCenter.addedRequests.first)
         #expect(didSchedule)
         #expect(request.content.title == "File taxes")
-        #expect(request.content.body == "Today")
+        #expect(request.content.body == "Complete by today")
     }
 
     @Test
