@@ -90,7 +90,6 @@ struct GoalDetailView: View {
     }
 
     private func updateGoal(_ data: GoalFormData) async throws {
-        await GoalReminderAuthorizationRequester.requestAuthorizationIfNeeded(for: data)
         try await goalManager.updateGoal(
             goal,
             name: data.name,

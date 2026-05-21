@@ -87,7 +87,7 @@ struct GoalManagerTests {
 
         #expect(didChange)
         #expect(goal.reminder == reminder)
-        #expect(scheduler.requestAuthorizationCount == 0)
+        #expect(scheduler.requestAuthorizationCount == 1)
         #expect(scheduler.scheduledGoalIds == [goal.id])
     }
 
@@ -340,7 +340,7 @@ struct GoalManagerTests {
 
         try await manager.addGoal(goal)
 
-        #expect(scheduler.requestAuthorizationCount == 0)
+        #expect(scheduler.requestAuthorizationCount == 1)
         #expect(scheduler.scheduledGoalIds == [goal.id])
         #expect(scheduler.canceledGoalIds.isEmpty)
     }

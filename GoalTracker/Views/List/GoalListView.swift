@@ -103,9 +103,6 @@ struct GoalListView: View {
             .sheet(isPresented: $isPresentingGoalFormView) {
                 NavigationStack {
                     GoalFormView(mode: .create) { data in
-                        await GoalReminderAuthorizationRequester.requestAuthorizationIfNeeded(
-                            for: data,
-                        )
                         let goal = Goal(
                             name: data.name,
                             details: data.normalizedDetails,

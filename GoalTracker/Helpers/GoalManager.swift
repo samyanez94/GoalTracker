@@ -76,7 +76,7 @@ struct GoalManager {
     ) async throws {
         modelContext.insert(goal)
         try saveChanges()
-        await syncReminder(for: goal)
+        await syncReminder(for: goal, requestsAuthorization: true)
     }
 
     /// Updates a goal's editable fields, cleans up unused tags, and saves the change.
@@ -116,7 +116,7 @@ struct GoalManager {
             snapshot.restore(goal)
             throw SaveError.failed(error)
         }
-        await syncReminder(for: goal)
+        await syncReminder(for: goal, requestsAuthorization: true)
         return true
     }
 
@@ -250,12 +250,18 @@ struct GoalManager {
         return true
     }
 
-    private func syncReminder(for goal: Goal) async {
+    private func syncReminder(
+        for goal: Goal,
+        requestsAuthorization: Bool = false,
+    ) async {
         guard !goal.isCompleted,
               goal.dueDate != nil,
               goal.reminder != nil else {
             notificationScheduler.cancelReminder(for: goal.id)
             return
+        }
+        if requestsAuthorization {
+            _ = try? await notificationScheduler.requestAuthorizationIfNeeded()
         }
         _ = try? await notificationScheduler.scheduleReminder(for: goal)
     }
