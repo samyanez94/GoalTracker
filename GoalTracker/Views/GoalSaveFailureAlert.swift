@@ -10,6 +10,8 @@ import SwiftUI
 enum GoalSaveFailure: String, Identifiable {
     case addGoal
     case updateGoal
+    case addGoalReminderDateNotFuture
+    case updateGoalReminderDateNotFuture
     case deleteGoal
     case deleteTag
     case updateProgress
@@ -22,6 +24,10 @@ enum GoalSaveFailure: String, Identifiable {
         switch self {
         case .addGoal, .updateGoal:
             "Couldn't Save Goal"
+        case .addGoalReminderDateNotFuture:
+            "Unable to Create Goal"
+        case .updateGoalReminderDateNotFuture:
+            "Unable to Edit Goal"
         case .deleteGoal:
             "Couldn't Delete Goal"
         case .deleteTag:
@@ -35,12 +41,31 @@ enum GoalSaveFailure: String, Identifiable {
         switch self {
         case .addGoal, .updateGoal:
             "Your changes weren't saved. Please try again."
+        case .addGoalReminderDateNotFuture, .updateGoalReminderDateNotFuture:
+            "Choose a due date or reminder option that schedules the reminder in the future."
         case .deleteGoal:
             "The goal wasn't deleted. Please try again."
         case .deleteTag:
             "The tag wasn't deleted. Please try again."
         case .updateProgress:
             "Your progress change wasn't saved. Please try again."
+        }
+    }
+}
+
+extension GoalSaveFailure {
+    init(
+        validationError: GoalValidationError,
+        mode: GoalFormMode,
+    ) {
+        switch validationError {
+        case .reminderDateNotFuture:
+            switch mode {
+            case .create:
+                self = .addGoalReminderDateNotFuture
+            case .edit:
+                self = .updateGoalReminderDateNotFuture
+            }
         }
     }
 }

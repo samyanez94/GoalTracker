@@ -182,6 +182,84 @@ struct GoalFormModelTests {
     }
 
     @Test
+    func `Create mode reports reminder validation failure when reminder date is not future`() throws {
+        let calendar = Calendar.current
+        let now = try #require(calendar.date(from: DateComponents(
+            year: 2026,
+            month: 5,
+            day: 21,
+            hour: 10,
+        )))
+        let dueDate = try #require(calendar.date(from: DateComponents(
+            year: 2026,
+            month: 5,
+            day: 21,
+        )))
+        let model = GoalFormModel(mode: .create, now: { now })
+        model.hasDueDate = true
+        model.dueDate = dueDate
+        model.reminder = .onDueDate
+
+        #expect(throws: GoalValidationError.reminderDateNotFuture) {
+            try model.validateGoal()
+        }
+    }
+
+    @Test
+    func `Edit mode reports reminder validation failure when reminder date is not future`() throws {
+        let calendar = Calendar.current
+        let now = try #require(calendar.date(from: DateComponents(
+            year: 2026,
+            month: 5,
+            day: 21,
+            hour: 10,
+        )))
+        let dueDate = try #require(calendar.date(from: DateComponents(
+            year: 2026,
+            month: 5,
+            day: 21,
+        )))
+        let model = GoalFormModel(
+            mode: .edit(
+                GoalFormData(
+                    name: "File taxes",
+                    details: "",
+                    dueDate: dueDate,
+                    reminder: .onDueDate,
+                    progress: .outcomePending,
+                ),
+            ),
+            now: { now },
+        )
+
+        #expect(throws: GoalValidationError.reminderDateNotFuture) {
+            try model.validateGoal()
+        }
+    }
+
+    @Test
+    func `Future reminder date has no reminder validation failure`() throws {
+        let calendar = Calendar.current
+        let now = try #require(calendar.date(from: DateComponents(
+            year: 2026,
+            month: 5,
+            day: 21,
+            hour: 10,
+        )))
+        let dueDate = try #require(calendar.date(from: DateComponents(
+            year: 2026,
+            month: 5,
+            day: 22,
+        )))
+        let model = GoalFormModel(mode: .create, now: { now })
+        model.hasDueDate = true
+        model.dueDate = dueDate
+        model.reminder = .onDueDate
+
+        try model.validateGoal()
+    }
+
+    @Test
     func `Edit mode preserves reminder in form data`() {
         let reminder = GoalReminder.daysBeforeDueDate(30)
         let model = GoalFormModel(

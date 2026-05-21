@@ -219,9 +219,15 @@ struct GoalFormView: View {
             return
         }
         do {
+            try model.validateGoal()
             try onSave(model.makeFormData())
             didSave = true
             dismiss()
+        } catch let validationError as GoalValidationError {
+            saveFailure = GoalSaveFailure(
+                validationError: validationError,
+                mode: model.mode,
+            )
         } catch {
             saveFailure = model.saveFailureKind
         }

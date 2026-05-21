@@ -24,11 +24,16 @@ final class GoalFormModel {
     var selectedProgressUnit: GoalProgressUnit?
     var selectedTags: [Tag]
 
-    private let mode: GoalFormMode
+    let mode: GoalFormMode
     private let initialOutcomeIsCompleted: Bool
+    private let now: () -> Date
 
-    init(mode: GoalFormMode) {
+    init(
+        mode: GoalFormMode,
+        now: @escaping () -> Date = Date.init,
+    ) {
         self.mode = mode
+        self.now = now
         let data = mode.initialData
         name = data.name
         details = data.details
@@ -52,6 +57,22 @@ final class GoalFormModel {
             step = nil
             selectedProgressUnit = nil
         }
+    }
+
+    func validateGoal() throws {
+        try validateReminderDate()
+    }
+
+    private func validateReminderDate() throws {
+        guard hasDueDate,
+              let reminder,
+              let reminderDate = reminder.reminderDate(before: dueDate) else {
+            return
+        }
+        guard reminderDate <= now() else {
+            return
+        }
+        throw GoalValidationError.reminderDateNotFuture
     }
 
     var isSaveDisabled: Bool {
