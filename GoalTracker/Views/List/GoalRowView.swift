@@ -4,6 +4,8 @@ import SwiftUI
 struct GoalRowView: View {
     @Environment(\.modelContext) private var modelContext
 
+    @State private var isPresentingEditForm = false
+
     @State private var saveFailure: GoalSaveFailure?
 
     let goal: Goal
@@ -29,6 +31,11 @@ struct GoalRowView: View {
         }
         .contextMenu {
             Button {
+                isPresentingEditForm = true
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+            Button {
                 toggleCompletion()
             } label: {
                 Label(
@@ -42,6 +49,15 @@ struct GoalRowView: View {
                 Label("Delete", systemImage: "trash")
             }
         }
+        .sheet(isPresented: $isPresentingEditForm) {
+            NavigationStack {
+                GoalFormView(
+                    mode: .edit(GoalFormData(goal: goal)),
+                ) { data in
+                    try updateGoal(data)
+                }
+            }
+        }
         .swipeActions {
             Button(role: .destructive) {
                 deleteGoal()
@@ -51,7 +67,7 @@ struct GoalRowView: View {
         }
         .goalSaveFailureAlert(failure: $saveFailure)
     }
-    
+
     private var goalManager: GoalManager {
         GoalManager(modelContext: modelContext)
     }
@@ -70,6 +86,17 @@ struct GoalRowView: View {
         } catch {
             saveFailure = .deleteGoal
         }
+    }
+
+    private func updateGoal(_ data: GoalFormData) throws {
+        try goalManager.updateGoal(
+            goal,
+            name: data.name,
+            details: data.normalizedDetails,
+            dueDate: data.dueDate,
+            progress: data.progress,
+            tags: data.tags,
+        )
     }
 
     private func isPastDue(_ dueDate: Date) -> Bool {
