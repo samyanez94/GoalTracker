@@ -46,6 +46,14 @@ struct GoalReminderTests {
     }
 
     @Test
+    func `Preset lookup returns matching reminder preset`() {
+        #expect(GoalReminderPreset.preset(for: .daysBeforeDueDate(1)) == .oneDayBefore)
+        #expect(GoalReminderPreset.preset(for: .daysBeforeDueDate(7)) == .oneWeekBefore)
+        #expect(GoalReminderPreset.preset(for: .daysBeforeDueDate(30)) == .oneMonthBefore)
+        #expect(GoalReminderPreset.preset(for: .minutesBeforeDueDate(30)) == nil)
+    }
+
+    @Test
     func `Date only reminders calculate from nine AM local time`() throws {
         let calendar = Calendar(identifier: .gregorian)
         let dueDate = try #require(calendar.date(from: DateComponents(

@@ -19,11 +19,11 @@ nonisolated enum GoalReminderPreset: String, Codable, Hashable, CaseIterable, Id
     var title: String {
         switch self {
         case .oneDayBefore:
-            "1 Day Before"
+            "1 day before"
         case .oneWeekBefore:
-            "1 Week Before"
+            "1 week before"
         case .oneMonthBefore:
-            "1 Month Before"
+            "1 month before"
         }
     }
 
@@ -35,6 +35,12 @@ nonisolated enum GoalReminderPreset: String, Codable, Hashable, CaseIterable, Id
             .daysBeforeDueDate(7)
         case .oneMonthBefore:
             .daysBeforeDueDate(30)
+        }
+    }
+
+    static func preset(for reminder: GoalReminder) -> GoalReminderPreset? {
+        allCases.first { preset in
+            preset.reminder == reminder
         }
     }
 }

@@ -25,7 +25,7 @@ nonisolated struct GoalReminder: Codable, Hashable {
         calendar: Calendar = .current,
     ) -> Date? {
         let dueDateAnchor = dueDateIncludesTime ? dueDate : calendar.date(
-            bySettingHour: Self.defaulSettingHour,
+            bySettingHour: Self.defaultSettingHour,
             minute: 0,
             second: 0,
             of: dueDate,
