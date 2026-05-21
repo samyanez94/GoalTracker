@@ -19,6 +19,7 @@ struct GoalFormModelTests {
         #expect(model.name == "")
         #expect(model.details == "")
         #expect(model.hasDueDate == false)
+        #expect(model.reminder == nil)
         #expect(model.isDueDatePickerExpanded == false)
         #expect(model.isProgressBased == false)
         #expect(model.currentValue == nil)
@@ -130,16 +131,38 @@ struct GoalFormModelTests {
     @Test
     func `Form data includes due date only when due date is enabled`() {
         let dueDate = Date(timeIntervalSinceReferenceDate: 456)
+        let reminder = GoalReminder.daysBeforeDueDate(1)
         let model = GoalFormModel(mode: .create)
         model.name = "File taxes"
         model.hasDueDate = true
         model.dueDate = dueDate
+        model.reminder = reminder
 
         #expect(model.makeFormData().dueDate == dueDate)
+        #expect(model.makeFormData().reminder == reminder)
 
         model.hasDueDate = false
 
         #expect(model.makeFormData().dueDate == nil)
+        #expect(model.makeFormData().reminder == nil)
+    }
+
+    @Test
+    func `Edit mode preserves reminder in form data`() {
+        let reminder = GoalReminder.daysBeforeDueDate(30)
+        let model = GoalFormModel(
+            mode: .edit(
+                GoalFormData(
+                    name: "File taxes",
+                    details: "",
+                    dueDate: Date(timeIntervalSinceReferenceDate: 456),
+                    reminder: reminder,
+                    progress: .outcomePending,
+                ),
+            ),
+        )
+
+        #expect(model.makeFormData().reminder == reminder)
     }
 
     @Test

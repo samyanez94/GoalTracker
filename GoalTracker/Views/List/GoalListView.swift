@@ -107,6 +107,7 @@ struct GoalListView: View {
                             name: data.name,
                             details: data.normalizedDetails,
                             dueDate: data.dueDate,
+                            reminder: data.reminder,
                             createdAt: Date(),
                             progress: data.progress,
                         )

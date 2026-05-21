@@ -63,6 +63,27 @@ struct GoalManagerTests {
     }
 
     @Test
+    func `Editing goal updates reminder`() throws {
+        let container = try makeContainer()
+        let goal = makeGoal(progress: .outcomePending)
+        let reminder = GoalReminder.daysBeforeDueDate(7)
+        insert(goal, into: container)
+        let manager = makeManager(in: container)
+
+        let didChange = try manager.updateGoal(
+            goal,
+            name: goal.name,
+            details: goal.details,
+            dueDate: goal.dueDate,
+            reminder: reminder,
+            progress: goal.progress,
+        )
+
+        #expect(didChange)
+        #expect(goal.reminder == reminder)
+    }
+
+    @Test
     func `Editing goal updates selected tags`() throws {
         let container = try makeContainer()
         let goal = makeGoal(progress: .outcomePending)
@@ -266,12 +287,14 @@ struct GoalManagerTests {
                 name: "Updated Goal",
                 details: goal.details,
                 dueDate: goal.dueDate,
+                reminder: GoalReminder.daysBeforeDueDate(1),
                 progress: goal.progress,
                 tags: [newTag],
             )
         }
 
         #expect(goal.name == "Original Goal")
+        #expect(goal.reminder == nil)
         #expect(goal.tags.map(\.name) == ["Old"])
         #expect(Set(try fetchTags(in: container).map(\.name)) == ["Old", "New"])
     }

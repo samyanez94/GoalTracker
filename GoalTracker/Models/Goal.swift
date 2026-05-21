@@ -25,6 +25,8 @@ extension GoalTrackerSchemaV1 {
         var createdAt: Date = Date()
         /// An optional target date for completing the goal.
         var dueDate: Date?
+        /// An optional reminder before the due date.
+        var reminder: GoalReminder? = nil
         /// The current progress summary for this goal.
         var progress: GoalProgress = GoalProgress.outcomePending
         /// Reusable tags associated with this goal.
@@ -60,6 +62,7 @@ extension GoalTrackerSchemaV1 {
             name: String,
             details: String?,
             dueDate: Date? = nil,
+            reminder: GoalReminder? = nil,
             createdAt: Date,
             progress: GoalProgress,
         ) {
@@ -67,6 +70,7 @@ extension GoalTrackerSchemaV1 {
             self.name = name
             self.details = details
             self.dueDate = dueDate
+            self.reminder = reminder
             self.createdAt = createdAt
             self.progress = progress
         }

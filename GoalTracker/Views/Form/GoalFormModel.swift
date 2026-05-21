@@ -15,6 +15,7 @@ final class GoalFormModel {
     var details: String
     var hasDueDate: Bool
     var dueDate: Date
+    var reminder: GoalReminder?
     var isDueDatePickerExpanded = false
     var isProgressBased: Bool
     var currentValue: Double?
@@ -33,6 +34,7 @@ final class GoalFormModel {
         details = data.details
         hasDueDate = data.dueDate != nil
         dueDate = data.dueDate ?? Date()
+        reminder = data.reminder
         selectedTags = data.tags
         initialOutcomeIsCompleted = data.progress.isCompleted
 
@@ -95,6 +97,7 @@ final class GoalFormModel {
             name: trimmedName,
             details: details,
             dueDate: hasDueDate ? dueDate : nil,
+            reminder: hasDueDate ? reminder : nil,
             progress: progress,
             tags: selectedTags,
         )
