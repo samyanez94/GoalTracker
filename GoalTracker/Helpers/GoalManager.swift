@@ -73,10 +73,10 @@ struct GoalManager {
     /// Inserts a new goal into the model context and saves the change.
     func addGoal(
         _ goal: Goal,
-    ) async throws {
+    ) throws {
         modelContext.insert(goal)
         try saveChanges()
-        await syncReminder(for: goal, requestsAuthorization: true)
+        syncReminder(for: goal, requestsAuthorization: true)
     }
 
     /// Updates a goal's editable fields, cleans up unused tags, and saves the change.
@@ -94,7 +94,7 @@ struct GoalManager {
         reminder: GoalReminder? = nil,
         progress: GoalProgress,
         tags: [Tag]? = nil,
-    ) async throws -> Bool {
+    ) throws -> Bool {
         let snapshot = GoalSnapshot(goal: goal)
         let previousTags = goal.tags
         do {
@@ -116,7 +116,7 @@ struct GoalManager {
             snapshot.restore(goal)
             throw SaveError.failed(error)
         }
-        await syncReminder(for: goal, requestsAuthorization: true)
+        syncReminder(for: goal, requestsAuthorization: true)
         return true
     }
 
@@ -126,8 +126,8 @@ struct GoalManager {
     @discardableResult
     func toggleCompletion(
         _ goal: Goal,
-    ) async throws -> Bool {
-        try await updateProgress(goal) { goal in
+    ) throws -> Bool {
+        try updateProgress(goal) { goal in
             goal.toggleCompletion()
         }
     }
@@ -138,8 +138,8 @@ struct GoalManager {
     @discardableResult
     func completeGoal(
         _ goal: Goal,
-    ) async throws -> Bool {
-        try await updateProgress(goal) { goal in
+    ) throws -> Bool {
+        try updateProgress(goal) { goal in
             goal.complete()
         }
     }
@@ -150,8 +150,8 @@ struct GoalManager {
     @discardableResult
     func incrementProgress(
         _ goal: Goal,
-    ) async throws -> Bool {
-        try await updateProgress(goal) { goal in
+    ) throws -> Bool {
+        try updateProgress(goal) { goal in
             goal.incrementProgress()
         }
     }
@@ -162,15 +162,15 @@ struct GoalManager {
     @discardableResult
     func decrementProgress(
         _ goal: Goal,
-    ) async throws -> Bool {
-        try await updateProgress(goal) { goal in
+    ) throws -> Bool {
+        try updateProgress(goal) { goal in
             goal.decrementProgress()
         }
     }
 
     /// Deletes a single goal and removes any of its tags that are no longer used.
-    func deleteGoal(_ goal: Goal) async throws {
-        try await deleteGoals([goal])
+    func deleteGoal(_ goal: Goal) throws {
+        try deleteGoals([goal])
     }
 
     /// Deletes a tag and saves the change.
@@ -182,7 +182,7 @@ struct GoalManager {
     }
 
     /// Deletes multiple goals and removes any tags that are no longer used.
-    func deleteGoals(_ goals: [Goal]) async throws {
+    func deleteGoals(_ goals: [Goal]) throws {
         let deletedGoalIds = Set(goals.map(\.id))
         let candidateTags = goals.flatMap(\.tags)
         for goal in goals {
@@ -238,7 +238,7 @@ struct GoalManager {
     private func updateProgress(
         _ goal: Goal,
         _ mutate: (Goal) -> Bool,
-    ) async throws -> Bool {
+    ) throws -> Bool {
         let snapshot = GoalSnapshot(goal: goal)
         guard mutate(goal) else {
             return false
@@ -246,24 +246,26 @@ struct GoalManager {
         try saveChanges {
             snapshot.restore(goal)
         }
-        await syncReminder(for: goal)
+        syncReminder(for: goal)
         return true
     }
 
     private func syncReminder(
         for goal: Goal,
         requestsAuthorization: Bool = false,
-    ) async {
+    ) {
         guard !goal.isCompleted,
               goal.dueDate != nil,
               goal.reminder != nil else {
             notificationScheduler.cancelReminder(for: goal.id)
             return
         }
-        if requestsAuthorization {
-            _ = try? await notificationScheduler.requestAuthorizationIfNeeded()
+        Task { @MainActor in
+            if requestsAuthorization {
+                _ = try? await notificationScheduler.requestAuthorizationIfNeeded()
+            }
+            _ = try? await notificationScheduler.scheduleReminder(for: goal)
         }
-        _ = try? await notificationScheduler.scheduleReminder(for: goal)
     }
 
     private func deleteUnusedTags(

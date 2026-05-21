@@ -30,16 +30,14 @@ struct GoalDetailBottomActionView: View {
                 )
             } else {
                 CompleteGoalButton(isCompleted: goal.isCompleted) {
-                    Task { @MainActor in
-                        do {
-                            guard try await goalManager.completeGoal(goal) else {
-                                return
-                            }
-                            feedbackTrigger.toggle()
-                            onDismiss()
-                        } catch {
-                            saveFailure = .updateProgress
+                    do {
+                        guard try goalManager.completeGoal(goal) else {
+                            return
                         }
+                        feedbackTrigger.toggle()
+                        onDismiss()
+                    } catch {
+                        saveFailure = .updateProgress
                     }
                 }
             }
@@ -56,28 +54,24 @@ struct GoalDetailBottomActionView: View {
     }
 
     private func decrementProgress() {
-        Task { @MainActor in
-            do {
-                guard try await goalManager.decrementProgress(goal) else {
-                    return
-                }
-                feedbackTrigger.toggle()
-            } catch {
-                saveFailure = .updateProgress
+        do {
+            guard try goalManager.decrementProgress(goal) else {
+                return
             }
+            feedbackTrigger.toggle()
+        } catch {
+            saveFailure = .updateProgress
         }
     }
 
     private func incrementProgress() {
-        Task { @MainActor in
-            do {
-                guard try await goalManager.incrementProgress(goal) else {
-                    return
-                }
-                feedbackTrigger.toggle()
-            } catch {
-                saveFailure = .updateProgress
+        do {
+            guard try goalManager.incrementProgress(goal) else {
+                return
             }
+            feedbackTrigger.toggle()
+        } catch {
+            saveFailure = .updateProgress
         }
     }
 }

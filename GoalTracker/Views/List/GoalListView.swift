@@ -112,7 +112,7 @@ struct GoalListView: View {
                             progress: data.progress,
                         )
                         goal.tags = data.tags
-                        try await goalManager.addGoal(goal)
+                        try goalManager.addGoal(goal)
                     }
                 }
             }
@@ -196,13 +196,11 @@ struct GoalListView: View {
         guard !goalsToDelete.isEmpty else {
             return
         }
-        Task { @MainActor in
-            do {
-                try await goalManager.deleteGoals(goalsToDelete)
-                finishSelectingGoals()
-            } catch {
-                saveFailure = .deleteGoal
-            }
+        do {
+            try goalManager.deleteGoals(goalsToDelete)
+            finishSelectingGoals()
+        } catch {
+            saveFailure = .deleteGoal
         }
     }
 

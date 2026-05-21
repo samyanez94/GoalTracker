@@ -24,7 +24,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try await manager.incrementProgress(goal)
+        let didChange = try manager.incrementProgress(goal)
 
         #expect(didChange)
         #expect(goal.progress.currentValue == 6)
@@ -37,7 +37,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try await manager.completeGoal(goal)
+        let didChange = try manager.completeGoal(goal)
 
         #expect(didChange)
         #expect(goal.progress.isCompleted)
@@ -52,7 +52,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try await manager.updateGoal(
+        let didChange = try manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -76,7 +76,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container, notificationScheduler: scheduler)
 
-        let didChange = try await manager.updateGoal(
+        let didChange = try manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -87,6 +87,7 @@ struct GoalManagerTests {
 
         #expect(didChange)
         #expect(goal.reminder == reminder)
+        await waitForReminderSync()
         #expect(scheduler.requestAuthorizationCount == 1)
         #expect(scheduler.scheduledGoalIds == [goal.id])
     }
@@ -100,7 +101,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try await manager.updateGoal(
+        let didChange = try manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -125,7 +126,7 @@ struct GoalManagerTests {
         try container.mainContext.save()
         let manager = makeManager(in: container)
 
-        _ = try await manager.updateGoal(
+        _ = try manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -146,7 +147,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        try await manager.deleteGoal(goal)
+        try manager.deleteGoal(goal)
 
         #expect(try fetchGoals(in: container).isEmpty)
     }
@@ -160,7 +161,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        try await manager.deleteGoal(goal)
+        try manager.deleteGoal(goal)
 
         #expect(try fetchGoals(in: container).isEmpty)
         #expect(try fetchTags(in: container).isEmpty)
@@ -178,7 +179,7 @@ struct GoalManagerTests {
         insert(retainedGoal, into: container)
         let manager = makeManager(in: container)
 
-        try await manager.deleteGoal(deletedGoal)
+        try manager.deleteGoal(deletedGoal)
 
         #expect(try fetchGoals(in: container).map(\.id) == [retainedGoal.id])
         #expect(try fetchTags(in: container).map(\.name) == ["Shared"])
@@ -235,7 +236,7 @@ struct GoalManagerTests {
         insert(retainedGoal, into: container)
         let manager = makeManager(in: container)
 
-        try await manager.deleteGoals([firstGoal, secondGoal])
+        try manager.deleteGoals([firstGoal, secondGoal])
 
         let remainingGoalIDs = try Set(fetchGoals(in: container).map(\.id))
         #expect(remainingGoalIDs == [retainedGoal.id])
@@ -261,8 +262,8 @@ struct GoalManagerTests {
             },
         )
 
-        await #expect(throws: GoalManager.SaveError.self) {
-            try await manager.deleteGoals([firstGoal, secondGoal])
+        #expect(throws: GoalManager.SaveError.self) {
+            try manager.deleteGoals([firstGoal, secondGoal])
         }
 
         let remainingGoalIDs = try Set(fetchGoals(in: container).map(\.id))
@@ -289,8 +290,8 @@ struct GoalManagerTests {
             },
         )
 
-        await #expect(throws: GoalManager.SaveError.self) {
-            try await manager.updateGoal(
+        #expect(throws: GoalManager.SaveError.self) {
+            try manager.updateGoal(
                 goal,
                 name: "Updated Goal",
                 details: goal.details,
@@ -321,8 +322,8 @@ struct GoalManagerTests {
             },
         )
 
-        await #expect(throws: GoalManager.SaveError.self) {
-            try await manager.incrementProgress(goal)
+        #expect(throws: GoalManager.SaveError.self) {
+            try manager.incrementProgress(goal)
         }
         #expect(goal.progress.currentValue == 4)
     }
@@ -338,8 +339,9 @@ struct GoalManagerTests {
         )
         let manager = makeManager(in: container, notificationScheduler: scheduler)
 
-        try await manager.addGoal(goal)
+        try manager.addGoal(goal)
 
+        await waitForReminderSync()
         #expect(scheduler.requestAuthorizationCount == 1)
         #expect(scheduler.scheduledGoalIds == [goal.id])
         #expect(scheduler.canceledGoalIds.isEmpty)
@@ -357,7 +359,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container, notificationScheduler: scheduler)
 
-        _ = try await manager.updateGoal(
+        _ = try manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -382,7 +384,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container, notificationScheduler: scheduler)
 
-        _ = try await manager.completeGoal(goal)
+        _ = try manager.completeGoal(goal)
 
         #expect(scheduler.scheduledGoalIds.isEmpty)
         #expect(scheduler.canceledGoalIds == [goal.id])
@@ -400,8 +402,9 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container, notificationScheduler: scheduler)
 
-        _ = try await manager.toggleCompletion(goal)
+        _ = try manager.toggleCompletion(goal)
 
+        await waitForReminderSync()
         #expect(scheduler.requestAuthorizationCount == 0)
         #expect(scheduler.scheduledGoalIds == [goal.id])
     }
@@ -416,7 +419,7 @@ struct GoalManagerTests {
         insert(secondGoal, into: container)
         let manager = makeManager(in: container, notificationScheduler: scheduler)
 
-        try await manager.deleteGoals([firstGoal, secondGoal])
+        try manager.deleteGoals([firstGoal, secondGoal])
 
         #expect(Set(scheduler.canceledGoalIds) == [firstGoal.id, secondGoal.id])
     }
@@ -453,6 +456,11 @@ struct GoalManagerTests {
                 sortBy: [SortDescriptor<GoalTrackerSchemaV1.Tag>(\.normalizedName)],
             ),
         )
+    }
+
+    private func waitForReminderSync() async {
+        await Task.yield()
+        await Task.yield()
     }
 
     private func makeGoal(
