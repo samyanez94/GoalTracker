@@ -8,22 +8,22 @@
 import SwiftUI
 
 struct GoalReminderPickerRow: View {
-    @Binding var reminder: GoalReminder?
+    @Binding var earlyReminder: GoalReminder?
 
     var body: some View {
-        Picker(selection: $reminder) {
+        Picker(selection: $earlyReminder) {
             Text("None")
                 .tag(nil as GoalReminder?)
             Divider()
             ForEach(GoalReminderPreset.allCases) { preset in
                 Text(preset.title)
-                    .tag(preset.reminder as GoalReminder?)
+                    .tag(preset.earlyReminder as GoalReminder?)
             }
         } label: {
             HStack {
-                Image(systemName: "bell.fill")
+                Image(systemName: "bell")
                     .foregroundStyle(.secondary)
-                Text("Reminder")
+                Text("Early Reminder")
                     .foregroundStyle(.primary)
             }
         }

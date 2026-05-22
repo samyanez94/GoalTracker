@@ -11,7 +11,7 @@ struct GoalFormData {
     var name: String
     var details: String
     var dueDate: Date?
-    var reminder: GoalReminder?
+    var earlyReminder: GoalReminder?
     var progress: GoalProgress
     var tags: [Tag]
 
@@ -19,7 +19,7 @@ struct GoalFormData {
         name: "",
         details: "",
         dueDate: nil,
-        reminder: nil,
+        earlyReminder: nil,
         progress: .outcomePending,
         tags: [],
     )
@@ -28,7 +28,7 @@ struct GoalFormData {
         name = goal.name
         details = goal.details ?? ""
         dueDate = goal.dueDate
-        reminder = goal.reminder
+        earlyReminder = goal.earlyReminder
         progress = goal.progress
         tags = goal.tags
     }
@@ -37,14 +37,14 @@ struct GoalFormData {
         name: String,
         details: String,
         dueDate: Date? = nil,
-        reminder: GoalReminder? = nil,
+        earlyReminder: GoalReminder? = nil,
         progress: GoalProgress,
         tags: [Tag] = [],
     ) {
         self.name = name
         self.details = details
         self.dueDate = dueDate
-        self.reminder = reminder
+        self.earlyReminder = earlyReminder
         self.progress = progress
         self.tags = tags
     }

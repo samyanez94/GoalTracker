@@ -58,7 +58,7 @@ struct GoalManager {
         name: String,
         details: String?,
         dueDate: Date?,
-        reminder: GoalReminder? = nil,
+        earlyReminder: GoalReminder? = nil,
         progress: GoalProgress,
         tags: [Tag]? = nil,
     ) throws {
@@ -69,7 +69,7 @@ struct GoalManager {
                 goal.name = name
                 goal.details = details
                 goal.dueDate = dueDate
-                goal.reminder = reminder
+                goal.earlyReminder = earlyReminder
                 goal.progress = progress
                 if let tags {
                     goal.tags = tags
@@ -268,7 +268,7 @@ struct GoalManager {
         let name: String
         let details: String?
         let dueDate: Date?
-        let reminder: GoalReminder?
+        let earlyReminder: GoalReminder?
         let progress: GoalProgress
         let tags: [Tag]
 
@@ -276,7 +276,7 @@ struct GoalManager {
             name = goal.name
             details = goal.details
             dueDate = goal.dueDate
-            reminder = goal.reminder
+            earlyReminder = goal.earlyReminder
             progress = goal.progress
             tags = goal.tags
         }
@@ -285,7 +285,7 @@ struct GoalManager {
             goal.name = name
             goal.details = details
             goal.dueDate = dueDate
-            goal.reminder = reminder
+            goal.earlyReminder = earlyReminder
             goal.progress = progress
             goal.tags = tags
         }

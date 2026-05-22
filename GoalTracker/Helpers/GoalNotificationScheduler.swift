@@ -106,7 +106,7 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
     /// Reconciles the pending reminder notification with the goal's current reminder state.
     ///
     /// Existing pending reminders for the goal are cancelled first. If the goal cannot produce
-    /// a future reminder, no replacement notification is scheduled.
+    /// a future due-date or early reminder, no replacement notifications are scheduled.
     /// - Returns: `true` when a notification request was scheduled.
     @discardableResult
     func syncReminder(
@@ -116,11 +116,11 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
         cancelReminder(for: state.goalId)
 
         let currentDate = now()
-        guard let schedule = GoalReminderSchedule(
+        let schedules = reminderSchedules(
             state: state,
-            calendar: calendar,
             currentDate: currentDate,
-        ) else {
+        )
+        guard !schedules.isEmpty else {
             return false
         }
 
@@ -130,7 +130,9 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
             }
         }
 
-        try await scheduleReminder(schedule, currentDate: currentDate)
+        for schedule in schedules {
+            try await scheduleReminder(schedule, currentDate: currentDate)
+        }
         return true
     }
 
@@ -146,26 +148,31 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
         )
     }
 
-    /// Schedules a single pending reminder notification for a goal when it is eligible.
+    /// Schedules pending reminder notifications for a goal when they are eligible.
     ///
-    /// Existing pending reminders for the goal are cancelled first. The goal is skipped when it
-    /// is completed, has no due date, has no reminder, or its reminder date is not in the future.
-    /// - Returns: `true` when a notification request was scheduled.
+    /// Existing pending reminders for the goal are cancelled first.
+    /// - Returns: `true` when at least one notification request was scheduled.
     @discardableResult
     func scheduleReminder(for goal: Goal) async throws -> Bool {
-        cancelReminder(for: goal.id)
+        try await syncReminder(for: goal, requestsAuthorization: false)
+    }
 
-        let currentDate = now()
-        guard let schedule = GoalReminderSchedule(
-            state: GoalReminderSyncState(goal: goal),
-            calendar: calendar,
-            currentDate: currentDate,
-        ) else {
-            return false
-        }
-
-        try await scheduleReminder(schedule, currentDate: currentDate)
-        return true
+    private func reminderSchedules(
+        state: GoalReminderSyncState,
+        currentDate: Date,
+    ) -> [GoalReminderSchedule] {
+        [
+            GoalReminderSchedule.dueDateReminder(
+                state: state,
+                calendar: calendar,
+                currentDate: currentDate,
+            ),
+            GoalReminderSchedule.earlyReminder(
+                state: state,
+                calendar: calendar,
+                currentDate: currentDate,
+            ),
+        ].compactMap { $0 }
     }
 
     private func scheduleReminder(
@@ -177,12 +184,12 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
         let trigger = UNCalendarNotificationTrigger(
             dateMatching: calendar.dateComponents(
                 [.year, .month, .day, .hour, .minute, .second],
-                from: schedule.reminderDate,
+                from: schedule.fireDate,
             ),
             repeats: false,
         )
         let request = UNNotificationRequest(
-            identifier: notificationIdentifier(for: schedule.goalId),
+            identifier: notificationIdentifier(for: schedule.goalId, kind: schedule.kind),
             content: content,
             trigger: trigger,
         )
@@ -233,19 +240,44 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
     /// Cancels the pending reminder notification for a single goal.
     func cancelReminder(for goalId: UUID) {
         notificationCenter.removePendingNotificationRequests(
-            withIdentifiers: [notificationIdentifier(for: goalId)],
+            withIdentifiers: notificationIdentifiers(for: goalId),
         )
     }
 
     /// Cancels pending reminder notifications for multiple goals.
     func cancelReminders(for goalIds: [UUID]) {
         notificationCenter.removePendingNotificationRequests(
-            withIdentifiers: goalIds.map(notificationIdentifier(for:)),
+            withIdentifiers: goalIds.flatMap(notificationIdentifiers(for:)),
         )
     }
 
-    /// Returns the stable pending-notification identifier for a goal reminder.
-    func notificationIdentifier(for goalId: UUID) -> String {
-        "\(Self.notificationIdentifierPrefix)-\(goalId.uuidString)"
+    /// Returns the stable pending-notification identifier for a goal's automatic due-date reminder.
+    func dueDateNotificationIdentifier(for goalId: UUID) -> String {
+        notificationIdentifier(for: goalId, kind: .dueDate)
+    }
+
+    /// Returns the stable pending-notification identifier for a goal's optional early reminder.
+    func earlyReminderNotificationIdentifier(for goalId: UUID) -> String {
+        notificationIdentifier(for: goalId, kind: .early)
+    }
+
+    private func notificationIdentifiers(for goalId: UUID) -> [String] {
+        [
+            dueDateNotificationIdentifier(for: goalId),
+            earlyReminderNotificationIdentifier(for: goalId),
+        ]
+    }
+
+    private func notificationIdentifier(
+        for goalId: UUID,
+        kind: GoalReminderSchedule.Kind,
+    ) -> String {
+        let kindValue = switch kind {
+        case .dueDate:
+            "due-date"
+        case .early:
+            "early"
+        }
+        return "\(Self.notificationIdentifierPrefix)-\(kindValue)-\(goalId.uuidString)"
     }
 }

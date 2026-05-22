@@ -125,7 +125,7 @@ struct GoalFormView: View {
                     .datePickerStyle(.graphical)
                 }
                 if model.hasDueDate {
-                    GoalReminderPickerRow(reminder: $model.reminder)
+                    GoalReminderPickerRow(earlyReminder: $model.earlyReminder)
                 }
             } header: {
                 Text("Date")

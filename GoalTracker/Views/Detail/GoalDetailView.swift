@@ -93,7 +93,7 @@ struct GoalDetailView: View {
             name: data.name,
             details: data.normalizedDetails,
             dueDate: data.dueDate,
-            reminder: data.reminder,
+            earlyReminder: data.earlyReminder,
             progress: data.progress,
             tags: data.tags,
         )

@@ -15,7 +15,7 @@ final class GoalFormModel {
     var details: String
     var hasDueDate: Bool
     var dueDate: Date
-    var reminder: GoalReminder?
+    var earlyReminder: GoalReminder?
     var isDueDatePickerExpanded = false
     var isProgressBased: Bool
     var currentValue: Double?
@@ -39,7 +39,7 @@ final class GoalFormModel {
         details = data.details
         hasDueDate = data.dueDate != nil
         dueDate = data.dueDate ?? Date()
-        reminder = data.reminder
+        earlyReminder = data.earlyReminder
         selectedTags = data.tags
         initialOutcomeIsCompleted = data.progress.isCompleted
 
@@ -60,13 +60,13 @@ final class GoalFormModel {
     }
 
     func validateGoal() throws {
-        try validateReminderDate()
+        try validateEarlyReminderDate()
     }
 
-    private func validateReminderDate() throws {
+    private func validateEarlyReminderDate() throws {
         guard hasDueDate,
-              let reminder,
-              let reminderDate = reminder.reminderDate(before: dueDate) else {
+              let earlyReminder,
+              let reminderDate = earlyReminder.reminderDate(before: dueDate) else {
             return
         }
         guard reminderDate <= now() else {
@@ -111,10 +111,8 @@ final class GoalFormModel {
 
     func setDueDateEnabled(_ isEnabled: Bool) {
         isDueDatePickerExpanded = isEnabled
-        if isEnabled {
-            reminder = reminder ?? GoalReminderPreset.onDueDate.reminder
-        } else {
-            reminder = nil
+        if !isEnabled {
+            earlyReminder = nil
         }
     }
 
@@ -123,7 +121,7 @@ final class GoalFormModel {
             name: trimmedName,
             details: details,
             dueDate: hasDueDate ? dueDate : nil,
-            reminder: hasDueDate ? reminder : nil,
+            earlyReminder: hasDueDate ? earlyReminder : nil,
             progress: progress,
             tags: selectedTags,
         )

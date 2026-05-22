@@ -8,7 +8,6 @@
 import Foundation
 
 nonisolated enum GoalReminderPreset: String, Codable, Hashable, CaseIterable, Identifiable {
-    case onDueDate
     case oneDayBefore
     case oneWeekBefore
     case oneMonthBefore
@@ -19,8 +18,6 @@ nonisolated enum GoalReminderPreset: String, Codable, Hashable, CaseIterable, Id
 
     var title: String {
         switch self {
-        case .onDueDate:
-            "On due date"
         case .oneDayBefore:
             "1 day before"
         case .oneWeekBefore:
@@ -30,10 +27,8 @@ nonisolated enum GoalReminderPreset: String, Codable, Hashable, CaseIterable, Id
         }
     }
 
-    var reminder: GoalReminder {
+    var earlyReminder: GoalReminder {
         switch self {
-        case .onDueDate:
-            .onDueDate
         case .oneDayBefore:
             .daysBeforeDueDate(1)
         case .oneWeekBefore:
@@ -43,9 +38,9 @@ nonisolated enum GoalReminderPreset: String, Codable, Hashable, CaseIterable, Id
         }
     }
 
-    static func preset(for reminder: GoalReminder) -> GoalReminderPreset? {
+    static func preset(for earlyReminder: GoalReminder) -> GoalReminderPreset? {
         allCases.first { preset in
-            preset.reminder == reminder
+            preset.earlyReminder == earlyReminder
         }
     }
 }

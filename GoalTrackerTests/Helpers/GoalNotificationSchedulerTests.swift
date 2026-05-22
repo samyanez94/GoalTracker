@@ -38,12 +38,12 @@ struct GoalNotificationSchedulerTests {
     }
 
     @Test
-    func `Syncing eligible reminder requests authorization before scheduling`() async throws {
+    func `Syncing eligible reminders requests authorization before scheduling`() async throws {
         let notificationCenter = FakeNotificationCenter(status: .notDetermined)
         let scheduler = makeScheduler(notificationCenter: notificationCenter)
         let goal = makeGoal(
             dueDate: date(year: 2026, month: 5, day: 21),
-            reminder: .daysBeforeDueDate(1),
+            earlyReminder: .daysBeforeDueDate(1),
         )
 
         let didSchedule = try await scheduler.syncReminder(
@@ -53,8 +53,11 @@ struct GoalNotificationSchedulerTests {
 
         #expect(didSchedule)
         #expect(notificationCenter.requestedAuthorizationOptions == [.alert, .sound])
-        #expect(notificationCenter.addedRequests.count == 1)
-        #expect(notificationCenter.removedIdentifiers == [scheduler.notificationIdentifier(for: goal.id)])
+        #expect(notificationCenter.addedRequests.count == 2)
+        #expect(notificationCenter.removedIdentifiers == [
+            scheduler.dueDateNotificationIdentifier(for: goal.id),
+            scheduler.earlyReminderNotificationIdentifier(for: goal.id),
+        ])
     }
 
     @Test
@@ -63,7 +66,7 @@ struct GoalNotificationSchedulerTests {
         let scheduler = makeScheduler(notificationCenter: notificationCenter)
         let goal = makeGoal(
             dueDate: nil,
-            reminder: .daysBeforeDueDate(1),
+            earlyReminder: .daysBeforeDueDate(1),
         )
 
         let didSchedule = try await scheduler.syncReminder(
@@ -74,7 +77,10 @@ struct GoalNotificationSchedulerTests {
         #expect(didSchedule == false)
         #expect(notificationCenter.requestedAuthorizationOptions == nil)
         #expect(notificationCenter.addedRequests.isEmpty)
-        #expect(notificationCenter.removedIdentifiers == [scheduler.notificationIdentifier(for: goal.id)])
+        #expect(notificationCenter.removedIdentifiers == [
+            scheduler.dueDateNotificationIdentifier(for: goal.id),
+            scheduler.earlyReminderNotificationIdentifier(for: goal.id),
+        ])
     }
 
     @Test
@@ -83,7 +89,7 @@ struct GoalNotificationSchedulerTests {
         let scheduler = makeScheduler(notificationCenter: notificationCenter)
         let goal = makeGoal(
             dueDate: date(year: 2026, month: 5, day: 21),
-            reminder: .daysBeforeDueDate(1),
+            earlyReminder: .daysBeforeDueDate(1),
         )
 
         let didSchedule = try await scheduler.syncReminder(
@@ -93,18 +99,20 @@ struct GoalNotificationSchedulerTests {
 
         #expect(didSchedule == false)
         #expect(notificationCenter.addedRequests.isEmpty)
-        #expect(notificationCenter.removedIdentifiers == [scheduler.notificationIdentifier(for: goal.id)])
+        #expect(notificationCenter.removedIdentifiers == [
+            scheduler.dueDateNotificationIdentifier(for: goal.id),
+            scheduler.earlyReminderNotificationIdentifier(for: goal.id),
+        ])
     }
 
     @Test
-    func `Scheduling reminder adds calendar notification request`() async throws {
+    func `Scheduling due date reminder adds calendar notification request`() async throws {
         let goalID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
         let notificationCenter = FakeNotificationCenter()
         let scheduler = makeScheduler(notificationCenter: notificationCenter)
         let goal = makeGoal(
             id: goalID,
             dueDate: date(year: 2026, month: 5, day: 21),
-            reminder: .daysBeforeDueDate(1),
         )
 
         let didSchedule = try await scheduler.scheduleReminder(for: goal)
@@ -112,15 +120,43 @@ struct GoalNotificationSchedulerTests {
         let request = try #require(notificationCenter.addedRequests.first)
         let trigger = try #require(request.trigger as? UNCalendarNotificationTrigger)
         #expect(didSchedule)
-        #expect(request.identifier == "goal-reminder-\(goalID.uuidString)")
+        #expect(notificationCenter.addedRequests.count == 1)
+        #expect(request.identifier == scheduler.dueDateNotificationIdentifier(for: goalID))
         #expect(request.content.title == "File taxes")
         #expect(request.content.body == "Complete by next month")
         #expect(request.content.sound == .default)
         #expect(trigger.dateComponents.year == 2026)
         #expect(trigger.dateComponents.month == 5)
-        #expect(trigger.dateComponents.day == 20)
+        #expect(trigger.dateComponents.day == 21)
         #expect(trigger.dateComponents.hour == 9)
         #expect(trigger.dateComponents.minute == 0)
+    }
+
+    @Test
+    func `Scheduling early reminder adds second notification request`() async throws {
+        let goalID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+        let notificationCenter = FakeNotificationCenter()
+        let scheduler = makeScheduler(notificationCenter: notificationCenter)
+        let goal = makeGoal(
+            id: goalID,
+            dueDate: date(year: 2026, month: 5, day: 21),
+            earlyReminder: .daysBeforeDueDate(1),
+        )
+
+        let didSchedule = try await scheduler.scheduleReminder(for: goal)
+
+        let dueDateRequest = try #require(notificationCenter.addedRequests.first)
+        let earlyRequest = try #require(notificationCenter.addedRequests.dropFirst().first)
+        let earlyTrigger = try #require(earlyRequest.trigger as? UNCalendarNotificationTrigger)
+        #expect(didSchedule)
+        #expect(notificationCenter.addedRequests.count == 2)
+        #expect(dueDateRequest.identifier == scheduler.dueDateNotificationIdentifier(for: goalID))
+        #expect(earlyRequest.identifier == scheduler.earlyReminderNotificationIdentifier(for: goalID))
+        #expect(earlyTrigger.dateComponents.year == 2026)
+        #expect(earlyTrigger.dateComponents.month == 5)
+        #expect(earlyTrigger.dateComponents.day == 20)
+        #expect(earlyTrigger.dateComponents.hour == 9)
+        #expect(earlyTrigger.dateComponents.minute == 0)
     }
 
     @Test
@@ -129,7 +165,7 @@ struct GoalNotificationSchedulerTests {
         let scheduler = makeScheduler(notificationCenter: notificationCenter)
         let goal = makeGoal(
             dueDate: date(year: 2026, month: 5, day: 21),
-            reminder: .daysBeforeDueDate(1),
+            earlyReminder: .daysBeforeDueDate(1),
             progress: .outcomeCompleted,
         )
 
@@ -137,7 +173,10 @@ struct GoalNotificationSchedulerTests {
 
         #expect(didSchedule == false)
         #expect(notificationCenter.addedRequests.isEmpty)
-        #expect(notificationCenter.removedIdentifiers == [scheduler.notificationIdentifier(for: goal.id)])
+        #expect(notificationCenter.removedIdentifiers == [
+            scheduler.dueDateNotificationIdentifier(for: goal.id),
+            scheduler.earlyReminderNotificationIdentifier(for: goal.id),
+        ])
     }
 
     @Test
@@ -150,7 +189,6 @@ struct GoalNotificationSchedulerTests {
         )
         let goal = makeGoal(
             dueDate: date(year: 2026, month: 5, day: 21),
-            reminder: .minutesBeforeDueDate(30),
         )
 
         let didSchedule = try await scheduler.scheduleReminder(for: goal)
@@ -162,20 +200,20 @@ struct GoalNotificationSchedulerTests {
     }
 
     @Test
-    func `Scheduling reminder skips goals without due date or reminder`() async throws {
+    func `Scheduling reminder skips goals without due date`() async throws {
         let notificationCenter = FakeNotificationCenter()
         let scheduler = makeScheduler(notificationCenter: notificationCenter)
 
         let missingDueDate = try await scheduler.scheduleReminder(for: makeGoal(
-            reminder: .daysBeforeDueDate(1),
+            earlyReminder: .daysBeforeDueDate(1),
         ))
-        let missingReminder = try await scheduler.scheduleReminder(for: makeGoal(
+        let missingEarlyReminder = try await scheduler.scheduleReminder(for: makeGoal(
             dueDate: date(year: 2026, month: 5, day: 21),
         ))
 
         #expect(missingDueDate == false)
-        #expect(missingReminder == false)
-        #expect(notificationCenter.addedRequests.isEmpty)
+        #expect(missingEarlyReminder)
+        #expect(notificationCenter.addedRequests.count == 1)
     }
 
     @Test
@@ -184,7 +222,7 @@ struct GoalNotificationSchedulerTests {
         let scheduler = makeScheduler(notificationCenter: notificationCenter)
         let goal = makeGoal(
             dueDate: date(year: 2025, month: 5, day: 21),
-            reminder: .daysBeforeDueDate(1),
+            earlyReminder: .daysBeforeDueDate(1),
         )
 
         let didSchedule = try await scheduler.scheduleReminder(for: goal)
@@ -203,8 +241,10 @@ struct GoalNotificationSchedulerTests {
         scheduler.cancelReminders(for: [firstID, secondID])
 
         #expect(notificationCenter.removedIdentifiers == [
-            "goal-reminder-\(firstID.uuidString)",
-            "goal-reminder-\(secondID.uuidString)",
+            scheduler.dueDateNotificationIdentifier(for: firstID),
+            scheduler.earlyReminderNotificationIdentifier(for: firstID),
+            scheduler.dueDateNotificationIdentifier(for: secondID),
+            scheduler.earlyReminderNotificationIdentifier(for: secondID),
         ])
     }
 
@@ -221,7 +261,7 @@ struct GoalNotificationSchedulerTests {
     private func makeGoal(
         id: UUID = UUID(),
         dueDate: Date? = nil,
-        reminder: GoalReminder? = nil,
+        earlyReminder: GoalReminder? = nil,
         progress: GoalProgress = .outcomePending,
     ) -> Goal {
         Goal(
@@ -229,7 +269,7 @@ struct GoalNotificationSchedulerTests {
             name: "File taxes",
             details: nil,
             dueDate: dueDate,
-            reminder: reminder,
+            earlyReminder: earlyReminder,
             createdAt: date(year: 2026, month: 1, day: 1),
             progress: progress,
         )

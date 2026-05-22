@@ -13,42 +13,42 @@ import Testing
 @MainActor
 struct GoalReminderTests {
     @Test
-    func `New goals default to no reminder`() {
+    func `New goals default to no early reminder`() {
         let goal = makeGoal()
 
-        #expect(goal.reminder == nil)
+        #expect(goal.earlyReminder == nil)
     }
 
     @Test(
         arguments: GoalReminderPreset.allCases,
     )
-    func `Goals can be initialized with preset reminders`(
+    func `Goals can be initialized with preset early reminders`(
         preset: GoalReminderPreset,
     ) {
-        let goal = makeGoal(reminder: preset.reminder)
+        let goal = makeGoal(earlyReminder: preset.earlyReminder)
 
-        #expect(goal.reminder == preset.reminder)
+        #expect(goal.earlyReminder == preset.earlyReminder)
     }
 
     @Test
-    func `Goals can be initialized with custom reminders`() {
-        let reminder = GoalReminder(secondsBeforeDueDate: 3 * 24 * 60 * 60)
-        let goal = makeGoal(reminder: reminder)
+    func `Goals can be initialized with custom early reminders`() {
+        let earlyReminder = GoalReminder(secondsBeforeDueDate: 3 * 24 * 60 * 60)
+        let goal = makeGoal(earlyReminder: earlyReminder)
 
-        #expect(goal.reminder == reminder)
+        #expect(goal.earlyReminder == earlyReminder)
     }
 
     @Test
-    func `Presets convert to expected reminders`() {
-        #expect(GoalReminderPreset.onDueDate.reminder == GoalReminder(secondsBeforeDueDate: 0))
-        #expect(GoalReminderPreset.oneDayBefore.reminder == GoalReminder(secondsBeforeDueDate: 86_400))
-        #expect(GoalReminderPreset.oneWeekBefore.reminder == GoalReminder(secondsBeforeDueDate: 604_800))
-        #expect(GoalReminderPreset.oneMonthBefore.reminder == GoalReminder(secondsBeforeDueDate: 2_592_000))
+    func `Presets convert to expected early reminders`() {
+        #expect(GoalReminderPreset.allCases == [.oneDayBefore, .oneWeekBefore, .oneMonthBefore])
+        #expect(GoalReminderPreset.oneDayBefore.earlyReminder == GoalReminder(secondsBeforeDueDate: 86_400))
+        #expect(GoalReminderPreset.oneWeekBefore.earlyReminder == GoalReminder(secondsBeforeDueDate: 604_800))
+        #expect(GoalReminderPreset.oneMonthBefore.earlyReminder == GoalReminder(secondsBeforeDueDate: 2_592_000))
     }
 
     @Test
-    func `Preset lookup returns matching reminder preset`() {
-        #expect(GoalReminderPreset.preset(for: .onDueDate) == .onDueDate)
+    func `Preset lookup returns matching early reminder preset`() {
+        #expect(GoalReminderPreset.preset(for: .onDueDate) == nil)
         #expect(GoalReminderPreset.preset(for: .daysBeforeDueDate(1)) == .oneDayBefore)
         #expect(GoalReminderPreset.preset(for: .daysBeforeDueDate(7)) == .oneWeekBefore)
         #expect(GoalReminderPreset.preset(for: .daysBeforeDueDate(30)) == .oneMonthBefore)
@@ -115,27 +115,27 @@ struct GoalReminderTests {
     }
 
     @Test
-    func `Form data preserves reminders from goals`() {
-        let reminder = GoalReminder.daysBeforeDueDate(14)
-        let goal = makeGoal(reminder: reminder)
+    func `Form data preserves early reminders from goals`() {
+        let earlyReminder = GoalReminder.daysBeforeDueDate(14)
+        let goal = makeGoal(earlyReminder: earlyReminder)
 
         let data = GoalFormData(goal: goal)
 
-        #expect(data.reminder == reminder)
+        #expect(data.earlyReminder == earlyReminder)
     }
 
     @Test
-    func `Empty form data has no reminder`() {
-        #expect(GoalFormData.empty.reminder == nil)
+    func `Empty form data has no early reminder`() {
+        #expect(GoalFormData.empty.earlyReminder == nil)
     }
 
     private func makeGoal(
-        reminder: GoalReminder? = nil,
+        earlyReminder: GoalReminder? = nil,
     ) -> Goal {
         Goal(
             name: "Test Goal",
             details: nil,
-            reminder: reminder,
+            earlyReminder: earlyReminder,
             createdAt: Date(timeIntervalSinceReferenceDate: 0),
             progress: .outcomePending,
         )

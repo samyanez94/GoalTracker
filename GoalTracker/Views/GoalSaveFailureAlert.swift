@@ -42,7 +42,7 @@ enum GoalSaveFailure: String, Identifiable {
         case .addGoal, .updateGoal:
             "Your changes weren't saved. Please try again."
         case .addGoalReminderDateNotFuture, .updateGoalReminderDateNotFuture:
-            "Choose a due date or reminder option that schedules the reminder in the future."
+            "Choose an early reminder that schedules in the future."
         case .deleteGoal:
             "The goal wasn't deleted. Please try again."
         case .deleteTag:
