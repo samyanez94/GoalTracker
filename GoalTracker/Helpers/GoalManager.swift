@@ -15,14 +15,6 @@ import SwiftData
 /// create, update, delete, or save a goal.
 @MainActor
 struct GoalManager {
-    enum SaveError: LocalizedError {
-        case failed(Error)
-
-        var errorDescription: String? {
-            "Your changes could not be saved."
-        }
-    }
-
     private let modelContext: ModelContext
 
     private let notificationScheduler: any GoalReminderScheduling
@@ -31,33 +23,7 @@ struct GoalManager {
 
     private let rollbackContext: () -> Void
 
-    private struct GoalSnapshot {
-        let name: String
-        let details: String?
-        let dueDate: Date?
-        let reminder: GoalReminder?
-        let progress: GoalProgress
-        let tags: [Tag]
-
-        init(goal: Goal) {
-            name = goal.name
-            details = goal.details
-            dueDate = goal.dueDate
-            reminder = goal.reminder
-            progress = goal.progress
-            tags = goal.tags
-        }
-
-        func restore(_ goal: Goal) {
-            goal.name = name
-            goal.details = details
-            goal.dueDate = dueDate
-            goal.reminder = reminder
-            goal.progress = progress
-            goal.tags = tags
-        }
-    }
-
+    /// Initializes a `GoalManager`.
     init(
         modelContext: ModelContext,
         notificationScheduler: any GoalReminderScheduling = GoalNotificationScheduler(),
@@ -66,8 +32,12 @@ struct GoalManager {
     ) {
         self.modelContext = modelContext
         self.notificationScheduler = notificationScheduler
-        self.saveContext = saveContext ?? { try modelContext.save() }
-        self.rollbackContext = rollbackContext ?? { modelContext.rollback() }
+        self.saveContext = saveContext ?? {
+            try modelContext.save()
+        }
+        self.rollbackContext = rollbackContext ?? {
+            modelContext.rollback()
+        }
     }
 
     /// Inserts a new goal into the model context and saves the change.
@@ -83,9 +53,6 @@ struct GoalManager {
     ///
     /// When `tags` is provided, the goal's tag relationship is replaced and any
     /// tags that are no longer attached to a goal are deleted.
-    ///
-    /// - Returns: `true` when the goal was mutated and saved.
-    @discardableResult
     func updateGoal(
         _ goal: Goal,
         name: String,
@@ -94,30 +61,29 @@ struct GoalManager {
         reminder: GoalReminder? = nil,
         progress: GoalProgress,
         tags: [Tag]? = nil,
-    ) throws -> Bool {
+    ) throws {
         let snapshot = GoalSnapshot(goal: goal)
         let previousTags = goal.tags
-        do {
-            goal.name = name
-            goal.details = details
-            goal.dueDate = dueDate
-            goal.reminder = reminder
-            goal.progress = progress
-            if let tags {
-                goal.tags = tags
-                try deleteUnusedTags(
-                    from: previousTags + tags,
-                    excluding: tags,
-                )
-            }
-            try saveContext()
-        } catch {
-            rollbackContext()
-            snapshot.restore(goal)
-            throw SaveError.failed(error)
-        }
+        try saveChanges(
+            performing: {
+                goal.name = name
+                goal.details = details
+                goal.dueDate = dueDate
+                goal.reminder = reminder
+                goal.progress = progress
+                if let tags {
+                    goal.tags = tags
+                    try deleteUnusedTags(
+                        from: previousTags + tags,
+                        excluding: tags,
+                    )
+                }
+            },
+            restoreOnFailure: {
+                snapshot.restore(goal)
+            },
+        )
         syncReminder(for: goal, requestsAuthorization: true)
-        return true
     }
 
     /// Toggles a goal between completed and incomplete states, then saves the change.
@@ -188,7 +154,7 @@ struct GoalManager {
         for goal in goals {
             modelContext.delete(goal)
         }
-        try saveDeletionChanges {
+        try saveChanges {
             try deleteUnusedTags(
                 from: candidateTags,
                 ignoringGoalsWithIds: deletedGoalIds,
@@ -202,7 +168,7 @@ struct GoalManager {
     /// Pass `protectedTags` to keep tags that should survive this cleanup, such as
     /// tags currently selected in a goal form that has not been saved yet.
     func deleteUnusedTags(excluding protectedTags: [Tag] = []) throws {
-        try saveDeletionChanges {
+        try saveChanges {
             try deleteUnusedTags(
                 from: fetchTags(),
                 excluding: protectedTags,
@@ -211,25 +177,15 @@ struct GoalManager {
     }
 
     private func saveChanges(
+        performing changes: () throws -> Void = {},
         restoreOnFailure: () -> Void = {},
     ) throws {
         do {
+            try changes()
             try saveContext()
         } catch {
             rollbackContext()
             restoreOnFailure()
-            throw SaveError.failed(error)
-        }
-    }
-
-    private func saveDeletionChanges(
-        beforeSave: () throws -> Void = {},
-    ) throws {
-        do {
-            try beforeSave()
-            try saveContext()
-        } catch {
-            rollbackContext()
             throw SaveError.failed(error)
         }
     }
@@ -243,9 +199,9 @@ struct GoalManager {
         guard mutate(goal) else {
             return false
         }
-        try saveChanges {
+        try saveChanges(restoreOnFailure: {
             snapshot.restore(goal)
-        }
+        })
         syncReminder(for: goal)
         return true
     }
@@ -306,5 +262,48 @@ struct GoalManager {
     private func fetchTags() throws -> [Tag] {
         try modelContext.fetch(
             FetchDescriptor<Tag>(sortBy: [SortDescriptor<Tag>(\.normalizedName)]))
+    }
+
+    /// Captures the editable state of a goal before a write operation mutates it.
+    ///
+    /// `GoalSnapshot` lets `GoalManager` restore in-memory model values after a
+    /// SwiftData save failure so the UI and model context return to the last
+    /// successfully saved state.
+    private struct GoalSnapshot {
+        let name: String
+        let details: String?
+        let dueDate: Date?
+        let reminder: GoalReminder?
+        let progress: GoalProgress
+        let tags: [Tag]
+
+        init(goal: Goal) {
+            name = goal.name
+            details = goal.details
+            dueDate = goal.dueDate
+            reminder = goal.reminder
+            progress = goal.progress
+            tags = goal.tags
+        }
+
+        func restore(_ goal: Goal) {
+            goal.name = name
+            goal.details = details
+            goal.dueDate = dueDate
+            goal.reminder = reminder
+            goal.progress = progress
+            goal.tags = tags
+        }
+    }
+
+    /// Failures that occur while persisting goal changes.
+    enum SaveError: LocalizedError {
+        /// A save operation failed with the associated underlying error.
+        case failed(Error)
+
+        /// A user-facing description suitable for alerts and error messages.
+        var errorDescription: String? {
+            "Your changes could not be saved."
+        }
     }
 }

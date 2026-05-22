@@ -52,7 +52,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.updateGoal(
+        try manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -60,7 +60,6 @@ struct GoalManagerTests {
             progress: .measurable(currentValue: 7, targetValue: 10, step: 2),
         )
 
-        #expect(didChange)
         #expect(goal.progress.currentValue == 7)
     }
 
@@ -76,7 +75,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container, notificationScheduler: scheduler)
 
-        let didChange = try manager.updateGoal(
+        try manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -85,7 +84,6 @@ struct GoalManagerTests {
             progress: goal.progress,
         )
 
-        #expect(didChange)
         #expect(goal.reminder == reminder)
         await waitForReminderSync()
         #expect(scheduler.requestAuthorizationCount == 1)
@@ -101,7 +99,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container)
 
-        let didChange = try manager.updateGoal(
+        try manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -110,7 +108,6 @@ struct GoalManagerTests {
             tags: [healthTag, runningTag],
         )
 
-        #expect(didChange)
         #expect(Set(goal.tags.map(\.name)) == ["Health", "Running"])
     }
 
@@ -126,7 +123,7 @@ struct GoalManagerTests {
         try container.mainContext.save()
         let manager = makeManager(in: container)
 
-        _ = try manager.updateGoal(
+        try manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
@@ -359,7 +356,7 @@ struct GoalManagerTests {
         insert(goal, into: container)
         let manager = makeManager(in: container, notificationScheduler: scheduler)
 
-        _ = try manager.updateGoal(
+        try manager.updateGoal(
             goal,
             name: goal.name,
             details: goal.details,
