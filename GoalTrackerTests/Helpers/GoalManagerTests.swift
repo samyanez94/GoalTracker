@@ -86,8 +86,8 @@ struct GoalManagerTests {
 
         #expect(goal.reminder == reminder)
         await waitForReminderSync()
-        #expect(scheduler.requestAuthorizationCount == 1)
-        #expect(scheduler.scheduledGoalIds == [goal.id])
+        #expect(scheduler.syncedGoalIds == [goal.id])
+        #expect(scheduler.syncRequestsAuthorizationFlags == [true])
     }
 
     @Test
@@ -339,13 +339,13 @@ struct GoalManagerTests {
         try manager.addGoal(goal)
 
         await waitForReminderSync()
-        #expect(scheduler.requestAuthorizationCount == 1)
-        #expect(scheduler.scheduledGoalIds == [goal.id])
+        #expect(scheduler.syncedGoalIds == [goal.id])
+        #expect(scheduler.syncRequestsAuthorizationFlags == [true])
         #expect(scheduler.canceledGoalIds.isEmpty)
     }
 
     @Test
-    func `Editing a goal without reminder eligibility cancels notification reminder`() async throws {
+    func `Editing a goal without reminder eligibility delegates reminder sync`() async throws {
         let container = try makeContainer()
         let scheduler = FakeGoalReminderScheduler()
         let goal = makeGoal(
@@ -365,12 +365,14 @@ struct GoalManagerTests {
             progress: goal.progress,
         )
 
-        #expect(scheduler.scheduledGoalIds.isEmpty)
-        #expect(scheduler.canceledGoalIds == [goal.id])
+        await waitForReminderSync()
+        #expect(scheduler.syncedGoalIds == [goal.id])
+        #expect(scheduler.syncRequestsAuthorizationFlags == [true])
+        #expect(scheduler.canceledGoalIds.isEmpty)
     }
 
     @Test
-    func `Completing a goal cancels notification reminder`() async throws {
+    func `Completing a goal delegates reminder sync`() async throws {
         let container = try makeContainer()
         let scheduler = FakeGoalReminderScheduler()
         let goal = makeGoal(
@@ -383,12 +385,14 @@ struct GoalManagerTests {
 
         _ = try manager.completeGoal(goal)
 
-        #expect(scheduler.scheduledGoalIds.isEmpty)
-        #expect(scheduler.canceledGoalIds == [goal.id])
+        await waitForReminderSync()
+        #expect(scheduler.syncedGoalIds == [goal.id])
+        #expect(scheduler.syncRequestsAuthorizationFlags == [false])
+        #expect(scheduler.canceledGoalIds.isEmpty)
     }
 
     @Test
-    func `Restoring a completed goal schedules notification reminder`() async throws {
+    func `Restoring a completed goal delegates reminder sync`() async throws {
         let container = try makeContainer()
         let scheduler = FakeGoalReminderScheduler()
         let goal = makeGoal(
@@ -402,8 +406,8 @@ struct GoalManagerTests {
         _ = try manager.toggleCompletion(goal)
 
         await waitForReminderSync()
-        #expect(scheduler.requestAuthorizationCount == 0)
-        #expect(scheduler.scheduledGoalIds == [goal.id])
+        #expect(scheduler.syncedGoalIds == [goal.id])
+        #expect(scheduler.syncRequestsAuthorizationFlags == [false])
     }
 
     @Test
@@ -485,26 +489,21 @@ struct GoalManagerTests {
 
 @MainActor
 private final class FakeGoalReminderScheduler: GoalReminderScheduling {
-    var authorizationResult = true
+    var syncResult = true
 
-    var requestAuthorizationCount = 0
+    var syncedGoalIds: [UUID] = []
 
-    var scheduledGoalIds: [UUID] = []
+    var syncRequestsAuthorizationFlags: [Bool] = []
 
     var canceledGoalIds: [UUID] = []
 
-    func requestAuthorizationIfNeeded() async throws -> Bool {
-        requestAuthorizationCount += 1
-        return authorizationResult
-    }
-
-    func scheduleReminder(for goal: Goal) async throws -> Bool {
-        scheduledGoalIds.append(goal.id)
-        return true
-    }
-
-    func cancelReminder(for goalId: UUID) {
-        canceledGoalIds.append(goalId)
+    func syncReminder(
+        for state: GoalReminderSyncState,
+        requestsAuthorization: Bool,
+    ) async throws -> Bool {
+        syncedGoalIds.append(state.goalId)
+        syncRequestsAuthorizationFlags.append(requestsAuthorization)
+        return syncResult
     }
 
     func cancelReminders(for goalIds: [UUID]) {

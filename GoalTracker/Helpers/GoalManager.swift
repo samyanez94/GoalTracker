@@ -210,17 +210,12 @@ struct GoalManager {
         for goal: Goal,
         requestsAuthorization: Bool = false,
     ) {
-        guard !goal.isCompleted,
-              goal.dueDate != nil,
-              goal.reminder != nil else {
-            notificationScheduler.cancelReminder(for: goal.id)
-            return
-        }
+        let reminderState = GoalReminderSyncState(goal: goal)
         Task { @MainActor in
-            if requestsAuthorization {
-                _ = try? await notificationScheduler.requestAuthorizationIfNeeded()
-            }
-            _ = try? await notificationScheduler.scheduleReminder(for: goal)
+            try? await notificationScheduler.syncReminder(
+                for: reminderState,
+                requestsAuthorization: requestsAuthorization,
+            )
         }
     }
 

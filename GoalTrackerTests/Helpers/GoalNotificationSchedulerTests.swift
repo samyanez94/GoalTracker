@@ -38,6 +38,65 @@ struct GoalNotificationSchedulerTests {
     }
 
     @Test
+    func `Syncing eligible reminder requests authorization before scheduling`() async throws {
+        let notificationCenter = FakeNotificationCenter(status: .notDetermined)
+        let scheduler = makeScheduler(notificationCenter: notificationCenter)
+        let goal = makeGoal(
+            dueDate: date(year: 2026, month: 5, day: 21),
+            reminder: .daysBeforeDueDate(1),
+        )
+
+        let didSchedule = try await scheduler.syncReminder(
+            for: goal,
+            requestsAuthorization: true,
+        )
+
+        #expect(didSchedule)
+        #expect(notificationCenter.requestedAuthorizationOptions == [.alert, .sound])
+        #expect(notificationCenter.addedRequests.count == 1)
+        #expect(notificationCenter.removedIdentifiers == [scheduler.notificationIdentifier(for: goal.id)])
+    }
+
+    @Test
+    func `Syncing ineligible reminder cancels without requesting authorization`() async throws {
+        let notificationCenter = FakeNotificationCenter(status: .notDetermined)
+        let scheduler = makeScheduler(notificationCenter: notificationCenter)
+        let goal = makeGoal(
+            dueDate: nil,
+            reminder: .daysBeforeDueDate(1),
+        )
+
+        let didSchedule = try await scheduler.syncReminder(
+            for: goal,
+            requestsAuthorization: true,
+        )
+
+        #expect(didSchedule == false)
+        #expect(notificationCenter.requestedAuthorizationOptions == nil)
+        #expect(notificationCenter.addedRequests.isEmpty)
+        #expect(notificationCenter.removedIdentifiers == [scheduler.notificationIdentifier(for: goal.id)])
+    }
+
+    @Test
+    func `Syncing denied reminder authorization skips scheduling`() async throws {
+        let notificationCenter = FakeNotificationCenter(status: .denied)
+        let scheduler = makeScheduler(notificationCenter: notificationCenter)
+        let goal = makeGoal(
+            dueDate: date(year: 2026, month: 5, day: 21),
+            reminder: .daysBeforeDueDate(1),
+        )
+
+        let didSchedule = try await scheduler.syncReminder(
+            for: goal,
+            requestsAuthorization: true,
+        )
+
+        #expect(didSchedule == false)
+        #expect(notificationCenter.addedRequests.isEmpty)
+        #expect(notificationCenter.removedIdentifiers == [scheduler.notificationIdentifier(for: goal.id)])
+    }
+
+    @Test
     func `Scheduling reminder adds calendar notification request`() async throws {
         let goalID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
         let notificationCenter = FakeNotificationCenter()
@@ -56,6 +115,7 @@ struct GoalNotificationSchedulerTests {
         #expect(request.identifier == "goal-reminder-\(goalID.uuidString)")
         #expect(request.content.title == "File taxes")
         #expect(request.content.body == "Complete by next month")
+        #expect(request.content.sound == .default)
         #expect(trigger.dateComponents.year == 2026)
         #expect(trigger.dateComponents.month == 5)
         #expect(trigger.dateComponents.day == 20)

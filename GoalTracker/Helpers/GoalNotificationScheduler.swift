@@ -37,21 +37,16 @@ enum GoalNotificationAuthorizationStatus {
 /// The reminder scheduling behavior `GoalManager` needs when goal state changes.
 @MainActor
 protocol GoalReminderScheduling {
-    /// Requests notification authorization if needed.
-    ///
-    /// - Returns: `true` when reminders may be scheduled.
-    func requestAuthorizationIfNeeded() async throws -> Bool
-
-    /// Schedules or replaces the pending reminder for a goal.
+    /// Reconciles the pending reminder notification with the goal's current reminder state.
     ///
     /// - Returns: `true` when a notification request was scheduled.
     @discardableResult
-    func scheduleReminder(for goal: Goal) async throws -> Bool
+    func syncReminder(
+        for state: GoalReminderSyncState,
+        requestsAuthorization: Bool,
+    ) async throws -> Bool
 
-    /// Cancels the pending reminder for a goal.
-    func cancelReminder(for goalId: UUID)
-
-    /// Cancels pending reminders for multiple goals.
+    /// Cancels pending reminder notifications for multiple goals.
     func cancelReminders(for goalIds: [UUID])
 }
 
@@ -72,7 +67,7 @@ extension UNUserNotificationCenter: GoalNotificationCenterClient {
 
 /// Schedules and cancels local notification reminders for goals.
 ///
-/// This type owns notification request construction and skip rules. It does not persist
+/// This type owns notification request construction and authorization. It does not persist
 /// goals or decide when goal changes should trigger scheduling.
 @MainActor
 struct GoalNotificationScheduler: GoalReminderScheduling {
@@ -108,6 +103,49 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
         }
     }
 
+    /// Reconciles the pending reminder notification with the goal's current reminder state.
+    ///
+    /// Existing pending reminders for the goal are cancelled first. If the goal cannot produce
+    /// a future reminder, no replacement notification is scheduled.
+    /// - Returns: `true` when a notification request was scheduled.
+    @discardableResult
+    func syncReminder(
+        for state: GoalReminderSyncState,
+        requestsAuthorization: Bool,
+    ) async throws -> Bool {
+        cancelReminder(for: state.goalId)
+
+        let currentDate = now()
+        guard let schedule = GoalReminderSchedule(
+            state: state,
+            calendar: calendar,
+            currentDate: currentDate,
+        ) else {
+            return false
+        }
+
+        if requestsAuthorization {
+            guard try await requestAuthorizationIfNeeded() else {
+                return false
+            }
+        }
+
+        try await scheduleReminder(schedule, currentDate: currentDate)
+        return true
+    }
+
+    /// Reconciles the pending reminder notification with a goal's current reminder state.
+    ///
+    /// This convenience overload snapshots the model before starting async work.
+    /// - Returns: `true` when a notification request was scheduled.
+    @discardableResult
+    func syncReminder(for goal: Goal, requestsAuthorization: Bool) async throws -> Bool {
+        try await syncReminder(
+            for: GoalReminderSyncState(goal: goal),
+            requestsAuthorization: requestsAuthorization,
+        )
+    }
+
     /// Schedules a single pending reminder notification for a goal when it is eligible.
     ///
     /// Existing pending reminders for the goal are cancelled first. The goal is skipped when it
@@ -116,44 +154,80 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
     @discardableResult
     func scheduleReminder(for goal: Goal) async throws -> Bool {
         cancelReminder(for: goal.id)
-        guard !goal.isCompleted else {
-            return false
-        }
-        guard let dueDate = goal.dueDate,
-                let reminder = goal.reminder else {
-            return false
-        }
-        guard let reminderDate = reminder.reminderDate(
-            before: dueDate,
+
+        let currentDate = now()
+        guard let schedule = GoalReminderSchedule(
+            state: GoalReminderSyncState(goal: goal),
             calendar: calendar,
+            currentDate: currentDate,
         ) else {
             return false
         }
-        guard reminderDate > now() else {
-            return false
-        }
 
-        let content = reminder.notificationContent(
-            goalName: goal.name,
-            dueDate: dueDate,
-            relativeTo: now(),
-            calendar: calendar,
-        )
+        try await scheduleReminder(schedule, currentDate: currentDate)
+        return true
+    }
+
+    private func scheduleReminder(
+        _ schedule: GoalReminderSchedule,
+        currentDate: Date,
+    ) async throws {
+        let content = notificationContent(for: schedule, relativeTo: currentDate)
 
         let trigger = UNCalendarNotificationTrigger(
             dateMatching: calendar.dateComponents(
                 [.year, .month, .day, .hour, .minute, .second],
-                from: reminderDate,
+                from: schedule.reminderDate,
             ),
             repeats: false,
         )
         let request = UNNotificationRequest(
-            identifier: notificationIdentifier(for: goal.id),
+            identifier: notificationIdentifier(for: schedule.goalId),
             content: content,
             trigger: trigger,
         )
         try await notificationCenter.add(request)
-        return true
+    }
+
+    private func notificationContent(
+        for schedule: GoalReminderSchedule,
+        relativeTo currentDate: Date,
+    ) -> UNMutableNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.title = schedule.goalName
+        let relativeDueDateDescription = relativeDueDateDescription(
+            for: schedule.dueDate,
+            relativeTo: currentDate,
+        )
+        content.body = "Complete by \(relativeDueDateDescription.lowercased())"
+        content.sound = .default
+        return content
+    }
+
+    private func relativeDueDateDescription(
+        for dueDate: Date,
+        relativeTo currentDate: Date,
+    ) -> String {
+        let currentDay = calendar.startOfDay(for: currentDate)
+        let dueDay = calendar.startOfDay(for: dueDate)
+        guard !calendar.isDate(dueDay, inSameDayAs: currentDay) else {
+            return "Today"
+        }
+        let dayOffset = calendar.dateComponents([.day], from: currentDay, to: dueDay).day
+        guard let dayOffset,
+              let displayDate = calendar.date(byAdding: .day, value: dayOffset, to: Date()) else {
+            return dueDate.formatted(
+                date: .abbreviated,
+                time: .omitted,
+            )
+        }
+        return displayDate.formatted(
+            Date.RelativeFormatStyle(
+                presentation: .named,
+                unitsStyle: .wide,
+                capitalizationContext: .beginningOfSentence,
+            ),
+        )
     }
 
     /// Cancels the pending reminder notification for a single goal.

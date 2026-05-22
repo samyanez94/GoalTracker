@@ -7,7 +7,6 @@
 
 import Foundation
 import Testing
-import UserNotifications
 
 @testable import GoalTracker
 
@@ -113,33 +112,6 @@ struct GoalReminderTests {
             dueDateIncludesTime: true,
             calendar: calendar,
         ) == calendar.date(from: DateComponents(year: 2026, month: 5, day: 21, hour: 16)))
-    }
-
-    @Test
-    func `Reminder creates notification content`() throws {
-        let calendar = Calendar(identifier: .gregorian)
-        let reminder = GoalReminder.daysBeforeDueDate(1)
-        let currentDate = try #require(calendar.date(from: DateComponents(
-            year: 2026,
-            month: 4,
-            day: 21,
-        )))
-        let dueDate = try #require(calendar.date(from: DateComponents(
-            year: 2026,
-            month: 5,
-            day: 21,
-        )))
-
-        let content = reminder.notificationContent(
-            goalName: "File taxes",
-            dueDate: dueDate,
-            relativeTo: currentDate,
-            calendar: calendar,
-        )
-
-        #expect(content.title == "File taxes")
-        #expect(content.body == "Complete by next month")
-        #expect(content.sound == .default)
     }
 
     @Test
