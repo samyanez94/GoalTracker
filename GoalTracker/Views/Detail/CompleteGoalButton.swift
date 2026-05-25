@@ -16,9 +16,10 @@ struct CompleteGoalButton: View {
             Text(isCompleted ? "Completed" : "Complete")
                 .font(.headline)
                 .frame(maxWidth: .infinity)
-                .frame(height: 44)
+                .frame(minHeight: 44)
         }
         .buttonStyle(.glassProminent)
+        .buttonBorderShape(.capsule)
         .disabled(isCompleted)
         .padding(.horizontal)
         .padding(.bottom, 8)

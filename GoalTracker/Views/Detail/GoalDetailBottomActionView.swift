@@ -15,8 +15,6 @@ struct GoalDetailBottomActionView: View {
 
     @Binding var feedbackTrigger: Bool
 
-    let onDismiss: () -> Void
-
     @State private var saveFailure: GoalSaveFailure?
 
     var body: some View {
@@ -35,7 +33,6 @@ struct GoalDetailBottomActionView: View {
                             return
                         }
                         feedbackTrigger.toggle()
-                        onDismiss()
                     } catch {
                         saveFailure = .updateProgress
                     }

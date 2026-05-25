@@ -22,54 +22,61 @@ struct GoalDetailView: View {
     let goal: Goal
 
     var body: some View {
-        GoalDetailContent(goal: goal)
-            .navigationTitle("Goal")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu("Goal Actions", systemImage: "ellipsis") {
-                        Button {
-                            isPresentingEditForm = true
-                        } label: {
-                            Label("Edit", systemImage: "pencil")
-                        }
-                        Button {
-                            toggleCompletion()
-                        } label: {
-                            let isCompleted = goal.progress.isCompleted
-                            Label(
-                                isCompleted ? "Mark as Pending" : "Mark as Completed",
-                                systemImage: isCompleted ? "circle" : "checkmark.circle",
-                            )
-                        }
-                        Button(role: .destructive) {
-                            deleteGoal(goal)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                    .labelStyle(.iconOnly)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 32) {
+                GoalDetailHeaderSection(goal: goal)
+                if goal.progress.isMeasurable {
+                    GoalDetailProgressSection(goal: goal)
+                } else {
+                    GoalDetailStatusSection(goal: goal)
                 }
             }
-            .sheet(isPresented: $isPresentingEditForm) {
-                NavigationStack {
-                    GoalFormView(
-                        mode: .edit(GoalFormData(goal: goal)),
-                    ) { data in
-                        try updateGoal(data)
+        }
+        .safeAreaPadding(.horizontal)
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu("Goal Actions", systemImage: "ellipsis") {
+                    Button {
+                        isPresentingEditForm = true
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    Button {
+                        toggleCompletion()
+                    } label: {
+                        let isCompleted = goal.progress.isCompleted
+                        Label(
+                            isCompleted ? "Mark as Pending" : "Mark as Completed",
+                            systemImage: isCompleted ? "circle" : "checkmark.circle",
+                        )
+                    }
+                    Button(role: .destructive) {
+                        deleteGoal(goal)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
                     }
                 }
+                .labelStyle(.iconOnly)
             }
-            .safeAreaInset(edge: .bottom) {
-                GoalDetailBottomActionView(
-                    goal: goal,
-                    feedbackTrigger: $feedbackTrigger,
-                ) {
-                    dismiss()
+        }
+        .sheet(isPresented: $isPresentingEditForm) {
+            NavigationStack {
+                GoalFormView(
+                    mode: .edit(GoalFormData(goal: goal)),
+                ) { data in
+                    try updateGoal(data)
                 }
             }
-            .sensoryFeedback(.impact(weight: .light), trigger: feedbackTrigger)
-            .goalSaveFailureAlert(failure: $saveFailure)
+        }
+        .safeAreaInset(edge: .bottom) {
+            GoalDetailBottomActionView(
+                goal: goal,
+                feedbackTrigger: $feedbackTrigger,
+            )
+        }
+        .sensoryFeedback(.impact(weight: .light), trigger: feedbackTrigger)
+        .goalSaveFailureAlert(failure: $saveFailure)
     }
 
     private var goalManager: GoalManager {

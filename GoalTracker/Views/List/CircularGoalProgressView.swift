@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CircularGoalProgressView: View {
     let progress: Double
+    var lineWidth: CGFloat = 5
 
     private var clampedProgress: Double {
         min(max(progress, 0), 1)
@@ -17,18 +18,19 @@ struct CircularGoalProgressView: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(.blue.opacity(0.25), lineWidth: 5)
+                .stroke(.blue.opacity(0.25), lineWidth: lineWidth)
             Circle()
                 .trim(from: 0, to: clampedProgress)
                 .stroke(
                     .blue,
                     style: StrokeStyle(
-                        lineWidth: 5,
+                        lineWidth: lineWidth,
                         lineCap: .round,
                     ),
                 )
                 .rotationEffect(.degrees(-90))
         }
+        .animation(.easeOut, value: clampedProgress)
         .accessibilityHidden(true)
     }
 }
