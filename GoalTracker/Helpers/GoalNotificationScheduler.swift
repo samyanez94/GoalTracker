@@ -220,21 +220,28 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
         guard !calendar.isDate(dueDay, inSameDayAs: currentDay) else {
             return "Today"
         }
-        let dayOffset = calendar.dateComponents([.day], from: currentDay, to: dueDay).day
-        guard let dayOffset,
-              let displayDate = calendar.date(byAdding: .day, value: dayOffset, to: Date()) else {
-            return dueDate.formatted(
-                date: .abbreviated,
-                time: .omitted,
-            )
+        if isExactOffset(.day, value: 1, from: currentDay, to: dueDay) {
+            return "Tomorrow"
         }
-        return displayDate.formatted(
-            Date.RelativeFormatStyle(
-                presentation: .named,
-                unitsStyle: .wide,
-                capitalizationContext: .beginningOfSentence,
-            ),
-        )
+        if isExactOffset(.weekOfYear, value: 1, from: currentDay, to: dueDay) {
+            return "Next week"
+        }
+        if isExactOffset(.month, value: 1, from: currentDay, to: dueDay) {
+            return "Next month"
+        }
+        if isExactOffset(.year, value: 1, from: currentDay, to: dueDay) {
+            return "Next year"
+        }
+        return dueDate.formatted(date: .abbreviated, time: .omitted)
+    }
+
+    private func isExactOffset(
+        _ component: Calendar.Component,
+        value: Int,
+        from startDate: Date,
+        to endDate: Date,
+    ) -> Bool {
+        calendar.date(byAdding: component, value: value, to: startDate) == endDate
     }
 
     /// Cancels the pending reminder notification for a single goal.
