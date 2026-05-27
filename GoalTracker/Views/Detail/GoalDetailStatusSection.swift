@@ -18,11 +18,10 @@ struct GoalDetailStatusSection: View {
             HStack {
                 Text(goal.isCompleted ? "Completed" : "Pending")
                     .font(.title.bold())
-                    .foregroundStyle(goal.isCompleted ? .blue : .primary)
+                    .foregroundStyle(.primary)
                 Spacer(minLength: 16)
-                CircularGoalProgressView(
-                    progress: goal.progress.fractionCompleted,
-                    lineWidth: 20,
+                GoalDetailCircularProgressView(
+                    progress: goal.progress.fractionCompleted
                 )
                 .frame(width: 80, height: 80)
             }

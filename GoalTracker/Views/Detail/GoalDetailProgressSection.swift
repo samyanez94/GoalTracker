@@ -16,19 +16,18 @@ struct GoalDetailProgressSection: View {
                 .font(.headline)
                 .foregroundStyle(.secondary)
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(goal.isCompleted ? "Completed" : completionPercentage(for: goal.progress))
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(completionPercentage(for: goal.progress))
                         .font(.title.bold())
-                        .foregroundStyle(goal.isCompleted ? .blue : .primary)
+                        .foregroundStyle(.primary)
                         .contentTransition(.numericText())
                     Text(progressSubtitle(for: goal.progress))
                         .font(.body.bold())
                         .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 16)
-                CircularGoalProgressView(
-                    progress: goal.progress.fractionCompleted,
-                    lineWidth: 20,
+                GoalDetailCircularProgressView(
+                    progress: goal.progress.fractionCompleted
                 )
                 .frame(width: 80, height: 80)
             }

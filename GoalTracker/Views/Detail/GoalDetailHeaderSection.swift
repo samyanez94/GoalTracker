@@ -24,7 +24,7 @@ struct GoalDetailHeaderSection: View {
             if let dueDate = goal.dueDate {
                 let text = dueDateText(for: dueDate)
                 Text(text)
-                    .font(isPastDue(dueDate) ? .body.bold() : .body)
+                    .font(.body.bold())
                     .foregroundStyle(isPastDue(dueDate) ? .red : .secondary)
             }
             if !goal.tags.isEmpty {

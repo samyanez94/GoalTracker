@@ -9,11 +9,12 @@ import SwiftUI
 
 struct CircularGoalProgressView: View {
     let progress: Double
-    var lineWidth: CGFloat = 5
 
     private var clampedProgress: Double {
         min(max(progress, 0), 1)
     }
+
+    private let lineWidth: CGFloat = 5
 
     var body: some View {
         ZStack {
