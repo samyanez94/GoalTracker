@@ -19,12 +19,10 @@ struct RepeatingStepperButton: View {
             Label(accessibilityLabel, systemImage: systemName)
                 .font(.title3.weight(.semibold))
                 .labelStyle(.iconOnly)
-                .frame(maxWidth: .infinity)
-                .frame(height: 44)
+                .frame(height: 38)
         }
-        .tint(.blue)
+        .buttonSizing(.flexible)
         .buttonStyle(.glassProminent)
-        .buttonBorderShape(.capsule)
         .onLongPressGesture(
             minimumDuration: 0.35,
             perform: {},

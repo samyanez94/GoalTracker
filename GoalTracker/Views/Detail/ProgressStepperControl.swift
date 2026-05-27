@@ -30,6 +30,5 @@ struct ProgressStepperControl: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal)
-        .padding(.bottom, 8)
     }
 }

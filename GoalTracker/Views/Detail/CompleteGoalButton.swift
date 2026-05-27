@@ -12,16 +12,12 @@ struct CompleteGoalButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            Text(isCompleted ? "Completed" : "Complete")
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: 44)
-        }
-        .buttonStyle(.glassProminent)
-        .buttonBorderShape(.capsule)
-        .disabled(isCompleted)
-        .padding(.horizontal)
-        .padding(.bottom, 8)
+        Button(isCompleted ? "Completed" : "Complete", action: action)
+            .font(.headline)
+            .controlSize(.large)
+            .buttonSizing(.flexible)
+            .buttonStyle(.glassProminent)
+            .disabled(isCompleted)
+            .padding(.horizontal)
     }
 }
