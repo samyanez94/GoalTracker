@@ -50,10 +50,6 @@ extension GoalTrackerSchemaV1 {
             })
         }
 
-        static func trimmedName(from name: String) -> String {
-            sanitizedName(from: name)
-        }
-
         static func normalizedName(from name: String) -> String {
             sanitizedName(from: name).lowercased()
         }

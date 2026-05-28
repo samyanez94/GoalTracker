@@ -86,6 +86,22 @@ struct GoalManager {
         syncReminder(for: goal, requestsAuthorization: true)
     }
 
+    /// Updates a goal using values collected by the goal form.
+    func updateGoal(
+        _ goal: Goal,
+        with data: GoalFormData,
+    ) throws {
+        try updateGoal(
+            goal,
+            name: data.name,
+            details: data.normalizedDetails,
+            dueDate: data.dueDate,
+            earlyReminder: data.earlyReminder,
+            progress: data.progress,
+            tags: data.tags,
+        )
+    }
+
     /// Toggles a goal between completed and incomplete states, then saves the change.
     ///
     /// - Returns: `true` when the goal's progress changed.

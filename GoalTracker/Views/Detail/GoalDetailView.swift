@@ -36,25 +36,16 @@ struct GoalDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu("Goal Actions", systemImage: "ellipsis") {
-                    Button {
-                        isPresentingEditForm = true
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
-                    }
-                    Button {
-                        toggleCompletion()
-                    } label: {
-                        let isCompleted = goal.progress.isCompleted
-                        Label(
-                            isCompleted ? "Mark as Pending" : "Mark as Completed",
-                            systemImage: isCompleted ? "circle" : "checkmark.circle",
-                        )
-                    }
-                    Button(role: .destructive) {
-                        deleteGoal(goal)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
-                    }
+                    GoalActionMenuItems(
+                        isCompleted: goal.isCompleted,
+                        edit: {
+                            isPresentingEditForm = true
+                        },
+                        toggleCompletion: toggleCompletion,
+                        delete: {
+                            deleteGoal(goal)
+                        },
+                    )
                 }
                 .labelStyle(.iconOnly)
             }
@@ -64,7 +55,7 @@ struct GoalDetailView: View {
                 GoalFormView(
                     mode: .edit(GoalFormData(goal: goal)),
                 ) { data in
-                    try updateGoal(data)
+                    try goalManager.updateGoal(goal, with: data)
                 }
             }
         }
@@ -91,18 +82,6 @@ struct GoalDetailView: View {
         } catch {
             saveFailure = .updateProgress
         }
-    }
-
-    private func updateGoal(_ data: GoalFormData) throws {
-        try goalManager.updateGoal(
-            goal,
-            name: data.name,
-            details: data.normalizedDetails,
-            dueDate: data.dueDate,
-            earlyReminder: data.earlyReminder,
-            progress: data.progress,
-            tags: data.tags,
-        )
     }
 
     private func deleteGoal(_ goal: Goal) {

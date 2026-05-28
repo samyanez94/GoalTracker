@@ -30,31 +30,21 @@ struct GoalRowView: View {
             }
         }
         .contextMenu {
-            Button {
-                isPresentingEditForm = true
-            } label: {
-                Label("Edit", systemImage: "pencil")
-            }
-            Button {
-                toggleCompletion()
-            } label: {
-                Label(
-                    goal.isCompleted ? "Mark as Pending" : "Mark as Completed",
-                    systemImage: goal.isCompleted ? "circle" : "checkmark.circle",
-                )
-            }
-            Button(role: .destructive) {
-                deleteGoal()
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
+            GoalActionMenuItems(
+                isCompleted: goal.isCompleted,
+                edit: {
+                    isPresentingEditForm = true
+                },
+                toggleCompletion: toggleCompletion,
+                delete: deleteGoal,
+            )
         }
         .sheet(isPresented: $isPresentingEditForm) {
             NavigationStack {
                 GoalFormView(
                     mode: .edit(GoalFormData(goal: goal)),
                 ) { data in
-                    try updateGoal(data)
+                    try goalManager.updateGoal(goal, with: data)
                 }
             }
         }
@@ -86,18 +76,6 @@ struct GoalRowView: View {
         } catch {
             saveFailure = .deleteGoal
         }
-    }
-
-    private func updateGoal(_ data: GoalFormData) throws {
-        try goalManager.updateGoal(
-            goal,
-            name: data.name,
-            details: data.normalizedDetails,
-            dueDate: data.dueDate,
-            earlyReminder: data.earlyReminder,
-            progress: data.progress,
-            tags: data.tags,
-        )
     }
 
     private func isPastDue(_ dueDate: Date) -> Bool {

@@ -21,7 +21,7 @@ struct GoalListView: View {
 
     @State private var searchText = ""
 
-    @State private var selectedGoalIDs = Set<UUID>()
+    @State private var selectedGoalIds = Set<UUID>()
 
     @AppStorage(AppStorageKey.goalSortMode) private var sortMode: GoalSortMode = .creationDate
 
@@ -51,7 +51,7 @@ struct GoalListView: View {
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    List(selection: $selectedGoalIDs) {
+                    List(selection: $selectedGoalIds) {
                         if isShowingCompletedGoals {
                             GoalSectionView(
                                 title: "Pending",
@@ -120,8 +120,8 @@ struct GoalListView: View {
                 GoalDetailView(goal: goal)
             }
             .goalSaveFailureAlert(failure: $saveFailure)
-            .onChange(of: visibleGoalIDs) { _, _ in
-                pruneSelectedGoalIDs()
+            .onChange(of: visibleGoalIds) { _, _ in
+                pruneSelectedGoalIds()
             }
         }
     }
@@ -175,23 +175,23 @@ struct GoalListView: View {
         }
     }
 
-    private var visibleGoalIDs: Set<UUID> {
+    private var visibleGoalIds: Set<UUID> {
         Set(visibleSelectableGoals.map(\.id))
     }
 
     private var selectedGoals: [Goal] {
         visibleSelectableGoals.filter { goal in
-            selectedGoalIDs.contains(goal.id)
+            selectedGoalIds.contains(goal.id)
         }
     }
 
     private func finishSelectingGoals() {
-        selectedGoalIDs.removeAll()
+        selectedGoalIds.removeAll()
         editMode = .inactive
     }
 
     private func deleteSelectedGoals() {
-        pruneSelectedGoalIDs()
+        pruneSelectedGoalIds()
         let goalsToDelete = selectedGoals
         guard !goalsToDelete.isEmpty else {
             return
@@ -204,8 +204,8 @@ struct GoalListView: View {
         }
     }
 
-    private func pruneSelectedGoalIDs() {
-        selectedGoalIDs.formIntersection(visibleGoalIDs)
+    private func pruneSelectedGoalIds() {
+        selectedGoalIds.formIntersection(visibleGoalIds)
     }
 }
 
