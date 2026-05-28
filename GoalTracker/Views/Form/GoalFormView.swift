@@ -108,40 +108,42 @@ struct GoalFormView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-            Section {
-                HStack {
-                    DueDateSummaryButton(
-                        hasDueDate: model.hasDueDate,
-                        dueDate: model.dueDate,
-                        action: {
-                            withAnimation {
-                                model.toggleDueDatePicker()
-                            }
-                        },
-                    )
-                    Toggle(
-                        "Due Date",
-                        isOn: $model.hasDueDate,
-                    )
-                    .labelsHidden()
+            if model.allowsDueDate {
+                Section {
+                    HStack {
+                        DueDateSummaryButton(
+                            hasDueDate: model.hasDueDate,
+                            dueDate: model.dueDate,
+                            action: {
+                                withAnimation {
+                                    model.toggleDueDatePicker()
+                                }
+                            },
+                        )
+                        Toggle(
+                            "Due Date",
+                            isOn: $model.hasDueDate,
+                        )
+                        .labelsHidden()
+                    }
+                    if model.hasDueDate, model.isDueDatePickerExpanded {
+                        DatePicker(
+                            "Select due date",
+                            selection: $model.dueDate,
+                            displayedComponents: .date,
+                        )
+                        .datePickerStyle(.graphical)
+                    }
+                    if model.hasDueDate {
+                        GoalReminderPickerRow(earlyReminder: $model.earlyReminder)
+                    }
+                } header: {
+                    Text("Date")
+                } footer: {
+                    Text("Set a due date to help you know when to complete this goal.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
-                if model.hasDueDate, model.isDueDatePickerExpanded {
-                    DatePicker(
-                        "Select due date",
-                        selection: $model.dueDate,
-                        displayedComponents: .date,
-                    )
-                    .datePickerStyle(.graphical)
-                }
-                if model.hasDueDate {
-                    GoalReminderPickerRow(earlyReminder: $model.earlyReminder)
-                }
-            } header: {
-                Text("Date")
-            } footer: {
-                Text("Set a due date to help you know when to complete this goal.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
             }
             Section {
                 Toggle(isOn: $model.isProgressBased) {

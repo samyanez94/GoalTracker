@@ -51,7 +51,6 @@ struct GoalFormModelTests {
                         step: 2,
                         unit: .miles,
                     ),
-                    recurrence: GoalRecurrence(cadence: .weekly),
                     tags: tags,
                 ),
             ),
@@ -66,9 +65,26 @@ struct GoalFormModelTests {
         #expect(model.targetValue == 10)
         #expect(model.step == 2)
         #expect(model.selectedProgressUnit == .miles)
-        #expect(model.recurrence == GoalRecurrence(cadence: .weekly))
+        #expect(model.recurrence == nil)
         #expect(model.selectedTags.map(\.name) == ["Health", "Running"])
         #expect(model.saveFailureKind == .updateGoal)
+    }
+
+    @Test
+    func `Edit mode initializes from recurring form data`() {
+        let model = GoalFormModel(
+            mode: .edit(
+                GoalFormData(
+                    name: "Run",
+                    details: "",
+                    progress: .outcomePending,
+                    recurrence: GoalRecurrence(cadence: .weekly),
+                ),
+            ),
+        )
+
+        #expect(model.recurrence == GoalRecurrence(cadence: .weekly))
+        #expect(model.allowsDueDate == false)
     }
 
     @Test
@@ -148,6 +164,51 @@ struct GoalFormModelTests {
 
         #expect(model.makeFormData().dueDate == nil)
         #expect(model.makeFormData().earlyReminder == nil)
+    }
+
+    @Test
+    func `Selecting recurrence clears due date and early reminder`() {
+        let dueDate = Date(timeIntervalSinceReferenceDate: 456)
+        let earlyReminder = GoalReminder.daysBeforeDueDate(1)
+        let model = GoalFormModel(mode: .create)
+        model.name = "Run"
+        model.hasDueDate = true
+        model.dueDate = dueDate
+        model.earlyReminder = earlyReminder
+
+        model.recurrence = GoalRecurrence(cadence: .daily)
+
+        let data = model.makeFormData()
+        #expect(model.hasDueDate == false)
+        #expect(model.earlyReminder == nil)
+        #expect(model.allowsDueDate == false)
+        #expect(data.dueDate == nil)
+        #expect(data.earlyReminder == nil)
+        #expect(data.recurrence == GoalRecurrence(cadence: .daily))
+    }
+
+    @Test
+    func `Recurring edit data ignores existing due date`() {
+        let model = GoalFormModel(
+            mode: .edit(
+                GoalFormData(
+                    name: "Run",
+                    details: "",
+                    dueDate: Date(timeIntervalSinceReferenceDate: 456),
+                    earlyReminder: .daysBeforeDueDate(1),
+                    progress: .outcomePending,
+                    recurrence: GoalRecurrence(cadence: .weekly),
+                ),
+            ),
+        )
+
+        let data = model.makeFormData()
+        #expect(model.hasDueDate == false)
+        #expect(model.earlyReminder == nil)
+        #expect(model.allowsDueDate == false)
+        #expect(data.dueDate == nil)
+        #expect(data.earlyReminder == nil)
+        #expect(data.recurrence == GoalRecurrence(cadence: .weekly))
     }
 
     @Test

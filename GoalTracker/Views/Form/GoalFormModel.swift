@@ -22,7 +22,11 @@ final class GoalFormModel {
     var targetValue: Double?
     var step: Double?
     var selectedProgressUnit: GoalProgressUnit?
-    var recurrence: GoalRecurrence?
+    var recurrence: GoalRecurrence? {
+        didSet {
+            clearDueDateIfNeededForRecurrence()
+        }
+    }
     var selectedTags: [Tag]
 
     let mode: GoalFormMode
@@ -38,9 +42,9 @@ final class GoalFormModel {
         let data = mode.initialData
         name = data.name
         details = data.details
-        hasDueDate = data.dueDate != nil
+        hasDueDate = data.dueDate != nil && data.recurrence == nil
         dueDate = data.dueDate ?? Date()
-        earlyReminder = data.earlyReminder
+        earlyReminder = data.recurrence == nil ? data.earlyReminder : nil
         recurrence = data.recurrence
         selectedTags = data.tags
         initialOutcomeIsCompleted = data.progress.isCompleted
@@ -104,6 +108,10 @@ final class GoalFormModel {
         }
     }
 
+    var allowsDueDate: Bool {
+        recurrence == nil
+    }
+
     func toggleDueDatePicker() {
         guard hasDueDate else {
             return
@@ -122,12 +130,20 @@ final class GoalFormModel {
         GoalFormData(
             name: trimmedName,
             details: details,
-            dueDate: hasDueDate ? dueDate : nil,
-            earlyReminder: hasDueDate ? earlyReminder : nil,
+            dueDate: allowsDueDate && hasDueDate ? dueDate : nil,
+            earlyReminder: allowsDueDate && hasDueDate ? earlyReminder : nil,
             progress: progress,
             recurrence: recurrence,
             tags: selectedTags,
         )
+    }
+
+    private func clearDueDateIfNeededForRecurrence() {
+        guard recurrence != nil else {
+            return
+        }
+        hasDueDate = false
+        setDueDateEnabled(false)
     }
 
     private var trimmedName: String {
