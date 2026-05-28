@@ -16,16 +16,17 @@ struct GoalDetailStatusSection: View {
                 .font(.headline)
                 .foregroundStyle(.secondary)
             HStack {
-                Text(goal.isCompleted ? "Completed" : "Pending")
-                    .font(.title.bold())
-                    .foregroundStyle(.primary)
-                Spacer(minLength: 16)
-                GoalDetailCircularProgressView(
-                    progress: goal.progress.fractionCompleted
-                )
-                .frame(width: 80, height: 80)
+                Image(systemName: goal.status.iconSystemName)
+                    .foregroundStyle(.blue)
+                    .contentTransition(.symbolEffect(.replace))
+                    .accessibilityHidden(true)
+                Text("Status")
+                Spacer(minLength: 8)
+                Text(goal.status.displayString)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
             }
-            .padding(.all, 24)
+            .padding(.all, 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 Color(.secondarySystemGroupedBackground),
@@ -55,6 +56,19 @@ struct GoalDetailStatusSection: View {
             details: "Plan and take the trip.",
             createdAt: Date(),
             progress: .outcomeCompleted,
+        )
+    )
+    .padding()
+    .background(Color(.systemGroupedBackground))
+}
+
+#Preview("In Progress") {
+    GoalDetailStatusSection(
+        goal: Goal(
+            name: "Run a 5K",
+            details: "Build up endurance with three runs per week.",
+            createdAt: Date(),
+            progress: .measurable(currentValue: 2, targetValue: 5),
         )
     )
     .padding()

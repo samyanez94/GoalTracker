@@ -25,10 +25,9 @@ struct GoalDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 32) {
                 GoalDetailHeaderSection(goal: goal)
+                GoalDetailStatusSection(goal: goal)
                 if goal.progress.isMeasurable {
                     GoalDetailProgressSection(goal: goal)
-                } else {
-                    GoalDetailStatusSection(goal: goal)
                 }
             }
         }

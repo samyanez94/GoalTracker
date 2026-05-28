@@ -37,6 +37,17 @@ extension GoalTrackerSchemaV1 {
             progress.isCompleted
         }
 
+        /// The current user-facing status derived from progress.
+        var status: GoalStatus {
+            if isCompleted {
+                return .completed
+            }
+            if progress.currentValue > 0 {
+                return .inProgress
+            }
+            return .pending
+        }
+
         @discardableResult
         func complete() -> Bool {
             progress.complete()

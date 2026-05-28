@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CircularGoalProgressView: View {
+    
     let progress: Double
 
     private var clampedProgress: Double {

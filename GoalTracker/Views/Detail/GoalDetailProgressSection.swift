@@ -17,17 +17,17 @@ struct GoalDetailProgressSection: View {
                 .foregroundStyle(.secondary)
             HStack {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(completionPercentage(for: goal.progress))
+                    Text(fractionCompleted, format: .percent.precision(.fractionLength(0)))
                         .font(.title.bold())
                         .foregroundStyle(.primary)
-                        .contentTransition(.numericText())
-                    Text(progressSubtitle(for: goal.progress))
-                        .font(.body.bold())
+                        .contentTransition(.numericText(value: fractionCompleted))
+                    Text(progressSubtitle)
+                        .font(.body)
                         .foregroundStyle(.secondary)
                 }
-                Spacer(minLength: 16)
+                Spacer(minLength: 8)
                 GoalDetailCircularProgressView(
-                    progress: goal.progress.fractionCompleted
+                    progress: fractionCompleted
                 )
                 .frame(width: 80, height: 80)
             }
@@ -40,26 +40,29 @@ struct GoalDetailProgressSection: View {
         }
     }
 
-    private func completionPercentage(for progress: GoalProgress) -> String {
-        let fractionCompleted = min(max(progress.fractionCompleted, 0), 1)
-        return fractionCompleted.formatted(.percent.precision(.fractionLength(0)))
+    private var progress: GoalProgress {
+        goal.progress
     }
 
-    private func progressSubtitle(for progress: GoalProgress) -> String {
+    private var fractionCompleted: Double {
+        min(max(progress.fractionCompleted, 0), 1)
+    }
+
+    private var progressSubtitle: String {
         let currentValue = formattedNumber(progress.currentValue, for: progress)
         let targetValue = formattedNumber(progress.targetValue, for: progress)
-        let unit = unitText(for: progress)
-        if unit.isEmpty {
+        if unitText.isEmpty {
             return "\(currentValue)/\(targetValue)"
+        } else {
+            return "\(currentValue)/\(targetValue) \(unitText)"
         }
-        return "\(currentValue)/\(targetValue) \(unit)"
     }
 
     private func formattedNumber(_ value: Double, for progress: GoalProgress) -> String {
-        if let prefix = progress.unit?.prefix {
-            return "\(prefix)\(formattedNumber(value))"
+        guard let prefix = progress.unit?.prefix else {
+            return formattedNumber(value)
         }
-        return formattedNumber(value)
+        return "\(prefix)\(formattedNumber(value))"
     }
 
     private func formattedNumber(_ value: Double) -> String {
@@ -69,7 +72,7 @@ struct GoalDetailProgressSection: View {
         return value.formatted()
     }
 
-    private func unitText(for progress: GoalProgress) -> String {
+    private var unitText: String {
         guard let unit = progress.unit else {
             return ""
         }

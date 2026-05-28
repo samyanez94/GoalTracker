@@ -18,9 +18,6 @@ struct GoalDetailCircularProgressView: View {
         min(max(progress, 0), 1)
     }
 
-    private let backgroundLineWidth: CGFloat = 20
-    private let progressLineWidth: CGFloat = 16
-
     private var progressAnimation: Animation? {
         reduceMotion ? nil : .easeOut(duration: 1).delay(0.25)
     }
@@ -28,13 +25,13 @@ struct GoalDetailCircularProgressView: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(.blue.opacity(0.25), lineWidth: backgroundLineWidth)
+                .stroke(.blue.opacity(0.25), lineWidth: 20)
             Circle()
                 .trim(from: 0, to: displayedProgress)
                 .stroke(
                     .blue,
                     style: StrokeStyle(
-                        lineWidth: progressLineWidth,
+                        lineWidth: 20,
                         lineCap: .round,
                     ),
                 )
