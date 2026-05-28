@@ -14,6 +14,7 @@ struct GoalRowView: View {
         NavigationLink(value: goal) {
             HStack(spacing: 12) {
                 Image(systemName: goal.status.iconSystemName)
+                    .font(.title2)
                     .foregroundStyle(.blue)
                     .contentTransition(.symbolEffect(.replace))
                     .accessibilityHidden(true)
