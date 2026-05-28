@@ -110,6 +110,7 @@ struct GoalListView: View {
                             earlyReminder: data.earlyReminder,
                             createdAt: Date(),
                             progress: data.progress,
+                            recurrence: data.recurrence,
                         )
                         goal.tags = data.tags
                         try goalManager.addGoal(goal)

@@ -8,11 +8,31 @@
 import Foundation
 
 /// The cadence used to group progress events for recurring completion.
-nonisolated enum GoalRecurrenceCadence: String, Codable, Equatable {
+nonisolated enum GoalRecurrenceCadence: String, Codable, Equatable, Hashable {
     case daily
     case weekly
     case monthly
     case yearly
+
+    static let builtInOptions: [GoalRecurrenceCadence] = [
+        .daily,
+        .weekly,
+        .monthly,
+        .yearly,
+    ]
+
+    var displayTitle: String {
+        switch self {
+        case .daily:
+            "Daily"
+        case .weekly:
+            "Weekly"
+        case .monthly:
+            "Monthly"
+        case .yearly:
+            "Yearly"
+        }
+    }
 
     func period(
         containing date: Date,

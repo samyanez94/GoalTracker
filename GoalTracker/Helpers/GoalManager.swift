@@ -64,6 +64,8 @@ struct GoalManager {
         dueDate: Date?,
         earlyReminder: GoalReminder? = nil,
         progress: GoalProgress,
+        updatesRecurrence: Bool = false,
+        recurrence: GoalRecurrence? = nil,
         tags: [Tag]? = nil,
     ) throws {
         let snapshot = GoalSnapshot(goal: goal)
@@ -78,6 +80,9 @@ struct GoalManager {
                     preservingEventsFrom: goal.progress,
                     timestamp: now(),
                 )
+                if updatesRecurrence {
+                    goal.recurrence = recurrence
+                }
                 if let tags {
                     goal.tags = tags
                     try deleteUnusedTags(
@@ -105,6 +110,8 @@ struct GoalManager {
             dueDate: data.dueDate,
             earlyReminder: data.earlyReminder,
             progress: data.progress,
+            updatesRecurrence: true,
+            recurrence: data.recurrence,
             tags: data.tags,
         )
     }

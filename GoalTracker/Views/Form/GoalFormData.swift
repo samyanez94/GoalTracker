@@ -13,6 +13,7 @@ struct GoalFormData {
     var dueDate: Date?
     var earlyReminder: GoalReminder?
     var progress: GoalProgress
+    var recurrence: GoalRecurrence?
     var tags: [Tag]
 
     static let empty = GoalFormData(
@@ -21,6 +22,7 @@ struct GoalFormData {
         dueDate: nil,
         earlyReminder: nil,
         progress: .outcomePending,
+        recurrence: nil,
         tags: [],
     )
 
@@ -30,6 +32,7 @@ struct GoalFormData {
         dueDate = goal.dueDate
         earlyReminder = goal.earlyReminder
         progress = goal.progress
+        recurrence = goal.recurrence
         tags = goal.tags
     }
 
@@ -39,6 +42,7 @@ struct GoalFormData {
         dueDate: Date? = nil,
         earlyReminder: GoalReminder? = nil,
         progress: GoalProgress,
+        recurrence: GoalRecurrence? = nil,
         tags: [Tag] = [],
     ) {
         self.name = name
@@ -46,6 +50,7 @@ struct GoalFormData {
         self.dueDate = dueDate
         self.earlyReminder = earlyReminder
         self.progress = progress
+        self.recurrence = recurrence
         self.tags = tags
     }
 

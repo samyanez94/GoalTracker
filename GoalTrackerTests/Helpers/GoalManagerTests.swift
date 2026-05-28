@@ -107,6 +107,71 @@ struct GoalManagerTests {
     }
 
     @Test
+    func `Updating goal with form data sets recurrence`() async throws {
+        let container = try makeContainer()
+        let goal = makeGoal(progress: .outcomePending)
+        insert(goal, into: container)
+        let manager = makeManager(in: container)
+
+        try manager.updateGoal(
+            goal,
+            with: GoalFormData(
+                name: goal.name,
+                details: goal.details ?? "",
+                progress: goal.progress,
+                recurrence: GoalRecurrence(cadence: .monthly),
+            ),
+        )
+
+        #expect(goal.recurrence == GoalRecurrence(cadence: .monthly))
+    }
+
+    @Test
+    func `Updating goal with form data clears recurrence`() async throws {
+        let container = try makeContainer()
+        let goal = makeGoal(
+            progress: .outcomePending,
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+        insert(goal, into: container)
+        let manager = makeManager(in: container)
+
+        try manager.updateGoal(
+            goal,
+            with: GoalFormData(
+                name: goal.name,
+                details: goal.details ?? "",
+                progress: goal.progress,
+                recurrence: nil,
+            ),
+        )
+
+        #expect(goal.recurrence == nil)
+    }
+
+    @Test
+    func `Direct goal update preserves recurrence`() async throws {
+        let container = try makeContainer()
+        let recurrence = GoalRecurrence(cadence: .weekly)
+        let goal = makeGoal(
+            progress: .outcomePending,
+            recurrence: recurrence,
+        )
+        insert(goal, into: container)
+        let manager = makeManager(in: container)
+
+        try manager.updateGoal(
+            goal,
+            name: "Updated Goal",
+            details: goal.details,
+            dueDate: goal.dueDate,
+            progress: goal.progress,
+        )
+
+        #expect(goal.recurrence == recurrence)
+    }
+
+    @Test
     func `Editing measurable current value appends balancing event`() async throws {
         let container = try makeContainer()
         let timestamp = Date(timeIntervalSinceReferenceDate: 123)

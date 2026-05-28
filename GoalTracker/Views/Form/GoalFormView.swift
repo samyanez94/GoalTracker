@@ -100,6 +100,15 @@ struct GoalFormView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
+                GoalRecurrencePickerRow(recurrence: $model.recurrence)
+            } header: {
+                Text("Recurrence")
+            } footer: {
+                Text("Use recurring goals for habits and goals you want to repeat over time.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 HStack {
                     DueDateSummaryButton(
                         hasDueDate: model.hasDueDate,
@@ -135,7 +144,14 @@ struct GoalFormView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
-                Toggle("Track progress", isOn: $model.isProgressBased)
+                Toggle(isOn: $model.isProgressBased) {
+                    HStack {
+                        Image(systemName: "plus.forwardslash.minus")
+                            .foregroundStyle(.secondary)
+                        Text("Track progress")
+                            .foregroundStyle(.primary)
+                    }
+                }
                 if model.isProgressBased {
                     ProgressTextFieldRow(
                         label: "Current",

@@ -26,6 +26,7 @@ struct GoalFormModelTests {
         #expect(model.targetValue == nil)
         #expect(model.step == nil)
         #expect(model.selectedProgressUnit == nil)
+        #expect(model.recurrence == nil)
         #expect(model.selectedTags.isEmpty)
         #expect(model.saveFailureKind == .addGoal)
         #expect(model.isSaveDisabled)
@@ -50,6 +51,7 @@ struct GoalFormModelTests {
                         step: 2,
                         unit: .miles,
                     ),
+                    recurrence: GoalRecurrence(cadence: .weekly),
                     tags: tags,
                 ),
             ),
@@ -64,6 +66,7 @@ struct GoalFormModelTests {
         #expect(model.targetValue == 10)
         #expect(model.step == 2)
         #expect(model.selectedProgressUnit == .miles)
+        #expect(model.recurrence == GoalRecurrence(cadence: .weekly))
         #expect(model.selectedTags.map(\.name) == ["Health", "Running"])
         #expect(model.saveFailureKind == .updateGoal)
     }
@@ -331,6 +334,36 @@ struct GoalFormModelTests {
         let data = model.makeFormData()
 
         #expect(data.tags.map(\.name) == ["Health", "Running"])
+    }
+
+    @Test
+    func `Form data preserves selected recurrence`() {
+        let model = GoalFormModel(mode: .create)
+        model.name = "Read"
+        model.recurrence = GoalRecurrence(cadence: .daily)
+
+        let data = model.makeFormData()
+
+        #expect(data.recurrence == GoalRecurrence(cadence: .daily))
+    }
+
+    @Test
+    func `Form data preserves never recurrence`() {
+        let model = GoalFormModel(
+            mode: .edit(
+                GoalFormData(
+                    name: "Read",
+                    details: "",
+                    progress: .outcomePending,
+                    recurrence: GoalRecurrence(cadence: .yearly),
+                ),
+            ),
+        )
+        model.recurrence = nil
+
+        let data = model.makeFormData()
+
+        #expect(data.recurrence == nil)
     }
 
     @Test

@@ -22,6 +22,7 @@ final class GoalFormModel {
     var targetValue: Double?
     var step: Double?
     var selectedProgressUnit: GoalProgressUnit?
+    var recurrence: GoalRecurrence?
     var selectedTags: [Tag]
 
     let mode: GoalFormMode
@@ -40,6 +41,7 @@ final class GoalFormModel {
         hasDueDate = data.dueDate != nil
         dueDate = data.dueDate ?? Date()
         earlyReminder = data.earlyReminder
+        recurrence = data.recurrence
         selectedTags = data.tags
         initialOutcomeIsCompleted = data.progress.isCompleted
 
@@ -123,6 +125,7 @@ final class GoalFormModel {
             dueDate: hasDueDate ? dueDate : nil,
             earlyReminder: hasDueDate ? earlyReminder : nil,
             progress: progress,
+            recurrence: recurrence,
             tags: selectedTags,
         )
     }
