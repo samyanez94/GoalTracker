@@ -142,7 +142,7 @@ struct GoalRecurrenceTests {
     }
 
     @Test
-    func `Recurring goal without current period completion has zero current streak`() {
+    func `Incomplete current period preserves previous completed streak`() {
         let goal = Goal(
             name: "Read",
             details: nil,
@@ -151,6 +151,26 @@ struct GoalRecurrenceTests {
                 kind: .outcome,
                 events: [
                     GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 27)),
+                    GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 26)),
+                ],
+                targetValue: 1,
+            ),
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+
+        #expect(goal.currentStreak(at: date(year: 2026, month: 5, day: 28), calendar: calendar) == 2)
+    }
+
+    @Test
+    func `Current streak resets after a missed elapsed period`() {
+        let goal = Goal(
+            name: "Read",
+            details: nil,
+            createdAt: date(year: 2026, month: 5, day: 26),
+            progress: GoalProgress(
+                kind: .outcome,
+                events: [
+                    GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 26)),
                 ],
                 targetValue: 1,
             ),

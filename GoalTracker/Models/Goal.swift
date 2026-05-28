@@ -94,6 +94,10 @@ extension GoalTrackerSchemaV1 {
             }
             var streak = 0
             var period = recurrence.period(containing: date, calendar: calendar)
+            if let currentPeriod = period,
+               !progress.isCompleted(in: currentPeriod) {
+                period = recurrence.period(before: currentPeriod, calendar: calendar)
+            }
             while let currentPeriod = period,
                   progress.isCompleted(in: currentPeriod) {
                 streak += 1

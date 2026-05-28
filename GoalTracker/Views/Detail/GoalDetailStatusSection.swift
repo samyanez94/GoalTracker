@@ -18,7 +18,7 @@ struct GoalDetailStatusSection: View {
             HStack {
                 Image(systemName: goal.status.iconSystemName)
                     .font(.title2)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(goal.isCompleted ? Color.blue : Color.secondary)
                     .contentTransition(.symbolEffect(.replace))
                     .accessibilityHidden(true)
                 Text("Status")

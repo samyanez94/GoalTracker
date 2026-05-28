@@ -23,7 +23,7 @@ struct GoalDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 32) {
+            VStack(alignment: .leading, spacing: 24) {
                 GoalDetailHeaderSection(goal: goal)
                 GoalDetailStatusSection(goal: goal)
                 if goal.isRecurring {
