@@ -29,43 +29,116 @@ extension GoalTrackerSchemaV1 {
         var earlyReminder: GoalReminder? = nil
         /// The current progress summary for this goal.
         var progress: GoalProgress = GoalProgress.outcomePending
+        /// Optional recurrence rules for goals that reset completion each cadence period.
+        var recurrence: GoalRecurrence?
         /// Reusable tags associated with this goal.
         var tags: [Tag] = []
 
         /// Whether the current progress has reached its target.
         var isCompleted: Bool {
-            progress.isCompleted
+            isCompleted()
         }
 
         /// The current user-facing status derived from progress.
         var status: GoalStatus {
-            if isCompleted {
+            status()
+        }
+
+        func isCompleted(
+            at date: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Bool {
+            guard let period = recurrence?.period(containing: date, calendar: calendar) else {
+                return progress.isCompleted
+            }
+            return progress.isCompleted(in: period)
+        }
+
+        func status(
+            at date: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> GoalStatus {
+            if isCompleted(at: date, calendar: calendar) {
                 return .completed
             }
-            if progress.currentValue > 0 {
+            if currentProgressValue(at: date, calendar: calendar) > 0 {
                 return .inProgress
             }
             return .pending
         }
 
-        @discardableResult
-        func complete(timestamp: Date = Date()) -> Bool {
-            progress.complete(timestamp: timestamp)
+        func currentProgressValue(
+            at date: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Double {
+            guard let period = recurrence?.period(containing: date, calendar: calendar) else {
+                return progress.currentValue
+            }
+            return progress.currentValue(in: period)
+        }
+
+        func canDecrementProgress(
+            at date: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Bool {
+            guard let period = recurrence?.period(containing: date, calendar: calendar) else {
+                return progress.canDecrement
+            }
+            return progress.canDecrement(in: period)
+        }
+
+        func canIncrementProgress(
+            at date: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Bool {
+            guard let period = recurrence?.period(containing: date, calendar: calendar) else {
+                return progress.canIncrement
+            }
+            return progress.canIncrement(in: period)
         }
 
         @discardableResult
-        func toggleCompletion(timestamp: Date = Date()) -> Bool {
-            progress.toggleCompletion(timestamp: timestamp)
+        func complete(
+            timestamp: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Bool {
+            guard let period = recurrence?.period(containing: timestamp, calendar: calendar) else {
+                return progress.complete(timestamp: timestamp)
+            }
+            return progress.complete(in: period, timestamp: timestamp)
         }
 
         @discardableResult
-        func incrementProgress(timestamp: Date = Date()) -> Bool {
-            progress.increment(timestamp: timestamp)
+        func toggleCompletion(
+            timestamp: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Bool {
+            guard let period = recurrence?.period(containing: timestamp, calendar: calendar) else {
+                return progress.toggleCompletion(timestamp: timestamp)
+            }
+            return progress.toggleCompletion(in: period, timestamp: timestamp)
         }
 
         @discardableResult
-        func decrementProgress(timestamp: Date = Date()) -> Bool {
-            progress.decrement(timestamp: timestamp)
+        func incrementProgress(
+            timestamp: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Bool {
+            guard let period = recurrence?.period(containing: timestamp, calendar: calendar) else {
+                return progress.increment(timestamp: timestamp)
+            }
+            return progress.increment(in: period, timestamp: timestamp)
+        }
+
+        @discardableResult
+        func decrementProgress(
+            timestamp: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Bool {
+            guard let period = recurrence?.period(containing: timestamp, calendar: calendar) else {
+                return progress.decrement(timestamp: timestamp)
+            }
+            return progress.decrement(in: period, timestamp: timestamp)
         }
 
         init(
@@ -76,6 +149,7 @@ extension GoalTrackerSchemaV1 {
             earlyReminder: GoalReminder? = nil,
             createdAt: Date,
             progress: GoalProgress,
+            recurrence: GoalRecurrence? = nil,
         ) {
             self.id = id
             self.name = name
@@ -84,6 +158,7 @@ extension GoalTrackerSchemaV1 {
             self.earlyReminder = earlyReminder
             self.createdAt = createdAt
             self.progress = progress
+            self.recurrence = recurrence
         }
     }
 }

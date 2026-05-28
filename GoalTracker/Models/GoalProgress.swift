@@ -43,7 +43,7 @@ nonisolated struct GoalProgress: Codable {
 
     /// The user's current progress toward the target value.
     var currentValue: Double {
-        min(max(0, eventValue), upperBound)
+        boundedValue(from: eventValue)
     }
 
     /// Whether the current value has reached or exceeded the target value.
@@ -84,7 +84,7 @@ nonisolated struct GoalProgress: Codable {
                 targetValue: targetValue,
                 step: step,
             ),
-            "Progress values must be finite, non-negative, and within target bounds.",
+            "Progress values must be finite, non-negative, and have a positive target and step.",
         )
         self.kind = kind
         self.events = events
@@ -138,7 +138,6 @@ nonisolated struct GoalProgress: Codable {
             && currentValue >= 0
             && targetValue > 0
             && step > 0
-            && currentValue <= targetValue
     }
 
     static func isValid(
@@ -194,6 +193,85 @@ nonisolated struct GoalProgress: Codable {
         setCurrentValue(currentValue, timestamp: timestamp)
     }
 
+    func currentValue(in period: DateInterval) -> Double {
+        boundedValue(from: eventValue(in: period))
+    }
+
+    func isCompleted(in period: DateInterval) -> Bool {
+        currentValue(in: period) >= targetValue
+    }
+
+    func canDecrement(in period: DateInterval) -> Bool {
+        isMeasurable && currentValue(in: period) > 0
+    }
+
+    func canIncrement(in period: DateInterval) -> Bool {
+        isMeasurable && currentValue(in: period) < upperBound
+    }
+
+    func fractionCompleted(in period: DateInterval) -> Double {
+        guard targetValue > 0 else {
+            return isCompleted(in: period) ? 1 : 0
+        }
+        return currentValue(in: period) / targetValue
+    }
+
+    @discardableResult
+    mutating func complete(
+        in period: DateInterval,
+        timestamp: Date = Date(),
+    ) -> Bool {
+        setCurrentValue(targetValue, in: period, timestamp: timestamp)
+    }
+
+    @discardableResult
+    mutating func reset(
+        in period: DateInterval,
+        timestamp: Date = Date(),
+    ) -> Bool {
+        setCurrentValue(0, in: period, timestamp: timestamp)
+    }
+
+    @discardableResult
+    mutating func toggleCompletion(
+        in period: DateInterval,
+        timestamp: Date = Date(),
+    ) -> Bool {
+        isCompleted(in: period)
+            ? reset(in: period, timestamp: timestamp)
+            : complete(in: period, timestamp: timestamp)
+    }
+
+    @discardableResult
+    mutating func increment(
+        in period: DateInterval,
+        timestamp: Date = Date(),
+    ) -> Bool {
+        guard isMeasurable else {
+            return false
+        }
+        return setCurrentValue(
+            currentValue(in: period) + step,
+            in: period,
+            timestamp: timestamp,
+        )
+    }
+
+    @discardableResult
+    mutating func decrement(
+        in period: DateInterval,
+        timestamp: Date = Date(),
+    ) -> Bool {
+        guard isMeasurable else {
+            return false
+        }
+        return setCurrentValue(
+            currentValue(in: period) - step,
+            in: period,
+            timestamp: timestamp,
+        )
+    }
+
     func updated(
         preservingEventsFrom previousProgress: GoalProgress,
         timestamp: Date = Date(),
@@ -221,7 +299,7 @@ nonisolated struct GoalProgress: Codable {
                 DecodingError.Context(
                     codingPath: decoder.codingPath,
                     debugDescription:
-                        "Progress values must be finite, non-negative, and within target bounds.",
+                        "Progress values must be finite, non-negative, and have a positive target and step.",
                 ),
             )
         }
@@ -251,6 +329,19 @@ nonisolated struct GoalProgress: Codable {
         events.reduce(0) { $0 + $1.delta }
     }
 
+    private func eventValue(in period: DateInterval) -> Double {
+        events.reduce(0) { value, event in
+            guard event.timestamp.isInsideProgressPeriod(period) else {
+                return value
+            }
+            return value + event.delta
+        }
+    }
+
+    private func boundedValue(from value: Double) -> Double {
+        min(max(0, value), upperBound)
+    }
+
     private static func events(
         for currentValue: Double,
         timestamp: Date,
@@ -275,6 +366,27 @@ nonisolated struct GoalProgress: Codable {
         }
         events.append(GoalProgressEvent(delta: delta, timestamp: timestamp))
         return true
+    }
+
+    @discardableResult
+    private mutating func setCurrentValue(
+        _ value: Double,
+        in period: DateInterval,
+        timestamp: Date,
+    ) -> Bool {
+        let updatedValue = min(max(0, value), upperBound)
+        let delta = updatedValue - eventValue(in: period)
+        guard delta != 0 else {
+            return false
+        }
+        events.append(GoalProgressEvent(delta: delta, timestamp: timestamp))
+        return true
+    }
+}
+
+nonisolated private extension Date {
+    func isInsideProgressPeriod(_ period: DateInterval) -> Bool {
+        self >= period.start && self < period.end
     }
 }
 

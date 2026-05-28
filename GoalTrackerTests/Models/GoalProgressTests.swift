@@ -45,7 +45,7 @@ struct GoalProgressTests {
         let didChange = progress.complete(timestamp: timestamp)
 
         let event = try #require(progress.events.last)
-        #expect(didChange)
+        #expect(didChange == true)
         #expect(progress.currentValue == 10)
         #expect(event.delta == 7)
         #expect(event.timestamp == timestamp)
@@ -59,7 +59,7 @@ struct GoalProgressTests {
         let didChange = progress.reset(timestamp: timestamp)
 
         let event = try #require(progress.events.last)
-        #expect(didChange)
+        #expect(didChange == true)
         #expect(progress.currentValue == 0)
         #expect(event.delta == -3)
         #expect(event.timestamp == timestamp)
@@ -73,7 +73,7 @@ struct GoalProgressTests {
         let didChange = progress.increment(timestamp: timestamp)
 
         let event = try #require(progress.events.last)
-        #expect(didChange)
+        #expect(didChange == true)
         #expect(progress.currentValue == 4.5)
         #expect(event.delta == 2.5)
         #expect(event.timestamp == timestamp)
@@ -140,6 +140,103 @@ struct GoalProgressTests {
     func `isCompleted is true when current value reaches target`() {
         #expect(makeProgress(currentValue: 9.5, targetValue: 10).isCompleted == false)
         #expect(makeProgress(currentValue: 10, targetValue: 10).isCompleted == true)
+    }
+
+    @Test
+    func `Period progress ignores events outside period`() {
+        let period = DateInterval(
+            start: Date(timeIntervalSinceReferenceDate: 100),
+            end: Date(timeIntervalSinceReferenceDate: 200),
+        )
+        let progress = GoalProgress(
+            kind: .measurable,
+            events: [
+                GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 50)),
+                GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 150)),
+                GoalProgressEvent(delta: 6, timestamp: Date(timeIntervalSinceReferenceDate: 200)),
+            ],
+            targetValue: 10,
+            step: 2,
+        )
+
+        #expect(progress.currentValue(in: period) == 4)
+        #expect(progress.isCompleted(in: period) == false)
+    }
+
+    @Test
+    func `Period completion uses only current period target progress`() {
+        let period = DateInterval(
+            start: Date(timeIntervalSinceReferenceDate: 100),
+            end: Date(timeIntervalSinceReferenceDate: 200),
+        )
+        let progress = GoalProgress(
+            kind: .measurable,
+            events: [
+                GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 50)),
+                GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 150)),
+            ],
+            targetValue: 10,
+            step: 2,
+        )
+
+        #expect(progress.currentValue(in: period) == 10)
+        #expect(progress.isCompleted(in: period) == true)
+    }
+
+    @Test
+    func `Completing period appends event without clearing prior history`() throws {
+        let period = DateInterval(
+            start: Date(timeIntervalSinceReferenceDate: 100),
+            end: Date(timeIntervalSinceReferenceDate: 200),
+        )
+        let timestamp = Date(timeIntervalSinceReferenceDate: 150)
+        var progress = GoalProgress(
+            kind: .measurable,
+            events: [
+                GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 50))
+            ],
+            targetValue: 10,
+            step: 2,
+        )
+
+        let didChange = progress.complete(in: period, timestamp: timestamp)
+        let event = try #require(progress.events.last)
+
+        #expect(didChange)
+        #expect(progress.events.count == 2)
+        #expect(event.delta == 10)
+        #expect(event.timestamp == timestamp)
+        #expect(progress.currentValue(in: period) == 10)
+    }
+
+    @Test
+    func `Period increment and decrement mutate current period value`() {
+        let period = DateInterval(
+            start: Date(timeIntervalSinceReferenceDate: 100),
+            end: Date(timeIntervalSinceReferenceDate: 200),
+        )
+        var progress = GoalProgress(
+            kind: .measurable,
+            events: [
+                GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 50))
+            ],
+            targetValue: 10,
+            step: 2,
+        )
+
+        let didIncrement = progress.increment(
+            in: period,
+            timestamp: Date(timeIntervalSinceReferenceDate: 150),
+        )
+        let didDecrement = progress.decrement(
+            in: period,
+            timestamp: Date(timeIntervalSinceReferenceDate: 160),
+        )
+
+        #expect(didIncrement == true)
+        #expect(didDecrement == true)
+        #expect(progress.events.map(\.delta) == [10, 2, -2])
+        #expect(progress.currentValue(in: period) == 0)
     }
 
     @Test
@@ -235,7 +332,7 @@ struct GoalProgressTests {
     }
 
     @Test
-    func `Invalid progress values throw a data corrupted error`() {
+    func `Invalid negative progress values throw a data corrupted error`() {
         #expect(throws: DecodingError.self) {
             try decodeProgress(
                 """
@@ -243,7 +340,7 @@ struct GoalProgressTests {
                     "kind": "measurable",
                     "events": [
                         {
-                            "delta": 11,
+                            "delta": -1,
                             "timestamp": 0
                         }
                     ],
@@ -253,6 +350,32 @@ struct GoalProgressTests {
                 """,
             )
         }
+    }
+
+    @Test
+    func `Historical progress may exceed one target value`() throws {
+        let progress = try decodeProgress(
+            """
+            {
+                "kind": "measurable",
+                "events": [
+                    {
+                        "delta": 10,
+                        "timestamp": 0
+                    },
+                    {
+                        "delta": 10,
+                        "timestamp": 100
+                    }
+                ],
+                "targetValue": 10,
+                "step": 1
+            }
+            """,
+        )
+
+        #expect(progress.events.map(\.delta) == [10, 10])
+        #expect(progress.currentValue == 10)
     }
 
     @Test

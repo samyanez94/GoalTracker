@@ -50,6 +50,63 @@ struct GoalManagerTests {
     }
 
     @Test
+    func `Recurring measurable progress updates current cadence period only`() async throws {
+        let container = try makeContainer()
+        let yesterday = date(year: 2026, month: 5, day: 27, hour: 12)
+        let today = date(year: 2026, month: 5, day: 28, hour: 12)
+        let goal = makeGoal(
+            progress: GoalProgress(
+                kind: .measurable,
+                events: [
+                    GoalProgressEvent(delta: 10, timestamp: yesterday)
+                ],
+                targetValue: 10,
+                step: 5,
+            ),
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+        insert(goal, into: container)
+        let manager = makeManager(in: container, now: { today })
+
+        let didIncrement = try manager.incrementProgress(goal)
+        let didComplete = try manager.completeGoal(goal)
+
+        #expect(didIncrement == true)
+        #expect(didComplete == true)
+        #expect(goal.progress.events.map(\.delta) == [10, 5, 5])
+        #expect(goal.currentProgressValue(at: today) == 10)
+        #expect(goal.isCompleted(at: today) == true)
+    }
+
+    @Test
+    func `Updating recurrence preserves progress history`() async throws {
+        let container = try makeContainer()
+        let completionDate = date(year: 2026, month: 5, day: 27, hour: 12)
+        let currentDate = date(year: 2026, month: 5, day: 28, hour: 12)
+        let goal = makeGoal(
+            progress: GoalProgress(
+                kind: .outcome,
+                events: [
+                    GoalProgressEvent(delta: 1, timestamp: completionDate)
+                ],
+                targetValue: 1,
+                step: 1,
+            ),
+        )
+        insert(goal, into: container)
+        let manager = makeManager(in: container, now: { currentDate })
+
+        try manager.updateRecurrence(
+            goal,
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+
+        #expect(goal.recurrence == GoalRecurrence(cadence: .daily))
+        #expect(goal.progress.events.map(\.delta) == [1])
+        #expect(goal.isCompleted(at: currentDate) == false)
+    }
+
+    @Test
     func `Editing measurable current value appends balancing event`() async throws {
         let container = try makeContainer()
         let timestamp = Date(timeIntervalSinceReferenceDate: 123)
@@ -514,6 +571,7 @@ struct GoalManagerTests {
         dueDate: Date? = nil,
         earlyReminder: GoalReminder? = nil,
         progress: GoalProgress,
+        recurrence: GoalRecurrence? = nil,
     ) -> Goal {
         Goal(
             name: name,
@@ -522,7 +580,29 @@ struct GoalManagerTests {
             earlyReminder: earlyReminder,
             createdAt: Date(timeIntervalSinceReferenceDate: 0),
             progress: progress,
+            recurrence: recurrence,
         )
+    }
+
+    private func date(
+        year: Int,
+        month: Int,
+        day: Int,
+        hour: Int = 0,
+    ) -> Date {
+        let calendar = Calendar.current
+        let components = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: year,
+            month: month,
+            day: day,
+            hour: hour,
+        )
+        guard let date = components.date else {
+            preconditionFailure("Invalid test date.")
+        }
+        return date
     }
 
     private enum TestSaveError: Error {
