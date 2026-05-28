@@ -47,6 +47,10 @@ nonisolated enum GoalRecurrenceCadence: String, Codable, Equatable, Hashable {
         }
     }
 
+    func streakValueTitle(for count: Int) -> String {
+        "\(count) \(streakUnitTitle(for: count))"
+    }
+
     func period(
         containing date: Date,
         calendar: Calendar = .current,
@@ -60,6 +64,46 @@ nonisolated enum GoalRecurrenceCadence: String, Codable, Equatable, Hashable {
             calendar.dateInterval(of: .month, for: date)
         case .yearly:
             calendar.dateInterval(of: .year, for: date)
+        }
+    }
+
+    func period(
+        before period: DateInterval,
+        calendar: Calendar = .current,
+    ) -> DateInterval? {
+        guard let dateInPreviousPeriod = calendar.date(
+            byAdding: calendarComponent,
+            value: -1,
+            to: period.start,
+        ) else {
+            return nil
+        }
+        return self.period(containing: dateInPreviousPeriod, calendar: calendar)
+    }
+
+    private var calendarComponent: Calendar.Component {
+        switch self {
+        case .daily:
+            .day
+        case .weekly:
+            .weekOfYear
+        case .monthly:
+            .month
+        case .yearly:
+            .year
+        }
+    }
+
+    private func streakUnitTitle(for count: Int) -> String {
+        switch self {
+        case .daily:
+            count == 1 ? "day" : "days"
+        case .weekly:
+            count == 1 ? "week" : "weeks"
+        case .monthly:
+            count == 1 ? "month" : "months"
+        case .yearly:
+            count == 1 ? "year" : "years"
         }
     }
 }

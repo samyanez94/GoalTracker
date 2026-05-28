@@ -66,6 +66,25 @@ struct GoalRecurrenceTests {
     }
 
     @Test
+    func `Cadence can resolve the previous period`() throws {
+        let currentPeriod = try #require(
+            GoalRecurrenceCadence.monthly.period(
+                containing: date(year: 2026, month: 1, day: 28),
+                calendar: calendar,
+            )
+        )
+        let previousPeriod = try #require(
+            GoalRecurrenceCadence.monthly.period(
+                before: currentPeriod,
+                calendar: calendar,
+            )
+        )
+
+        #expect(previousPeriod.start == date(year: 2025, month: 12, day: 1))
+        #expect(previousPeriod.end == date(year: 2026, month: 1, day: 1))
+    }
+
+    @Test
     func `Recurrence encodes cadence as a stable value`() throws {
         let recurrence = GoalRecurrence(cadence: .weekly)
         let data = try JSONEncoder().encode(recurrence)
@@ -80,6 +99,147 @@ struct GoalRecurrenceTests {
         #expect(GoalRecurrence(cadence: .weekly).detailTitle == "Repeats every week")
         #expect(GoalRecurrence(cadence: .monthly).detailTitle == "Repeats every month")
         #expect(GoalRecurrence(cadence: .yearly).detailTitle == "Repeats every year")
+    }
+
+    @Test
+    func `Streak value titles pluralize cadence units`() {
+        #expect(GoalRecurrenceCadence.daily.streakValueTitle(for: 1) == "1 day")
+        #expect(GoalRecurrenceCadence.weekly.streakValueTitle(for: 5) == "5 weeks")
+        #expect(GoalRecurrenceCadence.monthly.streakValueTitle(for: 1) == "1 month")
+        #expect(GoalRecurrenceCadence.yearly.streakValueTitle(for: 5) == "5 years")
+    }
+
+    @Test
+    func `Non recurring goal has no current streak`() {
+        let goal = Goal(
+            name: "Read",
+            details: nil,
+            createdAt: date(year: 2026, month: 5, day: 28),
+            progress: .outcomeCompleted,
+        )
+
+        #expect(goal.currentStreak(at: date(year: 2026, month: 5, day: 28), calendar: calendar) == nil)
+    }
+
+    @Test
+    func `Goal reports whether it is recurring`() {
+        let nonRecurringGoal = Goal(
+            name: "Read",
+            details: nil,
+            createdAt: date(year: 2026, month: 5, day: 28),
+            progress: .outcomePending,
+        )
+        let recurringGoal = Goal(
+            name: "Run",
+            details: nil,
+            createdAt: date(year: 2026, month: 5, day: 28),
+            progress: .outcomePending,
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+
+        #expect(nonRecurringGoal.isRecurring == false)
+        #expect(recurringGoal.isRecurring)
+    }
+
+    @Test
+    func `Recurring goal without current period completion has zero current streak`() {
+        let goal = Goal(
+            name: "Read",
+            details: nil,
+            createdAt: date(year: 2026, month: 5, day: 28),
+            progress: GoalProgress(
+                kind: .outcome,
+                events: [
+                    GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 27)),
+                ],
+                targetValue: 1,
+            ),
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+
+        #expect(goal.currentStreak(at: date(year: 2026, month: 5, day: 28), calendar: calendar) == 0)
+    }
+
+    @Test
+    func `Current streak ignores progress outside current period`() {
+        let goal = Goal(
+            name: "Run",
+            details: nil,
+            createdAt: date(year: 2026, month: 5, day: 28),
+            progress: GoalProgress(
+                kind: .measurable,
+                events: [
+                    GoalProgressEvent(delta: 10, timestamp: date(year: 2026, month: 5, day: 29)),
+                ],
+                targetValue: 10,
+            ),
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+
+        #expect(goal.currentStreak(at: date(year: 2026, month: 5, day: 28, hour: 12), calendar: calendar) == 0)
+    }
+
+    @Test
+    func `Daily current streak counts consecutive completed periods`() {
+        let goal = Goal(
+            name: "Read",
+            details: nil,
+            createdAt: date(year: 2026, month: 5, day: 28),
+            progress: GoalProgress(
+                kind: .outcome,
+                events: [
+                    GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 28)),
+                    GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 27)),
+                    GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 26)),
+                ],
+                targetValue: 1,
+            ),
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+
+        #expect(goal.currentStreak(at: date(year: 2026, month: 5, day: 28, hour: 12), calendar: calendar) == 3)
+    }
+
+    @Test
+    func `Current streak stops at the first incomplete period`() {
+        let goal = Goal(
+            name: "Read",
+            details: nil,
+            createdAt: date(year: 2026, month: 5, day: 25),
+            progress: GoalProgress(
+                kind: .outcome,
+                events: [
+                    GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 28)),
+                    GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 27)),
+                    GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 25)),
+                ],
+                targetValue: 1,
+            ),
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+
+        #expect(goal.currentStreak(at: date(year: 2026, month: 5, day: 28, hour: 12), calendar: calendar) == 2)
+    }
+
+    @Test
+    func `Measurable current streak uses completed cadence periods`() {
+        let goal = Goal(
+            name: "Run",
+            details: nil,
+            createdAt: date(year: 2026, month: 5, day: 1),
+            progress: GoalProgress(
+                kind: .measurable,
+                events: [
+                    GoalProgressEvent(delta: 10, timestamp: date(year: 2026, month: 5, day: 28)),
+                    GoalProgressEvent(delta: 10, timestamp: date(year: 2026, month: 5, day: 21)),
+                    GoalProgressEvent(delta: 5, timestamp: date(year: 2026, month: 5, day: 14)),
+                ],
+                targetValue: 10,
+            ),
+            recurrence: GoalRecurrence(cadence: .weekly),
+        )
+
+        #expect(goal.currentStreak(at: date(year: 2026, month: 5, day: 28, hour: 12), calendar: calendar) == 2)
     }
 
     @Test

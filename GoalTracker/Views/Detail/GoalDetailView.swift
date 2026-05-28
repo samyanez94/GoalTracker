@@ -26,7 +26,10 @@ struct GoalDetailView: View {
             VStack(alignment: .leading, spacing: 32) {
                 GoalDetailHeaderSection(goal: goal)
                 GoalDetailStatusSection(goal: goal)
-                if goal.progress.isMeasurable {
+                if goal.isRecurring {
+                    GoalDetailStreakSection(goal: goal)
+                }
+                if goal.isMeasurable {
                     GoalDetailProgressSection(goal: goal)
                 }
             }

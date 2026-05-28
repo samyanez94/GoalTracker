@@ -43,6 +43,14 @@ extension GoalTrackerSchemaV1 {
         var status: GoalStatus {
             status()
         }
+        
+        var isMeasurable: Bool {
+            progress.isMeasurable
+        }
+
+        var isRecurring: Bool {
+            recurrence != nil
+        }
 
         func isCompleted(
             at date: Date = Date(),
@@ -75,6 +83,23 @@ extension GoalTrackerSchemaV1 {
                 return progress.currentValue
             }
             return progress.currentValue(in: period)
+        }
+
+        func currentStreak(
+            at date: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Int? {
+            guard let recurrence else {
+                return nil
+            }
+            var streak = 0
+            var period = recurrence.period(containing: date, calendar: calendar)
+            while let currentPeriod = period,
+                  progress.isCompleted(in: currentPeriod) {
+                streak += 1
+                period = recurrence.period(before: currentPeriod, calendar: calendar)
+            }
+            return streak
         }
 
         func canDecrementProgress(

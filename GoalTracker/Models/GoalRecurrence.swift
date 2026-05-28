@@ -33,4 +33,11 @@ nonisolated struct GoalRecurrence: Codable, Equatable, Hashable {
     ) -> DateInterval? {
         cadence.period(containing: date, calendar: calendar)
     }
+
+    func period(
+        before period: DateInterval,
+        calendar: Calendar = .current,
+    ) -> DateInterval? {
+        cadence.period(before: period, calendar: calendar)
+    }
 }
