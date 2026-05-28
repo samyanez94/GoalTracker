@@ -81,10 +81,12 @@ struct GoalFormView: View {
             Section {
                 NavigationLink(value: GoalFormDestination.tags) {
                     HStack {
-                        Image(systemName: "number")
-                            .foregroundStyle(.secondary)
-                        Text("Tags")
-                            .foregroundStyle(.primary)
+                        Label {
+                            Text("Tags")
+                        } icon: {
+                            Image(systemName: "number")
+                                .foregroundStyle(.secondary)
+                        }
                         Spacer()
                         if model.selectedTags.isEmpty == false {
                             Text(tagSelectionSummary(for: model.selectedTags))
@@ -147,11 +149,11 @@ struct GoalFormView: View {
             }
             Section {
                 Toggle(isOn: $model.isProgressBased) {
-                    HStack {
+                    Label {
+                        Text("Track progress")
+                    } icon: {
                         Image(systemName: "plus.forwardslash.minus")
                             .foregroundStyle(.secondary)
-                        Text("Track progress")
-                            .foregroundStyle(.primary)
                     }
                 }
                 if model.isProgressBased {

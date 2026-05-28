@@ -20,11 +20,11 @@ struct GoalReminderPickerRow: View {
                     .tag(preset.earlyReminder as GoalReminder?)
             }
         } label: {
-            HStack {
+            Label {
+                Text("Early Reminder")
+            } icon: {
                 Image(systemName: "bell")
                     .foregroundStyle(.secondary)
-                Text("Early Reminder")
-                    .foregroundStyle(.primary)
             }
         }
     }

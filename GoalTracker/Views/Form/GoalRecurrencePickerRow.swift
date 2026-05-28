@@ -20,11 +20,11 @@ struct GoalRecurrencePickerRow: View {
                     .tag(GoalRecurrence(cadence: cadence) as GoalRecurrence?)
             }
         } label: {
-            HStack {
+            Label {
+                Text("Repeat")
+            } icon: {
                 Image(systemName: "repeat")
                     .foregroundStyle(.secondary)
-                Text("Repeat")
-                    .foregroundStyle(.primary)
             }
         }
     }

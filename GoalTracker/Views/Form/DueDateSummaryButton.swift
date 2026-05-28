@@ -14,9 +14,7 @@ struct DueDateSummaryButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack {
-                Image(systemName: "calendar")
-                    .foregroundStyle(.secondary)
+            Label {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Due Date")
                     if hasDueDate {
@@ -25,12 +23,13 @@ struct DueDateSummaryButton: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                Spacer()
+            } icon: {
+                Image(systemName: "calendar")
+                    .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(.rect)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .buttonStyle(.plain)
     }
 }
