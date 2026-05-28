@@ -13,10 +13,10 @@ struct GoalRowView: View {
     var body: some View {
         NavigationLink(value: goal) {
             HStack(spacing: 12) {
-                CircularGoalProgressView(
-                    progress: goal.progress.fractionCompleted,
-                )
-                .frame(width: 24, height: 24)
+                Image(systemName: goal.status.iconSystemName)
+                    .foregroundStyle(.blue)
+                    .contentTransition(.symbolEffect(.replace))
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(goal.name)
                         .foregroundStyle(goal.isCompleted ? .secondary : .primary)
