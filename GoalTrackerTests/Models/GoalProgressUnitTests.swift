@@ -131,7 +131,12 @@ struct GoalProgressUnitTests {
         let data = try #require("""
             {
                 "kind": "measurable",
-                "currentValue": 1,
+                "events": [
+                    {
+                        "delta": 1,
+                        "timestamp": 0
+                    }
+                ],
                 "targetValue": 5,
                 "step": 1,
                 "unit": {
@@ -150,7 +155,12 @@ struct GoalProgressUnitTests {
         let data = try #require("""
             {
                 "kind": "measurable",
-                "currentValue": 1,
+                "events": [
+                    {
+                        "delta": 1,
+                        "timestamp": 0
+                    }
+                ],
                 "targetValue": 5,
                 "step": 1,
                 "unit": {
@@ -175,7 +185,12 @@ struct GoalProgressUnitTests {
         let data = try #require("""
             {
                 "kind": "measurable",
-                "currentValue": 1,
+                "events": [
+                    {
+                        "delta": 1,
+                        "timestamp": 0
+                    }
+                ],
                 "targetValue": 5,
                 "step": 1,
                 "unit": {}

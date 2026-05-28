@@ -159,6 +159,7 @@ final class GoalFormModel {
                 targetValue: targetValue,
                 step: step,
                 unit: selectedProgressUnit,
+                timestamp: now(),
             )
         } else {
             return initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending

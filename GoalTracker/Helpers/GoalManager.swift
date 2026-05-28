@@ -23,12 +23,15 @@ struct GoalManager {
 
     private let rollbackContext: () -> Void
 
+    private let now: () -> Date
+
     /// Initializes a `GoalManager`.
     init(
         modelContext: ModelContext,
         notificationScheduler: any GoalReminderScheduling = GoalNotificationScheduler(),
         saveContext: (() throws -> Void)? = nil,
         rollbackContext: (() -> Void)? = nil,
+        now: @escaping () -> Date = Date.init,
     ) {
         self.modelContext = modelContext
         self.notificationScheduler = notificationScheduler
@@ -38,6 +41,7 @@ struct GoalManager {
         self.rollbackContext = rollbackContext ?? {
             modelContext.rollback()
         }
+        self.now = now
     }
 
     /// Inserts a new goal into the model context and saves the change.
@@ -70,7 +74,10 @@ struct GoalManager {
                 goal.details = details
                 goal.dueDate = dueDate
                 goal.earlyReminder = earlyReminder
-                goal.progress = progress
+                goal.progress = progress.updated(
+                    preservingEventsFrom: goal.progress,
+                    timestamp: now(),
+                )
                 if let tags {
                     goal.tags = tags
                     try deleteUnusedTags(
@@ -110,7 +117,7 @@ struct GoalManager {
         _ goal: Goal,
     ) throws -> Bool {
         try updateProgress(goal) { goal in
-            goal.toggleCompletion()
+            goal.toggleCompletion(timestamp: now())
         }
     }
 
@@ -122,7 +129,7 @@ struct GoalManager {
         _ goal: Goal,
     ) throws -> Bool {
         try updateProgress(goal) { goal in
-            goal.complete()
+            goal.complete(timestamp: now())
         }
     }
 
@@ -134,7 +141,7 @@ struct GoalManager {
         _ goal: Goal,
     ) throws -> Bool {
         try updateProgress(goal) { goal in
-            goal.incrementProgress()
+            goal.incrementProgress(timestamp: now())
         }
     }
 
@@ -146,7 +153,7 @@ struct GoalManager {
         _ goal: Goal,
     ) throws -> Bool {
         try updateProgress(goal) { goal in
-            goal.decrementProgress()
+            goal.decrementProgress(timestamp: now())
         }
     }
 

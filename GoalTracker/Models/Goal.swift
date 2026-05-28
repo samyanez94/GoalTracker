@@ -49,23 +49,23 @@ extension GoalTrackerSchemaV1 {
         }
 
         @discardableResult
-        func complete() -> Bool {
-            progress.complete()
+        func complete(timestamp: Date = Date()) -> Bool {
+            progress.complete(timestamp: timestamp)
         }
 
         @discardableResult
-        func toggleCompletion() -> Bool {
-            progress.toggleCompletion()
+        func toggleCompletion(timestamp: Date = Date()) -> Bool {
+            progress.toggleCompletion(timestamp: timestamp)
         }
 
         @discardableResult
-        func incrementProgress() -> Bool {
-            progress.increment()
+        func incrementProgress(timestamp: Date = Date()) -> Bool {
+            progress.increment(timestamp: timestamp)
         }
 
         @discardableResult
-        func decrementProgress() -> Bool {
-            progress.decrement()
+        func decrementProgress(timestamp: Date = Date()) -> Bool {
+            progress.decrement(timestamp: timestamp)
         }
 
         init(

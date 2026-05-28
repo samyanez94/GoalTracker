@@ -14,8 +14,8 @@ import Foundation
 nonisolated struct GoalProgress: Codable {
     /// Whether this progress represents a binary outcome or a measurable target.
     private(set) var kind: GoalProgressKind
-    /// The user's current progress toward the target value.
-    private(set) var currentValue: Double
+    /// Timestamped progress changes for this goal.
+    private(set) var events: [GoalProgressEvent]
     /// The value at which the goal is considered complete.
     private(set) var targetValue: Double
     /// The amount used when stepping measurable progress up or down.
@@ -25,7 +25,7 @@ nonisolated struct GoalProgress: Codable {
 
     static let outcomePending = GoalProgress(
         kind: .outcome,
-        currentValue: 0,
+        events: [],
         targetValue: 1,
         step: 1,
         unit: nil,
@@ -33,11 +33,18 @@ nonisolated struct GoalProgress: Codable {
 
     static let outcomeCompleted = GoalProgress(
         kind: .outcome,
-        currentValue: 1,
+        events: [
+            GoalProgressEvent(delta: 1, timestamp: Date(timeIntervalSinceReferenceDate: 0))
+        ],
         targetValue: 1,
         step: 1,
         unit: nil,
     )
+
+    /// The user's current progress toward the target value.
+    var currentValue: Double {
+        min(max(0, eventValue), upperBound)
+    }
 
     /// Whether the current value has reached or exceeded the target value.
     var isCompleted: Bool {
@@ -66,21 +73,21 @@ nonisolated struct GoalProgress: Codable {
 
     init(
         kind: GoalProgressKind,
-        currentValue: Double,
+        events: [GoalProgressEvent],
         targetValue: Double,
         step: Double = 1,
         unit: GoalProgressUnit? = nil,
     ) {
         precondition(
             Self.isValid(
-                currentValue: currentValue,
+                events: events,
                 targetValue: targetValue,
                 step: step,
             ),
             "Progress values must be finite, non-negative, and within target bounds.",
         )
         self.kind = kind
-        self.currentValue = currentValue
+        self.events = events
         self.targetValue = targetValue
         self.step = step
         self.unit = unit
@@ -91,10 +98,11 @@ nonisolated struct GoalProgress: Codable {
         targetValue: Double,
         step: Double = 1,
         unit: GoalProgressUnit? = nil,
+        timestamp: Date = Date(),
     ) {
         self.init(
             kind: .measurable,
-            currentValue: currentValue,
+            events: Self.events(for: currentValue, timestamp: timestamp),
             targetValue: targetValue,
             step: step,
             unit: unit,
@@ -106,14 +114,31 @@ nonisolated struct GoalProgress: Codable {
         targetValue: Double,
         step: Double = 1,
         unit: GoalProgressUnit? = nil,
+        timestamp: Date = Date(),
     ) -> GoalProgress {
         GoalProgress(
             kind: .measurable,
-            currentValue: currentValue,
+            events: events(for: currentValue, timestamp: timestamp),
             targetValue: targetValue,
             step: step,
             unit: unit,
         )
+    }
+
+    static func isValid(
+        events: [GoalProgressEvent],
+        targetValue: Double,
+        step: Double,
+    ) -> Bool {
+        let currentValue = events.reduce(0) { $0 + $1.delta }
+        return events.allSatisfy { $0.delta.isFinite }
+            && currentValue.isFinite
+            && targetValue.isFinite
+            && step.isFinite
+            && currentValue >= 0
+            && targetValue > 0
+            && step > 0
+            && currentValue <= targetValue
     }
 
     static func isValid(
@@ -131,41 +156,63 @@ nonisolated struct GoalProgress: Codable {
     }
 
     @discardableResult
-    mutating func complete() -> Bool {
-        setCurrentValue(targetValue)
+    mutating func complete(timestamp: Date = Date()) -> Bool {
+        setCurrentValue(targetValue, timestamp: timestamp)
     }
 
     @discardableResult
-    mutating func reset() -> Bool {
-        setCurrentValue(0)
+    mutating func reset(timestamp: Date = Date()) -> Bool {
+        setCurrentValue(0, timestamp: timestamp)
     }
 
     @discardableResult
-    mutating func toggleCompletion() -> Bool {
-        isCompleted ? reset() : complete()
+    mutating func toggleCompletion(timestamp: Date = Date()) -> Bool {
+        isCompleted ? reset(timestamp: timestamp) : complete(timestamp: timestamp)
     }
 
     @discardableResult
-    mutating func increment() -> Bool {
+    mutating func increment(timestamp: Date = Date()) -> Bool {
         guard isMeasurable else {
             return false
         }
-        return setCurrentValue(currentValue + step)
+        return setCurrentValue(currentValue + step, timestamp: timestamp)
     }
 
     @discardableResult
-    mutating func decrement() -> Bool {
+    mutating func decrement(timestamp: Date = Date()) -> Bool {
         guard isMeasurable else {
             return false
         }
-        return setCurrentValue(currentValue - step)
+        return setCurrentValue(currentValue - step, timestamp: timestamp)
+    }
+
+    @discardableResult
+    mutating func replaceCurrentValue(
+        _ currentValue: Double,
+        timestamp: Date = Date(),
+    ) -> Bool {
+        setCurrentValue(currentValue, timestamp: timestamp)
+    }
+
+    func updated(
+        preservingEventsFrom previousProgress: GoalProgress,
+        timestamp: Date = Date(),
+    ) -> GoalProgress {
+        guard kind == previousProgress.kind else {
+            return self
+        }
+        let updatedCurrentValue = currentValue
+        var updatedProgress = self
+        updatedProgress.events = previousProgress.events
+        updatedProgress.replaceCurrentValue(updatedCurrentValue, timestamp: timestamp)
+        return updatedProgress
     }
 
     init(from decoder: Decoder) throws {
         let storage = try GoalProgressStorage(from: decoder)
         guard
             Self.isValid(
-                currentValue: storage.currentValue,
+                events: storage.events,
                 targetValue: storage.targetValue,
                 step: storage.step,
             )
@@ -179,7 +226,7 @@ nonisolated struct GoalProgress: Codable {
             )
         }
         kind = storage.kind
-        currentValue = storage.currentValue
+        events = storage.events
         targetValue = storage.targetValue
         step = storage.step
         unit = storage.unit?.resolvedUnit()
@@ -188,7 +235,7 @@ nonisolated struct GoalProgress: Codable {
     func encode(to encoder: Encoder) throws {
         try GoalProgressStorage(
             kind: kind,
-            currentValue: currentValue,
+            events: events,
             targetValue: targetValue,
             step: step,
             unit: unit,
@@ -200,27 +247,47 @@ nonisolated struct GoalProgress: Codable {
         max(0, targetValue)
     }
 
+    private var eventValue: Double {
+        events.reduce(0) { $0 + $1.delta }
+    }
+
+    private static func events(
+        for currentValue: Double,
+        timestamp: Date,
+    ) -> [GoalProgressEvent] {
+        guard currentValue > 0 else {
+            return []
+        }
+        return [
+            GoalProgressEvent(delta: currentValue, timestamp: timestamp)
+        ]
+    }
+
     @discardableResult
-    private mutating func setCurrentValue(_ value: Double) -> Bool {
+    private mutating func setCurrentValue(
+        _ value: Double,
+        timestamp: Date,
+    ) -> Bool {
         let updatedValue = min(max(0, value), upperBound)
-        guard currentValue != updatedValue else {
+        let delta = updatedValue - eventValue
+        guard delta != 0 else {
             return false
         }
-        currentValue = updatedValue
+        events.append(GoalProgressEvent(delta: delta, timestamp: timestamp))
         return true
     }
 }
 
 nonisolated private struct GoalProgressStorage: Codable {
     var kind: GoalProgressKind
-    var currentValue: Double
+    var events: [GoalProgressEvent]
     var targetValue: Double
     var step: Double
     var unit: GoalProgressUnitSnapshot?
 
     private enum CodingKeys: String, CodingKey {
         case kind
-        case currentValue
+        case events
         case targetValue
         case step
         case unit
@@ -228,13 +295,13 @@ nonisolated private struct GoalProgressStorage: Codable {
 
     init(
         kind: GoalProgressKind,
-        currentValue: Double,
+        events: [GoalProgressEvent],
         targetValue: Double,
         step: Double,
         unit: GoalProgressUnit?,
     ) {
         self.kind = kind
-        self.currentValue = currentValue
+        self.events = events
         self.targetValue = targetValue
         self.step = step
         self.unit = unit.map(GoalProgressUnitSnapshot.init)
@@ -243,7 +310,7 @@ nonisolated private struct GoalProgressStorage: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         kind = try container.decode(GoalProgressKind.self, forKey: .kind)
-        currentValue = try container.decode(Double.self, forKey: .currentValue)
+        events = try container.decode([GoalProgressEvent].self, forKey: .events)
         targetValue = try container.decode(Double.self, forKey: .targetValue)
         step = try container.decodeIfPresent(Double.self, forKey: .step) ?? 1
         unit = try container.decodeIfPresent(GoalProgressUnitSnapshot.self, forKey: .unit)

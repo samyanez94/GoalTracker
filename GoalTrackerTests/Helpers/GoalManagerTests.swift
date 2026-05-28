@@ -16,41 +16,48 @@ import Testing
 @MainActor
 struct GoalManagerTests {
     @Test
-    func `Incrementing measurable progress updates current value`() async throws {
+    func `Incrementing measurable progress appends timestamped event`() async throws {
         let container = try makeContainer()
+        let timestamp = Date(timeIntervalSinceReferenceDate: 123)
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
         )
         insert(goal, into: container)
-        let manager = makeManager(in: container)
+        let manager = makeManager(in: container, now: { timestamp })
 
         let didChange = try manager.incrementProgress(goal)
 
         #expect(didChange)
         #expect(goal.progress.currentValue == 6)
+        #expect(goal.progress.events.map(\.delta) == [4, 2])
+        #expect(goal.progress.events.last?.timestamp == timestamp)
     }
 
     @Test
-    func `Completing outcome goal updates completion state`() async throws {
+    func `Completing outcome goal appends timestamped event`() async throws {
         let container = try makeContainer()
+        let timestamp = Date(timeIntervalSinceReferenceDate: 123)
         let goal = makeGoal(progress: .outcomePending)
         insert(goal, into: container)
-        let manager = makeManager(in: container)
+        let manager = makeManager(in: container, now: { timestamp })
 
         let didChange = try manager.completeGoal(goal)
 
         #expect(didChange)
         #expect(goal.progress.isCompleted)
+        #expect(goal.progress.events.map(\.delta) == [1])
+        #expect(goal.progress.events.last?.timestamp == timestamp)
     }
 
     @Test
-    func `Editing measurable current value updates progress`() async throws {
+    func `Editing measurable current value appends balancing event`() async throws {
         let container = try makeContainer()
+        let timestamp = Date(timeIntervalSinceReferenceDate: 123)
         let goal = makeGoal(
             progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
         )
         insert(goal, into: container)
-        let manager = makeManager(in: container)
+        let manager = makeManager(in: container, now: { timestamp })
 
         try manager.updateGoal(
             goal,
@@ -61,6 +68,42 @@ struct GoalManagerTests {
         )
 
         #expect(goal.progress.currentValue == 7)
+        #expect(goal.progress.events.map(\.delta) == [4, 3])
+        #expect(goal.progress.events.last?.timestamp == timestamp)
+    }
+
+    @Test
+    func `Editing measurable target and step preserves existing events`() async throws {
+        let container = try makeContainer()
+        let originalTimestamp = Date(timeIntervalSinceReferenceDate: 12)
+        let goal = makeGoal(
+            progress: .measurable(
+                currentValue: 4,
+                targetValue: 10,
+                step: 2,
+                timestamp: originalTimestamp,
+            ),
+        )
+        insert(goal, into: container)
+        let manager = makeManager(
+            in: container,
+            now: { Date(timeIntervalSinceReferenceDate: 123) },
+        )
+
+        try manager.updateGoal(
+            goal,
+            name: goal.name,
+            details: goal.details,
+            dueDate: goal.dueDate,
+            progress: .measurable(currentValue: 4, targetValue: 12, step: 3),
+        )
+
+        #expect(goal.progress.targetValue == 12)
+        #expect(goal.progress.step == 3)
+        #expect(goal.progress.currentValue == 4)
+        #expect(goal.progress.events.count == 1)
+        #expect(goal.progress.events.first?.delta == 4)
+        #expect(goal.progress.events.first?.timestamp == originalTimestamp)
     }
 
     @Test
@@ -432,10 +475,12 @@ struct GoalManagerTests {
     private func makeManager(
         in container: ModelContainer,
         notificationScheduler: FakeGoalReminderScheduler = FakeGoalReminderScheduler(),
+        now: @escaping () -> Date = Date.init,
     ) -> GoalManager {
         GoalManager(
             modelContext: container.mainContext,
             notificationScheduler: notificationScheduler,
+            now: now,
         )
     }
 

@@ -334,6 +334,43 @@ struct GoalFormModelTests {
     }
 
     @Test
+    func `Create form data stores initial measurable progress as timestamped event`() throws {
+        let timestamp = Date(timeIntervalSinceReferenceDate: 789)
+        let model = GoalFormModel(mode: .create, now: { timestamp })
+        model.name = "Read books"
+        model.isProgressBased = true
+        model.currentValue = 2
+        model.targetValue = 10
+        model.step = 1
+
+        let data = model.makeFormData()
+
+        let event = try #require(data.progress.events.first)
+        #expect(data.progress.currentValue == 2)
+        #expect(event.delta == 2)
+        #expect(event.timestamp == timestamp)
+    }
+
+    @Test
+    func `Edit form data represents updated measurable current value`() {
+        let model = GoalFormModel(
+            mode: .edit(
+                GoalFormData(
+                    name: "Read books",
+                    details: "",
+                    progress: .measurable(currentValue: 2, targetValue: 10),
+                ),
+            ),
+            now: { Date(timeIntervalSinceReferenceDate: 789) },
+        )
+        model.currentValue = 5
+
+        let data = model.makeFormData()
+
+        #expect(data.progress.currentValue == 5)
+    }
+
+    @Test
     func `Completed outcome edit remains completed in form data`() {
         let model = GoalFormModel(
             mode: .edit(
