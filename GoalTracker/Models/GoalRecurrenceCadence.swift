@@ -34,6 +34,19 @@ nonisolated enum GoalRecurrenceCadence: String, Codable, Equatable, Hashable {
         }
     }
 
+    var detailTitle: String {
+        switch self {
+        case .daily:
+            "Repeats every day"
+        case .weekly:
+            "Repeats every week"
+        case .monthly:
+            "Repeats every month"
+        case .yearly:
+            "Repeats every year"
+        }
+    }
+
     func period(
         containing date: Date,
         calendar: Calendar = .current,

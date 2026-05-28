@@ -15,6 +15,10 @@ struct GoalDetailHeaderSection: View {
             Text(goal.name)
                 .font(.largeTitle.bold())
                 .foregroundStyle(.primary)
+            if let recurrence = goal.recurrence {
+                Label(recurrence.detailTitle, systemImage: "repeat.circle.fill")
+                    .font(.body.bold())
+            }
             if let details = goal.details,
                 !details.isEmpty {
                 Text(details)

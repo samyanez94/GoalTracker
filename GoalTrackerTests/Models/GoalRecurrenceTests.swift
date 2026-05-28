@@ -75,6 +75,14 @@ struct GoalRecurrenceTests {
     }
 
     @Test
+    func `Recurrence detail titles describe repeated cadence`() {
+        #expect(GoalRecurrence(cadence: .daily).detailTitle == "Repeats every day")
+        #expect(GoalRecurrence(cadence: .weekly).detailTitle == "Repeats every week")
+        #expect(GoalRecurrence(cadence: .monthly).detailTitle == "Repeats every month")
+        #expect(GoalRecurrence(cadence: .yearly).detailTitle == "Repeats every year")
+    }
+
+    @Test
     func `Goal recurrence persists with SwiftData`() throws {
         let container = try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
         let goal = Goal(

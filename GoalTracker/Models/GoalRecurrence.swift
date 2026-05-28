@@ -23,6 +23,10 @@ nonisolated struct GoalRecurrence: Codable, Equatable, Hashable {
         cadence.displayTitle
     }
 
+    var detailTitle: String {
+        cadence.detailTitle
+    }
+
     func period(
         containing date: Date,
         calendar: Calendar = .current,
