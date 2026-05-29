@@ -31,7 +31,7 @@ struct GoalDetailProgressSection: View {
                 )
                 .frame(width: 96, height: 96)
             }
-            .padding(.all, 24)
+            .padding(.all, 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 Color(.secondarySystemGroupedBackground),

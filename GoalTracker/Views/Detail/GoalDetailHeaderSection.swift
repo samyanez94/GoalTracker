@@ -11,7 +11,7 @@ struct GoalDetailHeaderSection: View {
     let goal: Goal
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(goal.name)
                 .font(.largeTitle.bold())
                 .foregroundStyle(.primary)
@@ -37,6 +37,7 @@ struct GoalDetailHeaderSection: View {
                         GoalDetailTagChip(tag: tag)
                     }
                 }
+                .padding(.vertical, 4)
             }
         }
     }
