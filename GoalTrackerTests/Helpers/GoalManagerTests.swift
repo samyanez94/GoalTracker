@@ -229,6 +229,45 @@ struct GoalManagerTests {
     }
 
     @Test
+    func `Editing recurring goal reminder preserves current period progress`() async throws {
+        let container = try makeContainer()
+        let yesterday = date(year: 2026, month: 5, day: 27, hour: 12)
+        let today = date(year: 2026, month: 5, day: 28, hour: 12)
+        let reminder = GoalReminder()
+        let goal = makeGoal(
+            progress: GoalProgress(
+                kind: .measurable,
+                events: [
+                    GoalProgressEvent(delta: 10, timestamp: yesterday),
+                    GoalProgressEvent(delta: 5, timestamp: today),
+                ],
+                targetValue: 10,
+                step: 5,
+            ),
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+        insert(goal, into: container)
+        let manager = makeManager(in: container, now: { today })
+
+        try manager.updateGoal(
+            goal,
+            name: goal.name,
+            details: goal.details,
+            dueDate: goal.dueDate,
+            reminder: reminder,
+            progress: .measurable(
+                currentValue: goal.progress.currentValue,
+                targetValue: goal.progress.targetValue,
+                step: goal.progress.step,
+            ),
+        )
+
+        #expect(goal.reminder == reminder)
+        #expect(goal.progress.events.map(\.delta) == [10, 5])
+        #expect(goal.currentProgressValue(at: today) == 5)
+    }
+
+    @Test
     func `Editing goal updates reminder`() async throws {
         let container = try makeContainer()
         let scheduler = FakeGoalReminderScheduler()

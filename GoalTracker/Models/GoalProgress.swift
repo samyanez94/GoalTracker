@@ -282,6 +282,9 @@ nonisolated struct GoalProgress: Codable {
         let updatedCurrentValue = currentValue
         var updatedProgress = self
         updatedProgress.events = previousProgress.events
+        guard updatedCurrentValue != previousProgress.currentValue else {
+            return updatedProgress
+        }
         updatedProgress.replaceCurrentValue(updatedCurrentValue, timestamp: timestamp)
         return updatedProgress
     }
