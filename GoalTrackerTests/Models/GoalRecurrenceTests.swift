@@ -85,6 +85,23 @@ struct GoalRecurrenceTests {
     }
 
     @Test
+    func `Cadence reminder due descriptions match user facing cadence`() {
+        #expect(GoalRecurrenceCadence.daily.reminderDueDescription == "today")
+        #expect(GoalRecurrenceCadence.weekly.reminderDueDescription == "this week")
+        #expect(GoalRecurrenceCadence.monthly.reminderDueDescription == "this month")
+        #expect(GoalRecurrenceCadence.yearly.reminderDueDescription == "this year")
+    }
+
+    @Test
+    func `Cadence reminder components match period starts at default hour`() {
+        #expect(GoalRecurrenceCadence.daily.reminderDateComponents(calendar: calendar).hour == 9)
+        #expect(GoalRecurrenceCadence.weekly.reminderDateComponents(calendar: calendar).weekday == 2)
+        #expect(GoalRecurrenceCadence.monthly.reminderDateComponents(calendar: calendar).day == 1)
+        #expect(GoalRecurrenceCadence.yearly.reminderDateComponents(calendar: calendar).month == 1)
+        #expect(GoalRecurrenceCadence.yearly.reminderDateComponents(calendar: calendar).day == 1)
+    }
+
+    @Test
     func `Recurrence encodes cadence as a stable value`() throws {
         let recurrence = GoalRecurrence(cadence: .weekly)
         let data = try JSONEncoder().encode(recurrence)

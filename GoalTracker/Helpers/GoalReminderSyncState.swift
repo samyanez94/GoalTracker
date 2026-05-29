@@ -13,13 +13,15 @@ struct GoalReminderSyncState {
     let goalName: String
     let dueDate: Date?
     let reminder: GoalReminder?
-    let isCompleted: Bool
+    let progress: GoalProgress
+    let recurrence: GoalRecurrence?
 
     init(goal: Goal) {
         goalId = goal.id
         goalName = goal.name
         dueDate = goal.dueDate
         reminder = goal.reminder
-        isCompleted = goal.isCompleted
+        progress = goal.progress
+        recurrence = goal.recurrence
     }
 }

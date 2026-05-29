@@ -44,4 +44,5 @@ nonisolated struct GoalRecurrence: Codable, Equatable, Hashable {
     ) -> DateInterval? {
         cadence.period(before: period, calendar: calendar)
     }
+
 }

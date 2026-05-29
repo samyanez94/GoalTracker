@@ -103,12 +103,15 @@ struct GoalFormView: View {
             }
             Section {
                 GoalRecurrencePickerRow(recurrence: $model.recurrence)
+                if model.recurrence != nil {
+                    GoalReminderToggleRow(reminder: $model.reminder)
+                }
             } header: {
                 Text("Recurrence")
             } footer: {
-                Text("Use recurring goals for habits and goals you want to repeat over time.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                Text("Use recurring goals for habits and goals you want to repeat over time. Turn on reminders to get a notification at 9 AM on the first day of each repeat.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
             }
             if model.allowsDueDate {
                 Section {
@@ -139,13 +142,13 @@ struct GoalFormView: View {
                     if model.hasDueDate {
                         GoalReminderToggleRow(reminder: $model.reminder)
                     }
-            } header: {
-                Text("Date")
-            } footer: {
-                Text("Set a due date to help you know when to complete this goal. Turn on reminders to get a notification at 9 AM that day.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
+                } header: {
+                    Text("Date")
+                } footer: {
+                    Text("Set a due date to help you know when to complete this goal. Turn on reminders to get a notification at 9 AM that day.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
             Section {
                 Toggle(isOn: $model.isProgressBased) {

@@ -44,7 +44,7 @@ final class GoalFormModel {
         details = data.details
         hasDueDate = data.dueDate != nil && data.recurrence == nil
         dueDate = data.dueDate ?? Date()
-        reminder = data.recurrence == nil ? data.reminder : nil
+        reminder = data.reminder
         recurrence = data.recurrence
         selectedTags = data.tags
         initialOutcomeIsCompleted = data.progress.isCompleted
@@ -105,7 +105,7 @@ final class GoalFormModel {
 
     func setDueDateEnabled(_ isEnabled: Bool) {
         isDueDatePickerExpanded = isEnabled
-        if !isEnabled {
+        if !isEnabled, recurrence == nil {
             reminder = nil
         }
     }
@@ -115,7 +115,7 @@ final class GoalFormModel {
             name: trimmedName,
             details: details,
             dueDate: allowsDueDate && hasDueDate ? dueDate : nil,
-            reminder: allowsDueDate && hasDueDate ? reminder : nil,
+            reminder: recurrence != nil || hasDueDate ? reminder : nil,
             progress: progress,
             recurrence: recurrence,
             tags: selectedTags,
@@ -127,7 +127,7 @@ final class GoalFormModel {
             return
         }
         hasDueDate = false
-        setDueDateEnabled(false)
+        isDueDatePickerExpanded = false
     }
 
     private var trimmedName: String {

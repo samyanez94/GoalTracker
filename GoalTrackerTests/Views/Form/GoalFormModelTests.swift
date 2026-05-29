@@ -72,11 +72,13 @@ struct GoalFormModelTests {
 
     @Test
     func `Edit mode initializes from recurring form data`() {
+        let reminder = GoalReminder()
         let model = GoalFormModel(
             mode: .edit(
                 GoalFormData(
                     name: "Run",
                     details: "",
+                    reminder: reminder,
                     progress: .outcomePending,
                     recurrence: GoalRecurrence(cadence: .weekly),
                 ),
@@ -84,6 +86,7 @@ struct GoalFormModelTests {
         )
 
         #expect(model.recurrence == GoalRecurrence(cadence: .weekly))
+        #expect(model.reminder == reminder)
         #expect(model.allowsDueDate == false)
     }
 
@@ -167,7 +170,7 @@ struct GoalFormModelTests {
     }
 
     @Test
-    func `Selecting recurrence clears due date and reminder`() {
+    func `Selecting recurrence clears due date and preserves reminder`() {
         let dueDate = Date(timeIntervalSinceReferenceDate: 456)
         let reminder = GoalReminder()
         let model = GoalFormModel(mode: .create)
@@ -180,22 +183,23 @@ struct GoalFormModelTests {
 
         let data = model.makeFormData()
         #expect(model.hasDueDate == false)
-        #expect(model.reminder == nil)
+        #expect(model.reminder == reminder)
         #expect(model.allowsDueDate == false)
         #expect(data.dueDate == nil)
-        #expect(data.reminder == nil)
+        #expect(data.reminder == reminder)
         #expect(data.recurrence == GoalRecurrence(cadence: .daily))
     }
 
     @Test
-    func `Recurring edit data ignores existing due date`() {
+    func `Recurring edit data ignores existing due date and preserves reminder`() {
+        let reminder = GoalReminder()
         let model = GoalFormModel(
             mode: .edit(
                 GoalFormData(
                     name: "Run",
                     details: "",
                     dueDate: Date(timeIntervalSinceReferenceDate: 456),
-                    reminder: GoalReminder(),
+                    reminder: reminder,
                     progress: .outcomePending,
                     recurrence: GoalRecurrence(cadence: .weekly),
                 ),
@@ -204,10 +208,10 @@ struct GoalFormModelTests {
 
         let data = model.makeFormData()
         #expect(model.hasDueDate == false)
-        #expect(model.reminder == nil)
+        #expect(model.reminder == reminder)
         #expect(model.allowsDueDate == false)
         #expect(data.dueDate == nil)
-        #expect(data.reminder == nil)
+        #expect(data.reminder == reminder)
         #expect(data.recurrence == GoalRecurrence(cadence: .weekly))
     }
 
@@ -303,10 +307,12 @@ struct GoalFormModelTests {
         let model = GoalFormModel(mode: .create)
         model.name = "Read"
         model.recurrence = GoalRecurrence(cadence: .daily)
+        model.reminder = GoalReminder()
 
         let data = model.makeFormData()
 
         #expect(data.recurrence == GoalRecurrence(cadence: .daily))
+        #expect(data.reminder == GoalReminder())
     }
 
     @Test

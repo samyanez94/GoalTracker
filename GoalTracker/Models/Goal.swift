@@ -25,7 +25,7 @@ extension GoalTrackerSchemaV1 {
         var createdAt: Date = Date()
         /// An optional target date for completing the goal.
         var dueDate: Date?
-        /// An optional notification reminder for the due date.
+        /// An optional notification reminder for the due date or recurring cadence.
         var reminder: GoalReminder? = nil
         /// The current progress summary for this goal.
         var progress: GoalProgress = GoalProgress.outcomePending

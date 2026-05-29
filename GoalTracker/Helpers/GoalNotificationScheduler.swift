@@ -170,13 +170,9 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
         currentDate: Date,
     ) async throws {
         let content = notificationContent(for: schedule, relativeTo: currentDate)
-
         let trigger = UNCalendarNotificationTrigger(
-            dateMatching: calendar.dateComponents(
-                [.year, .month, .day, .hour, .minute, .second],
-                from: schedule.fireDate,
-            ),
-            repeats: false,
+            dateMatching: schedule.triggerDateComponents,
+            repeats: schedule.repeats,
         )
         let request = UNNotificationRequest(
             identifier: reminderNotificationIdentifier(for: schedule.goalId),
@@ -192,13 +188,26 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
     ) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = schedule.goalName
-        let relativeDueDateDescription = relativeDueDateDescription(
-            for: schedule.dueDate,
-            relativeTo: currentDate,
-        )
-        content.body = "Complete by \(relativeDueDateDescription.lowercased())"
+        content.body = notificationBody(for: schedule, relativeTo: currentDate)
         content.sound = .default
         return content
+    }
+
+    private func notificationBody(
+        for schedule: GoalReminderSchedule,
+        relativeTo currentDate: Date,
+    ) -> String {
+        let dueDescription = switch schedule.dueDescription {
+        case .date(let dueDate):
+            relativeDueDateDescription(
+                for: dueDate,
+                relativeTo: currentDate,
+            )
+            .lowercased()
+        case .cadence(let cadence):
+            cadence.reminderDueDescription
+        }
+        return "Don't forget to complete by \(dueDescription)"
     }
 
     private func relativeDueDateDescription(

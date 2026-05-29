@@ -94,6 +94,41 @@ nonisolated enum GoalRecurrenceCadence: String, Codable, Equatable, Hashable {
         return self.period(containing: dateInPreviousPeriod, calendar: calendar)
     }
 
+    var reminderDueDescription: String {
+        switch self {
+        case .daily:
+            "today"
+        case .weekly:
+            "this week"
+        case .monthly:
+            "this month"
+        case .yearly:
+            "this year"
+        }
+    }
+
+    func reminderDateComponents(calendar: Calendar = .current) -> DateComponents {
+        var components = DateComponents()
+        components.calendar = calendar
+        components.hour = GoalReminder.defaultSettingHour
+        components.minute = 0
+        components.second = 0
+
+        switch self {
+        case .daily:
+            break
+        case .weekly:
+            components.weekday = calendar.firstWeekday
+        case .monthly:
+            components.day = 1
+        case .yearly:
+            components.month = 1
+            components.day = 1
+        }
+
+        return components
+    }
+
     private var calendarComponent: Calendar.Component {
         switch self {
         case .daily:
