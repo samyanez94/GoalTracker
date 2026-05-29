@@ -16,9 +16,9 @@ struct GoalDetailProgressSection: View {
                 .font(.headline)
                 .foregroundStyle(.secondary)
             HStack {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(fractionCompleted, format: .percent.precision(.fractionLength(0)))
-                        .font(.title.bold())
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(progressTitle)
+                        .font(.title2.bold())
                         .foregroundStyle(.primary)
                         .contentTransition(.numericText(value: fractionCompleted))
                     Text(progressSubtitle)
@@ -29,7 +29,7 @@ struct GoalDetailProgressSection: View {
                 GoalDetailCircularProgressView(
                     progress: fractionCompleted
                 )
-                .frame(width: 80, height: 80)
+                .frame(width: 96, height: 96)
             }
             .padding(.all, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -48,14 +48,32 @@ struct GoalDetailProgressSection: View {
         min(max(progress.fractionCompleted, 0), 1)
     }
 
-    private var progressSubtitle: String {
-        let currentValue = formattedNumber(progress.currentValue, for: progress)
-        let targetValue = formattedNumber(progress.targetValue, for: progress)
+    private var progressTitle: String {
+        let currentValue = formattedNumber(
+            progress.currentValue,
+            for: progress
+        )
+        let targetValue = formattedNumber(
+            progress.targetValue,
+            for: progress
+        )
         if unitText.isEmpty {
             return "\(currentValue)/\(targetValue)"
         } else {
             return "\(currentValue)/\(targetValue) \(unitText)"
         }
+    }
+
+    private var progressSubtitle: String {
+        guard !progress.isCompleted else {
+            return "Completed"
+        }
+        let remainingValue = max(progress.targetValue - progress.currentValue, 0)
+        let remainingText = formattedNumber(
+            remainingValue,
+            for: progress
+        )
+        return "\(remainingText) more to go"
     }
 
     private func formattedNumber(_ value: Double, for progress: GoalProgress) -> String {

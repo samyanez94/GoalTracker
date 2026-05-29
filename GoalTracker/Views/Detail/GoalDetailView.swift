@@ -25,12 +25,13 @@ struct GoalDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 GoalDetailHeaderSection(goal: goal)
-                GoalDetailStatusSection(goal: goal)
                 if goal.isRecurring {
                     GoalDetailStreakSection(goal: goal)
                 }
                 if goal.isMeasurable {
                     GoalDetailProgressSection(goal: goal)
+                } else {
+                    GoalDetailStatusSection(goal: goal)
                 }
             }
         }
