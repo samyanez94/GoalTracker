@@ -102,6 +102,14 @@ struct GoalRecurrenceTests {
     }
 
     @Test
+    func `Recurrence row titles describe cadence concisely`() {
+        #expect(GoalRecurrence(cadence: .daily).rowTitle == "Every day")
+        #expect(GoalRecurrence(cadence: .weekly).rowTitle == "Every week")
+        #expect(GoalRecurrence(cadence: .monthly).rowTitle == "Every month")
+        #expect(GoalRecurrence(cadence: .yearly).rowTitle == "Every year")
+    }
+
+    @Test
     func `Streak value titles pluralize cadence units`() {
         #expect(GoalRecurrenceCadence.daily.streakValueTitle(for: 1) == "1 day")
         #expect(GoalRecurrenceCadence.weekly.streakValueTitle(for: 5) == "5 weeks")

@@ -26,6 +26,11 @@ struct GoalRowView: View {
                             .font(.subheadline)
                             .foregroundStyle(isPastDue(dueDate) ? .red : .secondary)
                     }
+                    if let recurrence = goal.recurrence {
+                        Text(recurrence.rowTitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                     GoalTagSummaryText(tags: goal.tags)
                 }
             }
@@ -114,6 +119,7 @@ struct GoalRowView: View {
             details: "Plan and take the trip.",
             createdAt: Date(),
             progress: .outcomeCompleted,
+            recurrence: GoalRecurrence(cadence: .monthly),
         ),
     ]
     NavigationStack {

@@ -47,6 +47,19 @@ nonisolated enum GoalRecurrenceCadence: String, Codable, Equatable, Hashable {
         }
     }
 
+    var rowTitle: String {
+        switch self {
+        case .daily:
+            "Every day"
+        case .weekly:
+            "Every week"
+        case .monthly:
+            "Every month"
+        case .yearly:
+            "Every year"
+        }
+    }
+
     func streakValueTitle(for count: Int) -> String {
         "\(count) \(streakUnitTitle(for: count))"
     }
