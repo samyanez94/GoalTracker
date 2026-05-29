@@ -19,7 +19,7 @@ struct GoalFormModelTests {
         #expect(model.name == "")
         #expect(model.details == "")
         #expect(model.hasDueDate == false)
-        #expect(model.earlyReminder == nil)
+        #expect(model.reminder == nil)
         #expect(model.isDueDatePickerExpanded == false)
         #expect(model.isProgressBased == false)
         #expect(model.currentValue == nil)
@@ -150,40 +150,40 @@ struct GoalFormModelTests {
     @Test
     func `Form data includes due date only when due date is enabled`() {
         let dueDate = Date(timeIntervalSinceReferenceDate: 456)
-        let earlyReminder = GoalReminder.daysBeforeDueDate(1)
+        let reminder = GoalReminder()
         let model = GoalFormModel(mode: .create)
         model.name = "File taxes"
         model.hasDueDate = true
         model.dueDate = dueDate
-        model.earlyReminder = earlyReminder
+        model.reminder = reminder
 
         #expect(model.makeFormData().dueDate == dueDate)
-        #expect(model.makeFormData().earlyReminder == earlyReminder)
+        #expect(model.makeFormData().reminder == reminder)
 
         model.hasDueDate = false
 
         #expect(model.makeFormData().dueDate == nil)
-        #expect(model.makeFormData().earlyReminder == nil)
+        #expect(model.makeFormData().reminder == nil)
     }
 
     @Test
-    func `Selecting recurrence clears due date and early reminder`() {
+    func `Selecting recurrence clears due date and reminder`() {
         let dueDate = Date(timeIntervalSinceReferenceDate: 456)
-        let earlyReminder = GoalReminder.daysBeforeDueDate(1)
+        let reminder = GoalReminder()
         let model = GoalFormModel(mode: .create)
         model.name = "Run"
         model.hasDueDate = true
         model.dueDate = dueDate
-        model.earlyReminder = earlyReminder
+        model.reminder = reminder
 
         model.recurrence = GoalRecurrence(cadence: .daily)
 
         let data = model.makeFormData()
         #expect(model.hasDueDate == false)
-        #expect(model.earlyReminder == nil)
+        #expect(model.reminder == nil)
         #expect(model.allowsDueDate == false)
         #expect(data.dueDate == nil)
-        #expect(data.earlyReminder == nil)
+        #expect(data.reminder == nil)
         #expect(data.recurrence == GoalRecurrence(cadence: .daily))
     }
 
@@ -195,7 +195,7 @@ struct GoalFormModelTests {
                     name: "Run",
                     details: "",
                     dueDate: Date(timeIntervalSinceReferenceDate: 456),
-                    earlyReminder: .daysBeforeDueDate(1),
+                    reminder: GoalReminder(),
                     progress: .outcomePending,
                     recurrence: GoalRecurrence(cadence: .weekly),
                 ),
@@ -204,37 +204,37 @@ struct GoalFormModelTests {
 
         let data = model.makeFormData()
         #expect(model.hasDueDate == false)
-        #expect(model.earlyReminder == nil)
+        #expect(model.reminder == nil)
         #expect(model.allowsDueDate == false)
         #expect(data.dueDate == nil)
-        #expect(data.earlyReminder == nil)
+        #expect(data.reminder == nil)
         #expect(data.recurrence == GoalRecurrence(cadence: .weekly))
     }
 
     @Test
-    func `Enabling due date does not default early reminder`() {
+    func `Enabling due date does not default reminder`() {
         let model = GoalFormModel(mode: .create)
 
         model.hasDueDate = true
         model.setDueDateEnabled(true)
 
-        #expect(model.earlyReminder == nil)
+        #expect(model.reminder == nil)
     }
 
     @Test
-    func `Enabling due date preserves existing early reminder`() {
-        let earlyReminder = GoalReminder.daysBeforeDueDate(1)
+    func `Enabling due date preserves existing reminder`() {
+        let reminder = GoalReminder()
         let model = GoalFormModel(mode: .create)
-        model.earlyReminder = earlyReminder
+        model.reminder = reminder
 
         model.hasDueDate = true
         model.setDueDateEnabled(true)
 
-        #expect(model.earlyReminder == earlyReminder)
+        #expect(model.reminder == reminder)
     }
 
     @Test
-    func `Disabling due date clears early reminder`() {
+    func `Disabling due date clears reminder`() {
         let model = GoalFormModel(mode: .create)
         model.hasDueDate = true
         model.setDueDateEnabled(true)
@@ -242,124 +242,25 @@ struct GoalFormModelTests {
         model.hasDueDate = false
         model.setDueDateEnabled(false)
 
-        #expect(model.earlyReminder == nil)
+        #expect(model.reminder == nil)
     }
 
     @Test
-    func `Past automatic due date reminder does not fail validation`() throws {
-        let calendar = Calendar.current
-        let now = try #require(calendar.date(from: DateComponents(
-            year: 2026,
-            month: 5,
-            day: 21,
-            hour: 10,
-        )))
-        let dueDate = try #require(calendar.date(from: DateComponents(
-            year: 2026,
-            month: 5,
-            day: 21,
-        )))
-        let model = GoalFormModel(mode: .create, now: { now })
-        model.hasDueDate = true
-        model.dueDate = dueDate
-
-        try model.validateGoal()
-    }
-
-    @Test
-    func `Create mode reports early reminder validation failure when reminder date is not future`() throws {
-        let calendar = Calendar.current
-        let now = try #require(calendar.date(from: DateComponents(
-            year: 2026,
-            month: 5,
-            day: 21,
-            hour: 10,
-        )))
-        let dueDate = try #require(calendar.date(from: DateComponents(
-            year: 2026,
-            month: 5,
-            day: 22,
-        )))
-        let model = GoalFormModel(mode: .create, now: { now })
-        model.hasDueDate = true
-        model.dueDate = dueDate
-        model.earlyReminder = .daysBeforeDueDate(1)
-
-        #expect(throws: GoalValidationError.reminderDateNotFuture) {
-            try model.validateGoal()
-        }
-    }
-
-    @Test
-    func `Edit mode reports early reminder validation failure when reminder date is not future`() throws {
-        let calendar = Calendar.current
-        let now = try #require(calendar.date(from: DateComponents(
-            year: 2026,
-            month: 5,
-            day: 21,
-            hour: 10,
-        )))
-        let dueDate = try #require(calendar.date(from: DateComponents(
-            year: 2026,
-            month: 5,
-            day: 22,
-        )))
-        let model = GoalFormModel(
-            mode: .edit(
-                GoalFormData(
-                    name: "File taxes",
-                    details: "",
-                    dueDate: dueDate,
-                    earlyReminder: .daysBeforeDueDate(1),
-                    progress: .outcomePending,
-                ),
-            ),
-            now: { now },
-        )
-
-        #expect(throws: GoalValidationError.reminderDateNotFuture) {
-            try model.validateGoal()
-        }
-    }
-
-    @Test
-    func `Future early reminder date has no reminder validation failure`() throws {
-        let calendar = Calendar.current
-        let now = try #require(calendar.date(from: DateComponents(
-            year: 2026,
-            month: 5,
-            day: 21,
-            hour: 10,
-        )))
-        let dueDate = try #require(calendar.date(from: DateComponents(
-            year: 2026,
-            month: 5,
-            day: 23,
-        )))
-        let model = GoalFormModel(mode: .create, now: { now })
-        model.hasDueDate = true
-        model.dueDate = dueDate
-        model.earlyReminder = .daysBeforeDueDate(1)
-
-        try model.validateGoal()
-    }
-
-    @Test
-    func `Edit mode preserves early reminder in form data`() {
-        let earlyReminder = GoalReminder.daysBeforeDueDate(30)
+    func `Edit mode preserves reminder in form data`() {
+        let reminder = GoalReminder()
         let model = GoalFormModel(
             mode: .edit(
                 GoalFormData(
                     name: "File taxes",
                     details: "",
                     dueDate: Date(timeIntervalSinceReferenceDate: 456),
-                    earlyReminder: earlyReminder,
+                    reminder: reminder,
                     progress: .outcomePending,
                 ),
             ),
         )
 
-        #expect(model.makeFormData().earlyReminder == earlyReminder)
+        #expect(model.makeFormData().reminder == reminder)
     }
 
     @Test

@@ -229,14 +229,14 @@ struct GoalManagerTests {
     }
 
     @Test
-    func `Editing goal updates early reminder`() async throws {
+    func `Editing goal updates reminder`() async throws {
         let container = try makeContainer()
         let scheduler = FakeGoalReminderScheduler()
         let goal = makeGoal(
             dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
             progress: .outcomePending,
         )
-        let earlyReminder = GoalReminder.daysBeforeDueDate(7)
+        let reminder = GoalReminder()
         insert(goal, into: container)
         let manager = makeManager(in: container, notificationScheduler: scheduler)
 
@@ -245,11 +245,11 @@ struct GoalManagerTests {
             name: goal.name,
             details: goal.details,
             dueDate: goal.dueDate,
-            earlyReminder: earlyReminder,
+            reminder: reminder,
             progress: goal.progress,
         )
 
-        #expect(goal.earlyReminder == earlyReminder)
+        #expect(goal.reminder == reminder)
         await waitForReminderSync()
         #expect(scheduler.syncedGoalIds == [goal.id])
         #expect(scheduler.syncRequestsAuthorizationFlags == [true])
@@ -458,14 +458,14 @@ struct GoalManagerTests {
                 name: "Updated Goal",
                 details: goal.details,
                 dueDate: goal.dueDate,
-                earlyReminder: GoalReminder.daysBeforeDueDate(1),
+                reminder: GoalReminder(),
                 progress: goal.progress,
                 tags: [newTag],
             )
         }
 
         #expect(goal.name == "Original Goal")
-        #expect(goal.earlyReminder == nil)
+        #expect(goal.reminder == nil)
         #expect(goal.tags.map(\.name) == ["Old"])
         #expect(Set(try fetchTags(in: container).map(\.name)) == ["Old", "New"])
     }
@@ -496,7 +496,7 @@ struct GoalManagerTests {
         let scheduler = FakeGoalReminderScheduler()
         let goal = makeGoal(
             dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
-            earlyReminder: .daysBeforeDueDate(1),
+            reminder: GoalReminder(),
             progress: .outcomePending,
         )
         let manager = makeManager(in: container, notificationScheduler: scheduler)
@@ -515,7 +515,7 @@ struct GoalManagerTests {
         let scheduler = FakeGoalReminderScheduler()
         let goal = makeGoal(
             dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
-            earlyReminder: .daysBeforeDueDate(1),
+            reminder: GoalReminder(),
             progress: .outcomePending,
         )
         insert(goal, into: container)
@@ -526,7 +526,7 @@ struct GoalManagerTests {
             name: goal.name,
             details: goal.details,
             dueDate: nil,
-            earlyReminder: nil,
+            reminder: nil,
             progress: goal.progress,
         )
 
@@ -542,7 +542,7 @@ struct GoalManagerTests {
         let scheduler = FakeGoalReminderScheduler()
         let goal = makeGoal(
             dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
-            earlyReminder: .daysBeforeDueDate(1),
+            reminder: GoalReminder(),
             progress: .outcomePending,
         )
         insert(goal, into: container)
@@ -562,7 +562,7 @@ struct GoalManagerTests {
         let scheduler = FakeGoalReminderScheduler()
         let goal = makeGoal(
             dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
-            earlyReminder: .daysBeforeDueDate(1),
+            reminder: GoalReminder(),
             progress: .outcomeCompleted,
         )
         insert(goal, into: container)
@@ -634,7 +634,7 @@ struct GoalManagerTests {
     private func makeGoal(
         name: String = "Test Goal",
         dueDate: Date? = nil,
-        earlyReminder: GoalReminder? = nil,
+        reminder: GoalReminder? = nil,
         progress: GoalProgress,
         recurrence: GoalRecurrence? = nil,
     ) -> Goal {
@@ -642,7 +642,7 @@ struct GoalManagerTests {
             name: name,
             details: nil,
             dueDate: dueDate,
-            earlyReminder: earlyReminder,
+            reminder: reminder,
             createdAt: Date(timeIntervalSinceReferenceDate: 0),
             progress: progress,
             recurrence: recurrence,

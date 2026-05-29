@@ -62,7 +62,7 @@ struct GoalManager {
         name: String,
         details: String?,
         dueDate: Date?,
-        earlyReminder: GoalReminder? = nil,
+        reminder: GoalReminder? = nil,
         progress: GoalProgress,
         updatesRecurrence: Bool = false,
         recurrence: GoalRecurrence? = nil,
@@ -75,7 +75,7 @@ struct GoalManager {
                 goal.name = name
                 goal.details = details
                 goal.dueDate = dueDate
-                goal.earlyReminder = earlyReminder
+                goal.reminder = reminder
                 goal.progress = progress.updated(
                     preservingEventsFrom: goal.progress,
                     timestamp: now(),
@@ -108,7 +108,7 @@ struct GoalManager {
             name: data.name,
             details: data.normalizedDetails,
             dueDate: data.dueDate,
-            earlyReminder: data.earlyReminder,
+            reminder: data.reminder,
             progress: data.progress,
             updatesRecurrence: true,
             recurrence: data.recurrence,
@@ -315,7 +315,7 @@ struct GoalManager {
         let name: String
         let details: String?
         let dueDate: Date?
-        let earlyReminder: GoalReminder?
+        let reminder: GoalReminder?
         let progress: GoalProgress
         let recurrence: GoalRecurrence?
         let tags: [Tag]
@@ -324,7 +324,7 @@ struct GoalManager {
             name = goal.name
             details = goal.details
             dueDate = goal.dueDate
-            earlyReminder = goal.earlyReminder
+            reminder = goal.reminder
             progress = goal.progress
             recurrence = goal.recurrence
             tags = goal.tags
@@ -334,7 +334,7 @@ struct GoalManager {
             goal.name = name
             goal.details = details
             goal.dueDate = dueDate
-            goal.earlyReminder = earlyReminder
+            goal.reminder = reminder
             goal.progress = progress
             goal.recurrence = recurrence
             goal.tags = tags

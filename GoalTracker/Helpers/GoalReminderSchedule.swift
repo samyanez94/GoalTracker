@@ -9,58 +9,27 @@ import Foundation
 
 /// A validated reminder schedule that can be converted into a notification request.
 struct GoalReminderSchedule {
-    enum Kind {
-        case dueDate
-        case early
-    }
-
-    let kind: Kind
     let goalId: UUID
     let goalName: String
     let dueDate: Date
     let fireDate: Date
 
-    static func dueDateReminder(
+    static func reminder(
         state: GoalReminderSyncState,
         calendar: Calendar,
         currentDate: Date,
     ) -> GoalReminderSchedule? {
         guard !state.isCompleted,
               let dueDate = state.dueDate,
-              let fireDate = calendar.date(
-                bySettingHour: GoalReminder.defaultSettingHour,
-                minute: 0,
-                second: 0,
-                of: dueDate,
-              ),
-              fireDate > currentDate else {
-            return nil
-        }
-        return GoalReminderSchedule(
-            kind: .dueDate,
-            state: state,
-            dueDate: dueDate,
-            fireDate: fireDate,
-        )
-    }
-
-    static func earlyReminder(
-        state: GoalReminderSyncState,
-        calendar: Calendar,
-        currentDate: Date,
-    ) -> GoalReminderSchedule? {
-        guard !state.isCompleted,
-              let dueDate = state.dueDate,
-              let earlyReminder = state.earlyReminder,
-              let fireDate = earlyReminder.reminderDate(
-                before: dueDate,
+              let reminder = state.reminder,
+              let fireDate = reminder.fireDate(
+                on: dueDate,
                 calendar: calendar,
               ),
               fireDate > currentDate else {
             return nil
         }
         return GoalReminderSchedule(
-            kind: .early,
             state: state,
             dueDate: dueDate,
             fireDate: fireDate,
@@ -68,12 +37,10 @@ struct GoalReminderSchedule {
     }
 
     private init(
-        kind: Kind,
         state: GoalReminderSyncState,
         dueDate: Date,
         fireDate: Date,
     ) {
-        self.kind = kind
         self.goalId = state.goalId
         self.goalName = state.goalName
         self.dueDate = dueDate

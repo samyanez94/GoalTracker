@@ -12,14 +12,14 @@ struct GoalReminderSyncState {
     let goalId: UUID
     let goalName: String
     let dueDate: Date?
-    let earlyReminder: GoalReminder?
+    let reminder: GoalReminder?
     let isCompleted: Bool
 
     init(goal: Goal) {
         goalId = goal.id
         goalName = goal.name
         dueDate = goal.dueDate
-        earlyReminder = goal.earlyReminder
+        reminder = goal.reminder
         isCompleted = goal.isCompleted
     }
 }

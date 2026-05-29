@@ -137,15 +137,15 @@ struct GoalFormView: View {
                         .datePickerStyle(.graphical)
                     }
                     if model.hasDueDate {
-                        GoalReminderPickerRow(earlyReminder: $model.earlyReminder)
+                        GoalReminderToggleRow(reminder: $model.reminder)
                     }
-                } header: {
-                    Text("Date")
-                } footer: {
-                    Text("Set a due date to help you know when to complete this goal.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
+            } header: {
+                Text("Date")
+            } footer: {
+                Text("Set a due date to help you know when to complete this goal. Turn on reminders to get a notification at 9 AM that day.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
             }
             Section {
                 Toggle(isOn: $model.isProgressBased) {
@@ -239,15 +239,9 @@ struct GoalFormView: View {
             return
         }
         do {
-            try model.validateGoal()
             try onSave(model.makeFormData())
             didSave = true
             dismiss()
-        } catch let validationError as GoalValidationError {
-            saveFailure = GoalSaveFailure(
-                validationError: validationError,
-                mode: model.mode,
-            )
         } catch {
             saveFailure = model.saveFailureKind
         }

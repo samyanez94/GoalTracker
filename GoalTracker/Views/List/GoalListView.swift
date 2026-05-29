@@ -107,7 +107,7 @@ struct GoalListView: View {
                             name: data.name,
                             details: data.normalizedDetails,
                             dueDate: data.dueDate,
-                            earlyReminder: data.earlyReminder,
+                            reminder: data.reminder,
                             createdAt: Date(),
                             progress: data.progress,
                             recurrence: data.recurrence,

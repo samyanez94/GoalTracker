@@ -11,7 +11,7 @@ struct GoalFormData {
     var name: String
     var details: String
     var dueDate: Date?
-    var earlyReminder: GoalReminder?
+    var reminder: GoalReminder?
     var progress: GoalProgress
     var recurrence: GoalRecurrence?
     var tags: [Tag]
@@ -20,7 +20,7 @@ struct GoalFormData {
         name: "",
         details: "",
         dueDate: nil,
-        earlyReminder: nil,
+        reminder: nil,
         progress: .outcomePending,
         recurrence: nil,
         tags: [],
@@ -30,7 +30,7 @@ struct GoalFormData {
         name = goal.name
         details = goal.details ?? ""
         dueDate = goal.dueDate
-        earlyReminder = goal.earlyReminder
+        reminder = goal.reminder
         progress = goal.progress
         recurrence = goal.recurrence
         tags = goal.tags
@@ -40,7 +40,7 @@ struct GoalFormData {
         name: String,
         details: String,
         dueDate: Date? = nil,
-        earlyReminder: GoalReminder? = nil,
+        reminder: GoalReminder? = nil,
         progress: GoalProgress,
         recurrence: GoalRecurrence? = nil,
         tags: [Tag] = [],
@@ -48,7 +48,7 @@ struct GoalFormData {
         self.name = name
         self.details = details
         self.dueDate = dueDate
-        self.earlyReminder = earlyReminder
+        self.reminder = reminder
         self.progress = progress
         self.recurrence = recurrence
         self.tags = tags

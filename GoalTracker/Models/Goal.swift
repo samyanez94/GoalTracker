@@ -25,8 +25,8 @@ extension GoalTrackerSchemaV1 {
         var createdAt: Date = Date()
         /// An optional target date for completing the goal.
         var dueDate: Date?
-        /// An optional reminder before the automatic due-date reminder.
-        var earlyReminder: GoalReminder? = nil
+        /// An optional notification reminder for the due date.
+        var reminder: GoalReminder? = nil
         /// The current progress summary for this goal.
         var progress: GoalProgress = GoalProgress.outcomePending
         /// Optional recurrence rules for goals that reset completion each cadence period.
@@ -175,7 +175,7 @@ extension GoalTrackerSchemaV1 {
             name: String,
             details: String?,
             dueDate: Date? = nil,
-            earlyReminder: GoalReminder? = nil,
+            reminder: GoalReminder? = nil,
             createdAt: Date,
             progress: GoalProgress,
             recurrence: GoalRecurrence? = nil,
@@ -184,7 +184,7 @@ extension GoalTrackerSchemaV1 {
             self.name = name
             self.details = details
             self.dueDate = dueDate
-            self.earlyReminder = earlyReminder
+            self.reminder = reminder
             self.createdAt = createdAt
             self.progress = progress
             self.recurrence = recurrence

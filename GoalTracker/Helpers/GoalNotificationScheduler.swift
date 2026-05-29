@@ -106,7 +106,7 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
     /// Reconciles the pending reminder notification with the goal's current reminder state.
     ///
     /// Existing pending reminders for the goal are cancelled first. If the goal cannot produce
-    /// a future due-date or early reminder, no replacement notifications are scheduled.
+    /// a future reminder, no replacement notification is scheduled.
     /// - Returns: `true` when a notification request was scheduled.
     @discardableResult
     func syncReminder(
@@ -116,11 +116,10 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
         cancelReminder(for: state.goalId)
 
         let currentDate = now()
-        let schedules = reminderSchedules(
+        guard let schedule = reminderSchedule(
             state: state,
             currentDate: currentDate,
-        )
-        guard !schedules.isEmpty else {
+        ) else {
             return false
         }
 
@@ -130,9 +129,7 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
             }
         }
 
-        for schedule in schedules {
-            try await scheduleReminder(schedule, currentDate: currentDate)
-        }
+        try await scheduleReminder(schedule, currentDate: currentDate)
         return true
     }
 
@@ -151,28 +148,21 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
     /// Schedules pending reminder notifications for a goal when they are eligible.
     ///
     /// Existing pending reminders for the goal are cancelled first.
-    /// - Returns: `true` when at least one notification request was scheduled.
+    /// - Returns: `true` when a notification request was scheduled.
     @discardableResult
     func scheduleReminder(for goal: Goal) async throws -> Bool {
         try await syncReminder(for: goal, requestsAuthorization: false)
     }
 
-    private func reminderSchedules(
+    private func reminderSchedule(
         state: GoalReminderSyncState,
         currentDate: Date,
-    ) -> [GoalReminderSchedule] {
-        [
-            GoalReminderSchedule.dueDateReminder(
-                state: state,
-                calendar: calendar,
-                currentDate: currentDate,
-            ),
-            GoalReminderSchedule.earlyReminder(
-                state: state,
-                calendar: calendar,
-                currentDate: currentDate,
-            ),
-        ].compactMap { $0 }
+    ) -> GoalReminderSchedule? {
+        GoalReminderSchedule.reminder(
+            state: state,
+            calendar: calendar,
+            currentDate: currentDate,
+        )
     }
 
     private func scheduleReminder(
@@ -189,7 +179,7 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
             repeats: false,
         )
         let request = UNNotificationRequest(
-            identifier: notificationIdentifier(for: schedule.goalId, kind: schedule.kind),
+            identifier: reminderNotificationIdentifier(for: schedule.goalId),
             content: content,
             trigger: trigger,
         )
@@ -258,33 +248,12 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
         )
     }
 
-    /// Returns the stable pending-notification identifier for a goal's automatic due-date reminder.
-    func dueDateNotificationIdentifier(for goalId: UUID) -> String {
-        notificationIdentifier(for: goalId, kind: .dueDate)
-    }
-
-    /// Returns the stable pending-notification identifier for a goal's optional early reminder.
-    func earlyReminderNotificationIdentifier(for goalId: UUID) -> String {
-        notificationIdentifier(for: goalId, kind: .early)
+    /// Returns the stable pending-notification identifier for a goal's reminder.
+    func reminderNotificationIdentifier(for goalId: UUID) -> String {
+        "\(Self.notificationIdentifierPrefix)-\(goalId.uuidString)"
     }
 
     private func notificationIdentifiers(for goalId: UUID) -> [String] {
-        [
-            dueDateNotificationIdentifier(for: goalId),
-            earlyReminderNotificationIdentifier(for: goalId),
-        ]
-    }
-
-    private func notificationIdentifier(
-        for goalId: UUID,
-        kind: GoalReminderSchedule.Kind,
-    ) -> String {
-        let kindValue = switch kind {
-        case .dueDate:
-            "due-date"
-        case .early:
-            "early"
-        }
-        return "\(Self.notificationIdentifierPrefix)-\(kindValue)-\(goalId.uuidString)"
+        [reminderNotificationIdentifier(for: goalId)]
     }
 }
