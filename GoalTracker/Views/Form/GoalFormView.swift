@@ -45,6 +45,8 @@ struct GoalFormView: View {
 
     @FocusState private var isTextInputFocused: Bool
 
+    @State private var showingConfirmation = false
+
     @State private var saveFailure: GoalSaveFailure?
 
     @State private var didSave = false
@@ -195,17 +197,25 @@ struct GoalFormView: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel", systemImage: "xmark") {
-                    dismiss()
+                    if model.hasChanges {
+                        showingConfirmation = true
+                    } else {
+                        dismiss()
+                    }
                 }
-                .labelStyle(.iconOnly)
+                .confirmationDialog("Dismiss confirmation", isPresented: $showingConfirmation) {
+                    Button("Discard Changes", role: .destructive) {
+                        dismiss()
+                    }
+                } message: {
+                    Text(discardConfirmationMessage)
+                }
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save", systemImage: "checkmark", action: save)
-                    .labelStyle(.iconOnly)
                     .tint(.blue)
                     .buttonStyle(.glassProminent)
                     .disabled(model.isSaveDisabled)
-                    .opacity(model.isSaveDisabled ? 0.5 : 1)
             }
         }
         .onChange(of: model.hasDueDate) { _, hasDueDate in
@@ -253,6 +263,15 @@ struct GoalFormView: View {
 
     private func tagSelectionSummary(for tags: [Tag]) -> String {
         "\(tags.count) Selected"
+    }
+
+    private var discardConfirmationMessage: String {
+        switch mode {
+        case .create:
+            "Are you sure you want to discard this new goal?"
+        case .edit:
+            "Are you sure you want to discard your changes?"
+        }
     }
 }
 

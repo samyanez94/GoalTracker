@@ -8,6 +8,9 @@
 import Foundation
 import Observation
 
+/// Keeps track of the editable state for the form.
+///
+/// The view binds to this model while the model handles validation, save data, and dirty-state checks.
 @MainActor
 @Observable
 final class GoalFormModel {
@@ -21,6 +24,7 @@ final class GoalFormModel {
     var targetValue: Double = 1
     var step: Double = 1
     var selectedProgressUnit: GoalProgressUnit?
+    
     var recurrence: GoalRecurrence? {
         didSet {
             clearDueDateIfNeededForRecurrence()
@@ -30,6 +34,7 @@ final class GoalFormModel {
 
     let mode: GoalFormMode
     private let initialOutcomeIsCompleted: Bool
+    private var initialSnapshot = GoalFormSnapshot.empty
     private let now: () -> Date
 
     init(
@@ -58,6 +63,8 @@ final class GoalFormModel {
             isProgressBased = false
             selectedProgressUnit = nil
         }
+
+        initialSnapshot = currentSnapshot
     }
 
     var isSaveDisabled: Bool {
@@ -80,6 +87,10 @@ final class GoalFormModel {
         case .edit:
             .updateGoal
         }
+    }
+
+    var hasChanges: Bool {
+        currentSnapshot != initialSnapshot
     }
 
     var allowsDueDate: Bool {
@@ -124,6 +135,21 @@ final class GoalFormModel {
         name.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var currentSnapshot: GoalFormSnapshot {
+        GoalFormSnapshot(
+            name: trimmedName,
+            details: details,
+            dueDate: allowsDueDate && hasDueDate ? dueDate : nil,
+            reminder: recurrence != nil || hasDueDate ? reminder : nil,
+            recurrence: recurrence,
+            isProgressBased: isProgressBased,
+            targetValue: isProgressBased ? targetValue : nil,
+            step: isProgressBased ? step : nil,
+            progressUnitId: isProgressBased ? selectedProgressUnit?.id : nil,
+            tagIds: selectedTags.map(\.id.uuidString).sorted(),
+        )
+    }
+
     private var hasValidProgressValues: Bool {
         return GoalProgress.isValid(
             currentValue: .zero,
@@ -145,4 +171,33 @@ final class GoalFormModel {
             return initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending
         }
     }
+}
+
+/// A normalized representation of the form's save data.
+///
+/// This snapshot is used to detect unsaved changes in the form.
+private struct GoalFormSnapshot: Equatable {
+    var name: String
+    var details: String
+    var dueDate: Date?
+    var reminder: GoalReminder?
+    var recurrence: GoalRecurrence?
+    var isProgressBased: Bool
+    var targetValue: Double?
+    var step: Double?
+    var progressUnitId: String?
+    var tagIds: [String]
+
+    static let empty = GoalFormSnapshot(
+        name: "",
+        details: "",
+        dueDate: nil,
+        reminder: nil,
+        recurrence: nil,
+        isProgressBased: false,
+        targetValue: nil,
+        step: nil,
+        progressUnitId: nil,
+        tagIds: [],
+    )
 }

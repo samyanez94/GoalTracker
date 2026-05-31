@@ -29,6 +29,45 @@ struct GoalFormModelTests {
         #expect(model.selectedTags.isEmpty)
         #expect(model.saveFailureKind == .addGoal)
         #expect(model.isSaveDisabled)
+        #expect(model.hasChanges == false)
+    }
+
+    @Test
+    func `Changing form data marks model as changed`() {
+        let model = GoalFormModel(mode: .create)
+
+        model.name = "Read"
+
+        #expect(model.hasChanges)
+    }
+
+    @Test
+    func `Reverting form data clears changed state`() {
+        let model = GoalFormModel(mode: .create)
+
+        model.name = "Read"
+        model.name = ""
+
+        #expect(model.hasChanges == false)
+    }
+
+    @Test
+    func `Hidden progress values do not mark outcome goal as changed`() {
+        let model = GoalFormModel(mode: .create)
+
+        model.targetValue = 10
+        model.step = 2
+
+        #expect(model.hasChanges == false)
+    }
+
+    @Test
+    func `Enabling progress tracking marks model as changed`() {
+        let model = GoalFormModel(mode: .create)
+
+        model.isProgressBased = true
+
+        #expect(model.hasChanges)
     }
 
     @Test
