@@ -21,8 +21,8 @@ struct GoalDetailBottomActionView: View {
         Group {
             if let progress {
                 ProgressStepperControl(
-                    canDecrement: progress.canDecrement,
-                    canIncrement: progress.canIncrement,
+                    canDecrement: goal.canDecrementProgress(),
+                    canIncrement: goal.canIncrementProgress(),
                     onDecrement: decrementProgress,
                     onIncrement: incrementProgress,
                 )

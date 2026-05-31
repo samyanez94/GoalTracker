@@ -45,12 +45,18 @@ struct GoalDetailProgressSection: View {
     }
 
     private var fractionCompleted: Double {
-        min(max(progress.fractionCompleted, 0), 1)
+        let fraction: Double
+        if let currentPeriod {
+            fraction = progress.fractionCompleted(in: currentPeriod)
+        } else {
+            fraction = progress.fractionCompleted
+        }
+        return min(max(fraction, 0), 1)
     }
 
     private var progressTitle: String {
         let currentValue = formattedNumber(
-            progress.currentValue,
+            currentProgressValue,
             for: progress
         )
         let targetValue = formattedNumber(
@@ -65,10 +71,10 @@ struct GoalDetailProgressSection: View {
     }
 
     private var progressSubtitle: String {
-        guard !progress.isCompleted else {
+        guard !isCompleted else {
             return "Completed"
         }
-        let remainingValue = max(progress.targetValue - progress.currentValue, 0)
+        let remainingValue = max(progress.targetValue - currentProgressValue, 0)
         let remainingText = formattedNumber(
             remainingValue,
             for: progress
@@ -95,6 +101,26 @@ struct GoalDetailProgressSection: View {
             return ""
         }
         return unit.suffix ?? (unit.prefix == nil ? unit.abbreviatedTitle : "")
+    }
+
+    private var currentPeriod: DateInterval? {
+        goal.recurrence?.period(containing: Date())
+    }
+
+    private var currentProgressValue: Double {
+        if let currentPeriod {
+            progress.currentValue(in: currentPeriod)
+        } else {
+            progress.currentValue
+        }
+    }
+
+    private var isCompleted: Bool {
+        if let currentPeriod {
+            progress.isCompleted(in: currentPeriod)
+        } else {
+            progress.isCompleted
+        }
     }
 }
 
