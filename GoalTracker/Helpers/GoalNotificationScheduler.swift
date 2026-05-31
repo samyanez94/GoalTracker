@@ -196,42 +196,42 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 		for schedule: GoalReminderSchedule,
 		relativeTo currentDate: Date,
 	) -> String {
-		let dueDescription =
-			switch schedule.dueDescription {
-			case .date(let dueDate):
-				relativeDueDateDescription(
-					for: dueDate,
+		let targetDescription =
+			switch schedule.targetDescription {
+			case .date(let targetDate):
+				relativeTargetDateDescription(
+					for: targetDate,
 					relativeTo: currentDate,
 				)
 				.lowercased()
 			case .cadence(let cadence):
-				cadence.reminderDueDescription
+				cadence.reminderTargetDescription
 			}
-		return "Don't forget to complete by \(dueDescription)"
+		return "Don't forget to complete by \(targetDescription)"
 	}
 
-	private func relativeDueDateDescription(
-		for dueDate: Date,
+	private func relativeTargetDateDescription(
+		for targetDate: Date,
 		relativeTo currentDate: Date,
 	) -> String {
 		let currentDay = calendar.startOfDay(for: currentDate)
-		let dueDay = calendar.startOfDay(for: dueDate)
-		guard !calendar.isDate(dueDay, inSameDayAs: currentDay) else {
+		let targetDay = calendar.startOfDay(for: targetDate)
+		guard !calendar.isDate(targetDay, inSameDayAs: currentDay) else {
 			return "Today"
 		}
-		if isExactOffset(.day, value: 1, from: currentDay, to: dueDay) {
+		if isExactOffset(.day, value: 1, from: currentDay, to: targetDay) {
 			return "Tomorrow"
 		}
-		if isExactOffset(.weekOfYear, value: 1, from: currentDay, to: dueDay) {
+		if isExactOffset(.weekOfYear, value: 1, from: currentDay, to: targetDay) {
 			return "Next week"
 		}
-		if isExactOffset(.month, value: 1, from: currentDay, to: dueDay) {
+		if isExactOffset(.month, value: 1, from: currentDay, to: targetDay) {
 			return "Next month"
 		}
-		if isExactOffset(.year, value: 1, from: currentDay, to: dueDay) {
+		if isExactOffset(.year, value: 1, from: currentDay, to: targetDay) {
 			return "Next year"
 		}
-		return dueDate.formatted(date: .abbreviated, time: .omitted)
+		return targetDate.formatted(date: .abbreviated, time: .omitted)
 	}
 
 	private func isExactOffset(

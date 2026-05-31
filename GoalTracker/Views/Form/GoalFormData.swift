@@ -10,7 +10,7 @@ import Foundation
 struct GoalFormData {
 	var name: String
 	var details: String
-	var dueDate: Date?
+	var targetDate: Date?
 	var reminder: GoalReminder?
 	var progress: GoalProgress
 	var recurrence: GoalRecurrence?
@@ -19,7 +19,7 @@ struct GoalFormData {
 	static let empty = GoalFormData(
 		name: "",
 		details: "",
-		dueDate: nil,
+		targetDate: nil,
 		reminder: nil,
 		progress: .outcomePending,
 		recurrence: nil,
@@ -29,7 +29,7 @@ struct GoalFormData {
 	init(goal: Goal) {
 		name = goal.name
 		details = goal.details ?? ""
-		dueDate = goal.dueDate
+		targetDate = goal.targetDate
 		reminder = goal.reminder
 		progress = goal.progress
 		recurrence = goal.recurrence
@@ -39,7 +39,7 @@ struct GoalFormData {
 	init(
 		name: String,
 		details: String,
-		dueDate: Date? = nil,
+		targetDate: Date? = nil,
 		reminder: GoalReminder? = nil,
 		progress: GoalProgress,
 		recurrence: GoalRecurrence? = nil,
@@ -47,7 +47,7 @@ struct GoalFormData {
 	) {
 		self.name = name
 		self.details = details
-		self.dueDate = dueDate
+		self.targetDate = targetDate
 		self.reminder = reminder
 		self.progress = progress
 		self.recurrence = recurrence

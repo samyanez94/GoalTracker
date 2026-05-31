@@ -11,7 +11,7 @@ import Foundation
 struct GoalReminderSyncState {
 	let goalId: UUID
 	let goalName: String
-	let dueDate: Date?
+	let targetDate: Date?
 	let reminder: GoalReminder?
 	let progress: GoalProgress
 	let recurrence: GoalRecurrence?
@@ -19,7 +19,7 @@ struct GoalReminderSyncState {
 	init(goal: Goal) {
 		goalId = goal.id
 		goalName = goal.name
-		dueDate = goal.dueDate
+		targetDate = goal.targetDate
 		reminder = goal.reminder
 		progress = goal.progress
 		recurrence = goal.recurrence

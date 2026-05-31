@@ -44,7 +44,7 @@ struct GoalNotificationSchedulerTests {
 		let notificationCenter = FakeNotificationCenter(status: .notDetermined)
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 		let goal = makeGoal(
-			dueDate: date(year: 2026, month: 5, day: 21),
+			targetDate: date(year: 2026, month: 5, day: 21),
 			reminder: GoalReminder(),
 		)
 
@@ -68,7 +68,7 @@ struct GoalNotificationSchedulerTests {
 		let notificationCenter = FakeNotificationCenter(status: .notDetermined)
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 		let goal = makeGoal(
-			dueDate: nil,
+			targetDate: nil,
 			reminder: GoalReminder(),
 		)
 
@@ -88,12 +88,12 @@ struct GoalNotificationSchedulerTests {
 	}
 
 	@Test
-	func `Syncing due date without reminder cancels without requesting authorization`() async throws
+	func `Syncing target date without reminder cancels without requesting authorization`() async throws
 	{
 		let notificationCenter = FakeNotificationCenter(status: .notDetermined)
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 		let goal = makeGoal(
-			dueDate: date(year: 2026, month: 5, day: 21),
+			targetDate: date(year: 2026, month: 5, day: 21),
 			reminder: nil,
 		)
 
@@ -117,7 +117,7 @@ struct GoalNotificationSchedulerTests {
 		let notificationCenter = FakeNotificationCenter(status: .denied)
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 		let goal = makeGoal(
-			dueDate: date(year: 2026, month: 5, day: 21),
+			targetDate: date(year: 2026, month: 5, day: 21),
 			reminder: GoalReminder(),
 		)
 
@@ -136,13 +136,13 @@ struct GoalNotificationSchedulerTests {
 	}
 
 	@Test
-	func `Scheduling due date without reminder skips notification request`() async throws {
+	func `Scheduling target date without reminder skips notification request`() async throws {
 		let goalID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
 		let notificationCenter = FakeNotificationCenter()
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 		let goal = makeGoal(
 			id: goalID,
-			dueDate: date(year: 2026, month: 5, day: 21),
+			targetDate: date(year: 2026, month: 5, day: 21),
 		)
 
 		let didSchedule = try await scheduler.scheduleReminder(for: goal)
@@ -163,7 +163,7 @@ struct GoalNotificationSchedulerTests {
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 		let goal = makeGoal(
 			id: goalID,
-			dueDate: date(year: 2026, month: 5, day: 21),
+			targetDate: date(year: 2026, month: 5, day: 21),
 			reminder: GoalReminder(),
 		)
 
@@ -190,7 +190,7 @@ struct GoalNotificationSchedulerTests {
 		let notificationCenter = FakeNotificationCenter()
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 		let goal = makeGoal(
-			dueDate: date(year: 2026, month: 5, day: 21),
+			targetDate: date(year: 2026, month: 5, day: 21),
 			reminder: GoalReminder(),
 			progress: .outcomeCompleted,
 		)
@@ -207,7 +207,7 @@ struct GoalNotificationSchedulerTests {
 	}
 
 	@Test
-	func `Scheduling reminder uses today as body for goals due today`() async throws {
+	func `Scheduling reminder uses today as body for goals targeted for today`() async throws {
 		let notificationCenter = FakeNotificationCenter()
 		let scheduler = GoalNotificationScheduler(
 			notificationCenter: notificationCenter,
@@ -215,7 +215,7 @@ struct GoalNotificationSchedulerTests {
 			now: { date(year: 2026, month: 5, day: 21, hour: 8) },
 		)
 		let goal = makeGoal(
-			dueDate: date(year: 2026, month: 5, day: 21),
+			targetDate: date(year: 2026, month: 5, day: 21),
 			reminder: GoalReminder(),
 		)
 
@@ -278,7 +278,7 @@ struct GoalNotificationSchedulerTests {
 			)
 		]
 	)
-	func `Scheduling recurring reminder uses cadence specific repeating trigger and due copy`(
+	func `Scheduling recurring reminder uses cadence specific repeating trigger and target copy`(
 		cadence: GoalRecurrenceCadence,
 		expectedMonth: Int?,
 		expectedDay: Int?,
@@ -368,22 +368,22 @@ struct GoalNotificationSchedulerTests {
 	}
 
 	@Test
-	func `Scheduling reminder skips goals without due date`() async throws {
+	func `Scheduling reminder skips goals without target date`() async throws {
 		let notificationCenter = FakeNotificationCenter()
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 
-		let missingDueDate = try await scheduler.scheduleReminder(
+		let missingTargetDate = try await scheduler.scheduleReminder(
 			for: makeGoal(
 				reminder: GoalReminder(),
 			)
 		)
 		let missingReminder = try await scheduler.scheduleReminder(
 			for: makeGoal(
-				dueDate: date(year: 2026, month: 5, day: 21),
+				targetDate: date(year: 2026, month: 5, day: 21),
 			)
 		)
 
-		#expect(missingDueDate == false)
+		#expect(missingTargetDate == false)
 		#expect(missingReminder == false)
 		#expect(notificationCenter.addedRequests.isEmpty)
 	}
@@ -393,7 +393,7 @@ struct GoalNotificationSchedulerTests {
 		let notificationCenter = FakeNotificationCenter()
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 		let goal = makeGoal(
-			dueDate: date(year: 2025, month: 5, day: 21),
+			targetDate: date(year: 2025, month: 5, day: 21),
 			reminder: GoalReminder(),
 		)
 
@@ -433,7 +433,7 @@ struct GoalNotificationSchedulerTests {
 
 	private func makeGoal(
 		id: UUID = UUID(),
-		dueDate: Date? = nil,
+		targetDate: Date? = nil,
 		reminder: GoalReminder? = nil,
 		progress: GoalProgress = .outcomePending,
 		recurrence: GoalRecurrence? = nil,
@@ -442,7 +442,7 @@ struct GoalNotificationSchedulerTests {
 			id: id,
 			name: "File taxes",
 			details: nil,
-			dueDate: dueDate,
+			targetDate: targetDate,
 			reminder: reminder,
 			createdAt: date(year: 2026, month: 1, day: 1),
 			progress: progress,

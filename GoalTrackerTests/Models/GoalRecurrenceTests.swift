@@ -85,11 +85,11 @@ struct GoalRecurrenceTests {
 	}
 
 	@Test
-	func `Cadence reminder due descriptions match user facing cadence`() {
-		#expect(GoalRecurrenceCadence.daily.reminderDueDescription == "today")
-		#expect(GoalRecurrenceCadence.weekly.reminderDueDescription == "this week")
-		#expect(GoalRecurrenceCadence.monthly.reminderDueDescription == "this month")
-		#expect(GoalRecurrenceCadence.yearly.reminderDueDescription == "this year")
+	func `Cadence reminder target descriptions match user facing cadence`() {
+		#expect(GoalRecurrenceCadence.daily.reminderTargetDescription == "today")
+		#expect(GoalRecurrenceCadence.weekly.reminderTargetDescription == "this week")
+		#expect(GoalRecurrenceCadence.monthly.reminderTargetDescription == "this month")
+		#expect(GoalRecurrenceCadence.yearly.reminderTargetDescription == "this year")
 	}
 
 	@Test

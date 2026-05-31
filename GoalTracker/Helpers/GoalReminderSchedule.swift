@@ -9,14 +9,14 @@ import Foundation
 
 /// A validated reminder schedule that can be converted into a notification request.
 struct GoalReminderSchedule {
-	enum DueDescription {
+	enum TargetDescription {
 		case date(Date)
 		case cadence(GoalRecurrenceCadence)
 	}
 
 	let goalId: UUID
 	let goalName: String
-	let dueDescription: DueDescription
+	let targetDescription: TargetDescription
 	let triggerDateComponents: DateComponents
 	let repeats: Bool
 
@@ -50,9 +50,9 @@ struct GoalReminderSchedule {
 		currentDate: Date,
 	) -> GoalReminderSchedule? {
 		guard !state.progress.isCompleted,
-			let dueDate = state.dueDate,
+			let targetDate = state.targetDate,
 			let fireDate = reminder.fireDate(
-				on: dueDate,
+				on: targetDate,
 				calendar: calendar,
 			),
 			fireDate > currentDate
@@ -61,7 +61,7 @@ struct GoalReminderSchedule {
 		}
 		return GoalReminderSchedule(
 			state: state,
-			dueDescription: .date(dueDate),
+			targetDescription: .date(targetDate),
 			fireDate: fireDate,
 			calendar: calendar,
 		)
@@ -74,7 +74,7 @@ struct GoalReminderSchedule {
 	) -> GoalReminderSchedule {
 		GoalReminderSchedule(
 			state: state,
-			dueDescription: .cadence(recurrence.cadence),
+			targetDescription: .cadence(recurrence.cadence),
 			triggerDateComponents: recurrence.cadence.reminderDateComponents(calendar: calendar),
 			repeats: true,
 		)
@@ -82,13 +82,13 @@ struct GoalReminderSchedule {
 
 	private init(
 		state: GoalReminderSyncState,
-		dueDescription: DueDescription,
+		targetDescription: TargetDescription,
 		fireDate: Date,
 		calendar: Calendar,
 	) {
 		self.goalId = state.goalId
 		self.goalName = state.goalName
-		self.dueDescription = dueDescription
+		self.targetDescription = targetDescription
 		self.triggerDateComponents = calendar.dateComponents(
 			[.year, .month, .day, .hour, .minute, .second],
 			from: fireDate,
@@ -98,13 +98,13 @@ struct GoalReminderSchedule {
 
 	private init(
 		state: GoalReminderSyncState,
-		dueDescription: DueDescription,
+		targetDescription: TargetDescription,
 		triggerDateComponents: DateComponents,
 		repeats: Bool,
 	) {
 		self.goalId = state.goalId
 		self.goalName = state.goalName
-		self.dueDescription = dueDescription
+		self.targetDescription = targetDescription
 		self.triggerDateComponents = triggerDateComponents
 		self.repeats = repeats
 	}

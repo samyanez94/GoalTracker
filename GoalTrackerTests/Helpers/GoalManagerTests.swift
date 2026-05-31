@@ -210,7 +210,7 @@ struct GoalManagerTests {
 			goal,
 			name: "Updated Goal",
 			details: goal.details,
-			dueDate: goal.dueDate,
+			targetDate: goal.targetDate,
 			progress: goal.progress,
 		)
 
@@ -231,7 +231,7 @@ struct GoalManagerTests {
 			goal,
 			name: goal.name,
 			details: goal.details,
-			dueDate: goal.dueDate,
+			targetDate: goal.targetDate,
 			progress: .measurable(currentValue: 7, targetValue: 10, step: 2),
 		)
 
@@ -262,7 +262,7 @@ struct GoalManagerTests {
 			goal,
 			name: goal.name,
 			details: goal.details,
-			dueDate: goal.dueDate,
+			targetDate: goal.targetDate,
 			progress: .measurable(currentValue: 4, targetValue: 12, step: 3),
 		)
 
@@ -299,7 +299,7 @@ struct GoalManagerTests {
 			goal,
 			name: goal.name,
 			details: goal.details,
-			dueDate: goal.dueDate,
+			targetDate: goal.targetDate,
 			reminder: reminder,
 			progress: .measurable(
 				currentValue: goal.progress.currentValue,
@@ -318,7 +318,7 @@ struct GoalManagerTests {
 		let container = try makeContainer()
 		let scheduler = FakeGoalReminderScheduler()
 		let goal = makeGoal(
-			dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
+			targetDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
 			progress: .outcomePending,
 		)
 		let reminder = GoalReminder()
@@ -329,7 +329,7 @@ struct GoalManagerTests {
 			goal,
 			name: goal.name,
 			details: goal.details,
-			dueDate: goal.dueDate,
+			targetDate: goal.targetDate,
 			reminder: reminder,
 			progress: goal.progress,
 		)
@@ -353,7 +353,7 @@ struct GoalManagerTests {
 			goal,
 			name: goal.name,
 			details: goal.details,
-			dueDate: goal.dueDate,
+			targetDate: goal.targetDate,
 			progress: goal.progress,
 			tags: [healthTag, runningTag],
 		)
@@ -377,7 +377,7 @@ struct GoalManagerTests {
 			goal,
 			name: goal.name,
 			details: goal.details,
-			dueDate: goal.dueDate,
+			targetDate: goal.targetDate,
 			progress: goal.progress,
 			tags: [newTag],
 		)
@@ -542,7 +542,7 @@ struct GoalManagerTests {
 				goal,
 				name: "Updated Goal",
 				details: goal.details,
-				dueDate: goal.dueDate,
+				targetDate: goal.targetDate,
 				reminder: GoalReminder(),
 				progress: goal.progress,
 				tags: [newTag],
@@ -576,11 +576,11 @@ struct GoalManagerTests {
 	}
 
 	@Test
-	func `Adding a goal with a due date schedules notification reminder`() async throws {
+	func `Adding a goal with a target date schedules notification reminder`() async throws {
 		let container = try makeContainer()
 		let scheduler = FakeGoalReminderScheduler()
 		let goal = makeGoal(
-			dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
+			targetDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
 			reminder: GoalReminder(),
 			progress: .outcomePending,
 		)
@@ -599,7 +599,7 @@ struct GoalManagerTests {
 		let container = try makeContainer()
 		let scheduler = FakeGoalReminderScheduler()
 		let goal = makeGoal(
-			dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
+			targetDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
 			reminder: GoalReminder(),
 			progress: .outcomePending,
 		)
@@ -610,7 +610,7 @@ struct GoalManagerTests {
 			goal,
 			name: goal.name,
 			details: goal.details,
-			dueDate: nil,
+			targetDate: nil,
 			reminder: nil,
 			progress: goal.progress,
 		)
@@ -626,7 +626,7 @@ struct GoalManagerTests {
 		let container = try makeContainer()
 		let scheduler = FakeGoalReminderScheduler()
 		let goal = makeGoal(
-			dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
+			targetDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
 			reminder: GoalReminder(),
 			progress: .outcomePending,
 		)
@@ -646,7 +646,7 @@ struct GoalManagerTests {
 		let container = try makeContainer()
 		let scheduler = FakeGoalReminderScheduler()
 		let goal = makeGoal(
-			dueDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
+			targetDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
 			reminder: GoalReminder(),
 			progress: .outcomeCompleted,
 		)
@@ -718,7 +718,7 @@ struct GoalManagerTests {
 
 	private func makeGoal(
 		name: String = "Test Goal",
-		dueDate: Date? = nil,
+		targetDate: Date? = nil,
 		reminder: GoalReminder? = nil,
 		progress: GoalProgress,
 		recurrence: GoalRecurrence? = nil,
@@ -726,7 +726,7 @@ struct GoalManagerTests {
 		Goal(
 			name: name,
 			details: nil,
-			dueDate: dueDate,
+			targetDate: targetDate,
 			reminder: reminder,
 			createdAt: Date(timeIntervalSinceReferenceDate: 0),
 			progress: progress,

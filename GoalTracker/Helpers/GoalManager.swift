@@ -60,7 +60,7 @@ struct GoalManager {
 		_ goal: Goal,
 		name: String,
 		details: String?,
-		dueDate: Date?,
+		targetDate: Date?,
 		reminder: GoalReminder? = nil,
 		progress: GoalProgress,
 		updatesRecurrence: Bool = false,
@@ -73,7 +73,7 @@ struct GoalManager {
 			performing: {
 				goal.name = name
 				goal.details = details
-				goal.dueDate = dueDate
+				goal.targetDate = targetDate
 				goal.reminder = reminder
 				goal.progress = progress.updated(
 					preservingEventsFrom: goal.progress,
@@ -106,7 +106,7 @@ struct GoalManager {
 			goal,
 			name: data.name,
 			details: data.normalizedDetails,
-			dueDate: data.dueDate,
+			targetDate: data.targetDate,
 			reminder: data.reminder,
 			progress: data.progress,
 			updatesRecurrence: true,
@@ -327,7 +327,7 @@ struct GoalManager {
 	private struct GoalSnapshot {
 		let name: String
 		let details: String?
-		let dueDate: Date?
+		let targetDate: Date?
 		let reminder: GoalReminder?
 		let progress: GoalProgress
 		let recurrence: GoalRecurrence?
@@ -336,7 +336,7 @@ struct GoalManager {
 		init(goal: Goal) {
 			name = goal.name
 			details = goal.details
-			dueDate = goal.dueDate
+			targetDate = goal.targetDate
 			reminder = goal.reminder
 			progress = goal.progress
 			recurrence = goal.recurrence
@@ -346,7 +346,7 @@ struct GoalManager {
 		func restore(_ goal: Goal) {
 			goal.name = name
 			goal.details = details
-			goal.dueDate = dueDate
+			goal.targetDate = targetDate
 			goal.reminder = reminder
 			goal.progress = progress
 			goal.recurrence = recurrence

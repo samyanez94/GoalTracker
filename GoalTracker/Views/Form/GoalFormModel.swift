@@ -16,10 +16,10 @@ import Observation
 final class GoalFormModel {
 	var name: String
 	var details: String
-	var hasDueDate: Bool
-	var dueDate: Date
+	var hasTargetDate: Bool
+	var targetDate: Date
 	var reminder: GoalReminder?
-	var isDueDatePickerExpanded = false
+	var isTargetDatePickerExpanded = false
 	var isProgressBased: Bool
 	var targetValue: Double = 1
 	var step: Double = 1
@@ -27,7 +27,7 @@ final class GoalFormModel {
 
 	var recurrence: GoalRecurrence? {
 		didSet {
-			clearDueDateIfNeededForRecurrence()
+			clearTargetDateIfNeededForRecurrence()
 		}
 	}
 	var selectedTags: [Tag]
@@ -46,8 +46,8 @@ final class GoalFormModel {
 		let data = mode.initialData
 		name = data.name
 		details = data.details
-		hasDueDate = data.dueDate != nil && data.recurrence == nil
-		dueDate = data.dueDate ?? Date()
+		hasTargetDate = data.targetDate != nil && data.recurrence == nil
+		targetDate = data.targetDate ?? Date()
 		reminder = data.reminder
 		recurrence = data.recurrence
 		selectedTags = data.tags
@@ -93,19 +93,19 @@ final class GoalFormModel {
 		currentSnapshot != initialSnapshot
 	}
 
-	var allowsDueDate: Bool {
+	var allowsTargetDate: Bool {
 		recurrence == nil
 	}
 
-	func toggleDueDatePicker() {
-		guard hasDueDate else {
+	func toggleTargetDatePicker() {
+		guard hasTargetDate else {
 			return
 		}
-		isDueDatePickerExpanded.toggle()
+		isTargetDatePickerExpanded.toggle()
 	}
 
-	func setDueDateEnabled(_ isEnabled: Bool) {
-		isDueDatePickerExpanded = isEnabled
+	func setTargetDateEnabled(_ isEnabled: Bool) {
+		isTargetDatePickerExpanded = isEnabled
 		if !isEnabled, recurrence == nil {
 			reminder = nil
 		}
@@ -115,20 +115,20 @@ final class GoalFormModel {
 		GoalFormData(
 			name: trimmedName,
 			details: details,
-			dueDate: allowsDueDate && hasDueDate ? dueDate : nil,
-			reminder: recurrence != nil || hasDueDate ? reminder : nil,
+			targetDate: allowsTargetDate && hasTargetDate ? targetDate : nil,
+			reminder: recurrence != nil || hasTargetDate ? reminder : nil,
 			progress: progress,
 			recurrence: recurrence,
 			tags: selectedTags,
 		)
 	}
 
-	private func clearDueDateIfNeededForRecurrence() {
+	private func clearTargetDateIfNeededForRecurrence() {
 		guard recurrence != nil else {
 			return
 		}
-		hasDueDate = false
-		isDueDatePickerExpanded = false
+		hasTargetDate = false
+		isTargetDatePickerExpanded = false
 	}
 
 	private var trimmedName: String {
@@ -139,8 +139,8 @@ final class GoalFormModel {
 		GoalFormSnapshot(
 			name: trimmedName,
 			details: details,
-			dueDate: allowsDueDate && hasDueDate ? dueDate : nil,
-			reminder: recurrence != nil || hasDueDate ? reminder : nil,
+			targetDate: allowsTargetDate && hasTargetDate ? targetDate : nil,
+			reminder: recurrence != nil || hasTargetDate ? reminder : nil,
 			recurrence: recurrence,
 			isProgressBased: isProgressBased,
 			targetValue: isProgressBased ? targetValue : nil,
@@ -179,7 +179,7 @@ final class GoalFormModel {
 private struct GoalFormSnapshot: Equatable {
 	var name: String
 	var details: String
-	var dueDate: Date?
+	var targetDate: Date?
 	var reminder: GoalReminder?
 	var recurrence: GoalRecurrence?
 	var isProgressBased: Bool
@@ -191,7 +191,7 @@ private struct GoalFormSnapshot: Equatable {
 	static let empty = GoalFormSnapshot(
 		name: "",
 		details: "",
-		dueDate: nil,
+		targetDate: nil,
 		reminder: nil,
 		recurrence: nil,
 		isProgressBased: false,

@@ -16,8 +16,8 @@ struct GoalSorter {
 		goals.sorted { lhs, rhs in
 			let comparison =
 				switch sortMode {
-				case .dueDate:
-					compareByDueDate(lhs, rhs, direction: direction)
+				case .targetDate:
+					compareByTargetDate(lhs, rhs, direction: direction)
 				case .creationDate:
 					compareByCreationDate(lhs, rhs, direction: direction)
 				case .name:
@@ -27,17 +27,17 @@ struct GoalSorter {
 		}
 	}
 
-	private func compareByDueDate(
+	private func compareByTargetDate(
 		_ lhs: Goal,
 		_ rhs: Goal,
 		direction: GoalSortDirection,
 	) -> ComparisonResult {
-		switch (lhs.dueDate, rhs.dueDate) {
-		case (let lhsDueDate?, let rhsDueDate?):
-			if lhsDueDate != rhsDueDate {
+		switch (lhs.targetDate, rhs.targetDate) {
+		case (let lhsTargetDate?, let rhsTargetDate?):
+			if lhsTargetDate != rhsTargetDate {
 				return compare(
-					lhsDueDate,
-					rhsDueDate,
+					lhsTargetDate,
+					rhsTargetDate,
 					direction: direction,
 				)
 			}

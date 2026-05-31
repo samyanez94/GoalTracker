@@ -18,9 +18,9 @@ struct GoalFormModelTests {
 
 		#expect(model.name == "")
 		#expect(model.details == "")
-		#expect(model.hasDueDate == false)
+		#expect(model.hasTargetDate == false)
 		#expect(model.reminder == nil)
-		#expect(model.isDueDatePickerExpanded == false)
+		#expect(model.isTargetDatePickerExpanded == false)
 		#expect(model.isProgressBased == false)
 		#expect(model.targetValue == 1)
 		#expect(model.step == 1)
@@ -72,7 +72,7 @@ struct GoalFormModelTests {
 
 	@Test
 	func `Edit mode initializes from measurable form data`() {
-		let dueDate = Date(timeIntervalSinceReferenceDate: 123)
+		let targetDate = Date(timeIntervalSinceReferenceDate: 123)
 		let tags = [
 			Tag(name: "Health"),
 			Tag(name: "Running")
@@ -82,7 +82,7 @@ struct GoalFormModelTests {
 				GoalFormData(
 					name: "Run 10 miles",
 					details: "Weekly long run",
-					dueDate: dueDate,
+					targetDate: targetDate,
 					progress: .measurable(
 						currentValue: 3,
 						targetValue: 10,
@@ -96,8 +96,8 @@ struct GoalFormModelTests {
 
 		#expect(model.name == "Run 10 miles")
 		#expect(model.details == "Weekly long run")
-		#expect(model.hasDueDate)
-		#expect(model.dueDate == dueDate)
+		#expect(model.hasTargetDate)
+		#expect(model.targetDate == targetDate)
 		#expect(model.isProgressBased)
 		#expect(model.targetValue == 10)
 		#expect(model.step == 2)
@@ -124,7 +124,7 @@ struct GoalFormModelTests {
 
 		#expect(model.recurrence == GoalRecurrence(cadence: .weekly))
 		#expect(model.reminder == reminder)
-		#expect(model.allowsDueDate == false)
+		#expect(model.allowsTargetDate == false)
 	}
 
 	@Test
@@ -174,54 +174,54 @@ struct GoalFormModelTests {
 	}
 
 	@Test
-	func `Form data includes due date only when due date is enabled`() {
-		let dueDate = Date(timeIntervalSinceReferenceDate: 456)
+	func `Form data includes target date only when target date is enabled`() {
+		let targetDate = Date(timeIntervalSinceReferenceDate: 456)
 		let reminder = GoalReminder()
 		let model = GoalFormModel(mode: .create)
 		model.name = "File taxes"
-		model.hasDueDate = true
-		model.dueDate = dueDate
+		model.hasTargetDate = true
+		model.targetDate = targetDate
 		model.reminder = reminder
 
-		#expect(model.makeFormData().dueDate == dueDate)
+		#expect(model.makeFormData().targetDate == targetDate)
 		#expect(model.makeFormData().reminder == reminder)
 
-		model.hasDueDate = false
+		model.hasTargetDate = false
 
-		#expect(model.makeFormData().dueDate == nil)
+		#expect(model.makeFormData().targetDate == nil)
 		#expect(model.makeFormData().reminder == nil)
 	}
 
 	@Test
-	func `Selecting recurrence clears due date and preserves reminder`() {
-		let dueDate = Date(timeIntervalSinceReferenceDate: 456)
+	func `Selecting recurrence clears target date and preserves reminder`() {
+		let targetDate = Date(timeIntervalSinceReferenceDate: 456)
 		let reminder = GoalReminder()
 		let model = GoalFormModel(mode: .create)
 		model.name = "Run"
-		model.hasDueDate = true
-		model.dueDate = dueDate
+		model.hasTargetDate = true
+		model.targetDate = targetDate
 		model.reminder = reminder
 
 		model.recurrence = GoalRecurrence(cadence: .daily)
 
 		let data = model.makeFormData()
-		#expect(model.hasDueDate == false)
+		#expect(model.hasTargetDate == false)
 		#expect(model.reminder == reminder)
-		#expect(model.allowsDueDate == false)
-		#expect(data.dueDate == nil)
+		#expect(model.allowsTargetDate == false)
+		#expect(data.targetDate == nil)
 		#expect(data.reminder == reminder)
 		#expect(data.recurrence == GoalRecurrence(cadence: .daily))
 	}
 
 	@Test
-	func `Recurring edit data ignores existing due date and preserves reminder`() {
+	func `Recurring edit data ignores existing target date and preserves reminder`() {
 		let reminder = GoalReminder()
 		let model = GoalFormModel(
 			mode: .edit(
 				GoalFormData(
 					name: "Run",
 					details: "",
-					dueDate: Date(timeIntervalSinceReferenceDate: 456),
+					targetDate: Date(timeIntervalSinceReferenceDate: 456),
 					reminder: reminder,
 					progress: .outcomePending,
 					recurrence: GoalRecurrence(cadence: .weekly),
@@ -230,44 +230,44 @@ struct GoalFormModelTests {
 		)
 
 		let data = model.makeFormData()
-		#expect(model.hasDueDate == false)
+		#expect(model.hasTargetDate == false)
 		#expect(model.reminder == reminder)
-		#expect(model.allowsDueDate == false)
-		#expect(data.dueDate == nil)
+		#expect(model.allowsTargetDate == false)
+		#expect(data.targetDate == nil)
 		#expect(data.reminder == reminder)
 		#expect(data.recurrence == GoalRecurrence(cadence: .weekly))
 	}
 
 	@Test
-	func `Enabling due date does not default reminder`() {
+	func `Enabling target date does not default reminder`() {
 		let model = GoalFormModel(mode: .create)
 
-		model.hasDueDate = true
-		model.setDueDateEnabled(true)
+		model.hasTargetDate = true
+		model.setTargetDateEnabled(true)
 
 		#expect(model.reminder == nil)
 	}
 
 	@Test
-	func `Enabling due date preserves existing reminder`() {
+	func `Enabling target date preserves existing reminder`() {
 		let reminder = GoalReminder()
 		let model = GoalFormModel(mode: .create)
 		model.reminder = reminder
 
-		model.hasDueDate = true
-		model.setDueDateEnabled(true)
+		model.hasTargetDate = true
+		model.setTargetDateEnabled(true)
 
 		#expect(model.reminder == reminder)
 	}
 
 	@Test
-	func `Disabling due date clears reminder`() {
+	func `Disabling target date clears reminder`() {
 		let model = GoalFormModel(mode: .create)
-		model.hasDueDate = true
-		model.setDueDateEnabled(true)
+		model.hasTargetDate = true
+		model.setTargetDateEnabled(true)
 
-		model.hasDueDate = false
-		model.setDueDateEnabled(false)
+		model.hasTargetDate = false
+		model.setTargetDateEnabled(false)
 
 		#expect(model.reminder == nil)
 	}
@@ -280,7 +280,7 @@ struct GoalFormModelTests {
 				GoalFormData(
 					name: "File taxes",
 					details: "",
-					dueDate: Date(timeIntervalSinceReferenceDate: 456),
+					targetDate: Date(timeIntervalSinceReferenceDate: 456),
 					reminder: reminder,
 					progress: .outcomePending,
 				),
@@ -376,17 +376,17 @@ struct GoalFormModelTests {
 	}
 
 	@Test
-	func `Due date expansion follows due date enablement`() {
+	func `Target date expansion follows target date enablement`() {
 		let model = GoalFormModel(mode: .create)
 
-		model.toggleDueDatePicker()
-		#expect(model.isDueDatePickerExpanded == false)
+		model.toggleTargetDatePicker()
+		#expect(model.isTargetDatePickerExpanded == false)
 
-		model.hasDueDate = true
-		model.setDueDateEnabled(true)
-		#expect(model.isDueDatePickerExpanded)
+		model.hasTargetDate = true
+		model.setTargetDateEnabled(true)
+		#expect(model.isTargetDatePickerExpanded)
 
-		model.toggleDueDatePicker()
-		#expect(model.isDueDatePickerExpanded == false)
+		model.toggleTargetDatePicker()
+		#expect(model.isTargetDatePickerExpanded == false)
 	}
 }

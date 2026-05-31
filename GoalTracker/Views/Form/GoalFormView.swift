@@ -117,40 +117,40 @@ struct GoalFormView: View {
 				.font(.footnote)
 				.foregroundStyle(.secondary)
 			}
-			if model.allowsDueDate {
+			if model.allowsTargetDate {
 				Section {
 					HStack {
-						DueDateSummaryButton(
-							hasDueDate: model.hasDueDate,
-							dueDate: model.dueDate,
+						TargetDateSummaryButton(
+							hasTargetDate: model.hasTargetDate,
+							targetDate: model.targetDate,
 							action: {
 								withAnimation {
-									model.toggleDueDatePicker()
+									model.toggleTargetDatePicker()
 								}
 							},
 						)
 						Toggle(
-							"Due Date",
-							isOn: $model.hasDueDate,
+							"Target Date",
+							isOn: $model.hasTargetDate,
 						)
 						.labelsHidden()
 					}
-					if model.hasDueDate, model.isDueDatePickerExpanded {
+					if model.hasTargetDate, model.isTargetDatePickerExpanded {
 						DatePicker(
-							"Select due date",
-							selection: $model.dueDate,
+							"Select target date",
+							selection: $model.targetDate,
 							displayedComponents: .date,
 						)
 						.datePickerStyle(.graphical)
 					}
-					if model.hasDueDate {
+					if model.hasTargetDate {
 						GoalReminderToggleRow(reminder: $model.reminder)
 					}
 				} header: {
 					Text("Date")
 				} footer: {
 					Text(
-						"Set a due date to help you know when to complete this goal. Turn on reminders to get a notification at 9 AM that day."
+						"Set a target date to help you know when to complete this goal. Turn on reminders to get a notification at 9 AM that day."
 					)
 					.font(.footnote)
 					.foregroundStyle(.secondary)
@@ -222,10 +222,10 @@ struct GoalFormView: View {
 					.disabled(model.isSaveDisabled)
 			}
 		}
-		.onChange(of: model.hasDueDate) { _, hasDueDate in
+		.onChange(of: model.hasTargetDate) { _, hasTargetDate in
 			isTextInputFocused = false
 			withAnimation {
-				model.setDueDateEnabled(hasDueDate)
+				model.setTargetDateEnabled(hasTargetDate)
 			}
 		}
 		.onChange(of: model.isProgressBased) {
@@ -292,7 +292,7 @@ struct GoalFormView: View {
 				GoalFormData(
 					name: "Workout 10 times",
 					details: "Move a little every day.",
-					dueDate: Date(),
+					targetDate: Date(),
 					progress: .measurable(currentValue: 3, targetValue: 10, step: 2),
 				),
 			),

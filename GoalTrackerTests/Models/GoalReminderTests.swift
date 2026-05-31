@@ -30,7 +30,7 @@ struct GoalReminderTests {
 	@Test
 	func `Date only reminders calculate from nine AM local time`() throws {
 		let calendar = Calendar(identifier: .gregorian)
-		let dueDate = try #require(
+		let targetDate = try #require(
 			calendar.date(
 				from: DateComponents(
 					year: 2026,
@@ -41,7 +41,7 @@ struct GoalReminderTests {
 		)
 
 		#expect(
-			GoalReminder().fireDate(on: dueDate, calendar: calendar)
+			GoalReminder().fireDate(on: targetDate, calendar: calendar)
 				== calendar.date(
 					from: DateComponents(year: 2026, month: 5, day: 21, hour: 9),
 				)

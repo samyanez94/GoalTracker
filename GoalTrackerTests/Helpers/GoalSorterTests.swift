@@ -15,16 +15,16 @@ struct GoalSorterTests {
 	private let sorter = GoalSorter()
 
 	@Test
-	func `Due date sorting ascending puts earlier dated goals before later dated goals`() {
+	func `Target date sorting ascending puts earlier dated goals before later dated goals`() {
 		let goals = [
-			goal(named: "Undated", dueDate: nil),
-			goal(named: "Later", dueDate: date(3)),
-			goal(named: "Sooner", dueDate: date(2))
+			goal(named: "Undated", targetDate: nil),
+			goal(named: "Later", targetDate: date(3)),
+			goal(named: "Sooner", targetDate: date(2))
 		]
 
 		let sortedGoals = sorter.sorted(
 			goals,
-			by: .dueDate,
+			by: .targetDate,
 			direction: .ascending,
 		)
 
@@ -32,16 +32,16 @@ struct GoalSorterTests {
 	}
 
 	@Test
-	func `Due date sorting descending keeps undated goals after dated goals`() {
+	func `Target date sorting descending keeps undated goals after dated goals`() {
 		let goals = [
-			goal(named: "Undated", dueDate: nil),
-			goal(named: "Later", dueDate: date(3)),
-			goal(named: "Sooner", dueDate: date(2))
+			goal(named: "Undated", targetDate: nil),
+			goal(named: "Later", targetDate: date(3)),
+			goal(named: "Sooner", targetDate: date(2))
 		]
 
 		let sortedGoals = sorter.sorted(
 			goals,
-			by: .dueDate,
+			by: .targetDate,
 			direction: .descending,
 		)
 
@@ -114,7 +114,7 @@ struct GoalSorterTests {
 
 	private func goal(
 		named name: String,
-		dueDate: Date? = nil,
+		targetDate: Date? = nil,
 		createdAt: Date = Date(timeIntervalSinceReferenceDate: 0),
 		progress: GoalProgress = .outcomePending,
 	) -> Goal {
@@ -122,7 +122,7 @@ struct GoalSorterTests {
 			id: UUID(),
 			name: name,
 			details: nil,
-			dueDate: dueDate,
+			targetDate: targetDate,
 			createdAt: createdAt,
 			progress: progress,
 		)

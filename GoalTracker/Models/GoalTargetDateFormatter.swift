@@ -1,5 +1,5 @@
 //
-//  GoalDueDateFormatter.swift
+//  GoalTargetDateFormatter.swift
 //  GoalTracker
 //
 //  Created by Samuel Yanez on 5/5/26.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum GoalDueDateFormatter {
+enum GoalTargetDateFormatter {
 	static func string(from date: Date) -> String {
 		formatter.string(from: date)
 	}

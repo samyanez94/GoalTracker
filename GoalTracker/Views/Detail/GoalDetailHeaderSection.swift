@@ -26,11 +26,11 @@ struct GoalDetailHeaderSection: View {
 					.font(.body)
 					.foregroundStyle(.secondary)
 			}
-			if let dueDate = goal.dueDate {
-				let text = dueDateText(for: dueDate)
+			if let targetDate = goal.targetDate {
+				let text = targetDateText(for: targetDate)
 				Text(text)
 					.font(.body.bold())
-					.foregroundStyle(isPastDue(dueDate) ? .red : .secondary)
+					.foregroundStyle(isPastTargetDate(targetDate) ? .red : .secondary)
 			}
 			if !goal.tags.isEmpty {
 				TagFlowLayout {
@@ -49,17 +49,17 @@ struct GoalDetailHeaderSection: View {
 		}
 	}
 
-	private func dueDateText(for dueDate: Date) -> String {
-		if Calendar.current.isDateInToday(dueDate) {
+	private func targetDateText(for targetDate: Date) -> String {
+		if Calendar.current.isDateInToday(targetDate) {
 			return "Complete by today"
 		}
-		if Calendar.current.isDateInTomorrow(dueDate) {
+		if Calendar.current.isDateInTomorrow(targetDate) {
 			return "Complete by tomorrow"
 		}
-		return "Complete by \(dueDate.formatted(date: .long, time: .omitted))"
+		return "Complete by \(targetDate.formatted(date: .long, time: .omitted))"
 	}
 
-	private func isPastDue(_ dueDate: Date) -> Bool {
-		Calendar.current.startOfDay(for: dueDate) < Calendar.current.startOfDay(for: Date())
+	private func isPastTargetDate(_ targetDate: Date) -> Bool {
+		Calendar.current.startOfDay(for: targetDate) < Calendar.current.startOfDay(for: Date())
 	}
 }

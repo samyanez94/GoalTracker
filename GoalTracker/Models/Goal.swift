@@ -23,8 +23,8 @@ extension GoalTrackerSchemaV1 {
 		/// The date the goal was created.
 		var createdAt: Date = Date()
 		/// An optional target date for completing the goal.
-		var dueDate: Date?
-		/// An optional notification reminder for the due date or recurring cadence.
+		var targetDate: Date?
+		/// An optional notification reminder for the target date or recurring cadence.
 		var reminder: GoalReminder? = nil
 		/// The current progress summary for this goal.
 		var progress: GoalProgress = GoalProgress.outcomePending
@@ -32,33 +32,25 @@ extension GoalTrackerSchemaV1 {
 		var recurrence: GoalRecurrence?
 		/// Reusable tags associated with this goal.
 		var tags: [Tag] = []
+        
+        /// The current user-facing status derived from progress.
+        var status: GoalStatus {
+            status()
+        }
 
 		/// Whether the current progress has reached its target.
 		var isCompleted: Bool {
 			isCompleted()
 		}
 
-		/// The current user-facing status derived from progress.
-		var status: GoalStatus {
-			status()
-		}
-
+        /// Whether the goal is measurable.
 		var isMeasurable: Bool {
 			progress.isMeasurable
 		}
 
+        /// Whether the goal is recurring.
 		var isRecurring: Bool {
 			recurrence != nil
-		}
-
-		func isCompleted(
-			at date: Date = Date(),
-			calendar: Calendar = .current,
-		) -> Bool {
-			guard let period = recurrence?.period(containing: date, calendar: calendar) else {
-				return progress.isCompleted
-			}
-			return progress.isCompleted(in: period)
 		}
 
 		func status(
@@ -73,6 +65,16 @@ extension GoalTrackerSchemaV1 {
 			}
 			return .pending
 		}
+        
+        func isCompleted(
+            at date: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Bool {
+            guard let period = recurrence?.period(containing: date, calendar: calendar) else {
+                return progress.isCompleted
+            }
+            return progress.isCompleted(in: period)
+        }
 
 		func currentProgressValue(
 			at date: Date = Date(),
@@ -187,7 +189,7 @@ extension GoalTrackerSchemaV1 {
 			id: UUID = UUID(),
 			name: String,
 			details: String?,
-			dueDate: Date? = nil,
+			targetDate: Date? = nil,
 			reminder: GoalReminder? = nil,
 			createdAt: Date = Date(),
 			progress: GoalProgress,
@@ -196,7 +198,7 @@ extension GoalTrackerSchemaV1 {
 			self.id = id
 			self.name = name
 			self.details = details
-			self.dueDate = dueDate
+			self.targetDate = targetDate
 			self.reminder = reminder
 			self.createdAt = createdAt
 			self.progress = progress

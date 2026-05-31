@@ -21,10 +21,10 @@ struct GoalRowView: View {
 				VStack(alignment: .leading, spacing: 2) {
 					Text(goal.name)
 						.foregroundStyle(goal.isCompleted ? .secondary : .primary)
-					if let dueDate = goal.dueDate {
-						Text(GoalDueDateFormatter.string(from: dueDate))
+					if let targetDate = goal.targetDate {
+						Text(GoalTargetDateFormatter.string(from: targetDate))
 							.font(.subheadline)
-							.foregroundStyle(isPastDue(dueDate) ? .red : .secondary)
+							.foregroundStyle(isPastTargetDate(targetDate) ? .red : .secondary)
 					}
 					if let recurrence = goal.recurrence {
 						Text(recurrence.rowTitle)
@@ -84,9 +84,9 @@ struct GoalRowView: View {
 		}
 	}
 
-	private func isPastDue(_ dueDate: Date) -> Bool {
+	private func isPastTargetDate(_ targetDate: Date) -> Bool {
 		!goal.isCompleted
-			&& Calendar.current.startOfDay(for: dueDate) < Calendar.current.startOfDay(for: Date())
+			&& Calendar.current.startOfDay(for: targetDate) < Calendar.current.startOfDay(for: Date())
 	}
 }
 
@@ -95,7 +95,7 @@ struct GoalRowView: View {
 		Goal(
 			name: "Run a 5K",
 			details: "Build up endurance with three runs per week.",
-			dueDate: Calendar.current.date(
+			targetDate: Calendar.current.date(
 				byAdding: .day,
 				value: 1,
 				to: Date()
@@ -106,7 +106,7 @@ struct GoalRowView: View {
 		Goal(
 			name: "File taxes",
 			details: nil,
-			dueDate: Calendar.current.date(
+			targetDate: Calendar.current.date(
 				byAdding: .day,
 				value: -1,
 				to: Date()

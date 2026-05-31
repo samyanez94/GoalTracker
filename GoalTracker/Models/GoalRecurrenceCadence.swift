@@ -96,7 +96,7 @@ nonisolated enum GoalRecurrenceCadence: String, Codable, Equatable, Hashable {
 		return self.period(containing: dateInPreviousPeriod, calendar: calendar)
 	}
 
-	var reminderDueDescription: String {
+	var reminderTargetDescription: String {
 		switch self {
 		case .daily:
 			"today"
