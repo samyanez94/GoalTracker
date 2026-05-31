@@ -176,7 +176,7 @@ extension GoalTrackerSchemaV1 {
             details: String?,
             dueDate: Date? = nil,
             reminder: GoalReminder? = nil,
-            createdAt: Date,
+            createdAt: Date = Date(),
             progress: GoalProgress,
             recurrence: GoalRecurrence? = nil,
         ) {

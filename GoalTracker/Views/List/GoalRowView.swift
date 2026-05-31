@@ -36,7 +36,7 @@ struct GoalRowView: View {
             }
         }
         .contextMenu {
-            GoalActionMenuItems(
+            GoalActionMenuContent(
                 isCompleted: goal.isCompleted,
                 edit: {
                     isPresentingEditForm = true

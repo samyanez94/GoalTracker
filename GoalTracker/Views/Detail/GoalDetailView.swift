@@ -8,6 +8,8 @@
 import SwiftData
 import SwiftUI
 
+// MARK: - GoalDetailView
+
 struct GoalDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -15,7 +17,7 @@ struct GoalDetailView: View {
 
     @State private var isPresentingEditForm = false
 
-    @State private var feedbackTrigger = false
+    @State private var isPresentingProgressUpdateSheet = false
 
     @State private var saveFailure: GoalSaveFailure?
 
@@ -28,10 +30,11 @@ struct GoalDetailView: View {
                 if goal.isRecurring {
                     GoalDetailStreakSection(goal: goal)
                 }
-                if goal.isMeasurable {
-                    GoalDetailProgressSection(goal: goal)
-                } else {
+                switch goal.progress.kind {
+                case .outcome:
                     GoalDetailStatusSection(goal: goal)
+                case .measurable:
+                    GoalDetailProgressSection(goal: goal)
                 }
             }
         }
@@ -40,7 +43,7 @@ struct GoalDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu("Goal Actions", systemImage: "ellipsis") {
-                    GoalActionMenuItems(
+                    GoalActionMenuContent(
                         isCompleted: goal.isCompleted,
                         edit: {
                             isPresentingEditForm = true
@@ -51,7 +54,6 @@ struct GoalDetailView: View {
                         },
                     )
                 }
-                .labelStyle(.iconOnly)
             }
         }
         .sheet(isPresented: $isPresentingEditForm) {
@@ -63,13 +65,19 @@ struct GoalDetailView: View {
                 }
             }
         }
+        .sheet(isPresented: $isPresentingProgressUpdateSheet) {
+            NavigationStack {
+                GoalProgressUpdateView()
+            }
+        }
         .safeAreaInset(edge: .bottom) {
-            GoalDetailBottomActionView(
+            GoalDetailBottomView(
                 goal: goal,
-                feedbackTrigger: $feedbackTrigger,
+                openProgressUpdateView: {
+                    isPresentingProgressUpdateSheet = true
+                },
             )
         }
-        .sensoryFeedback(.impact(weight: .light), trigger: feedbackTrigger)
         .goalSaveFailureAlert(failure: $saveFailure)
     }
 
@@ -82,7 +90,6 @@ struct GoalDetailView: View {
             guard try goalManager.toggleCompletion(goal) else {
                 return
             }
-            feedbackTrigger.toggle()
         } catch {
             saveFailure = .updateProgress
         }
@@ -98,26 +105,26 @@ struct GoalDetailView: View {
     }
 }
 
-#Preview("Outcome goal") {
+// MARK: - Previews
+
+#Preview("Outcome") {
     NavigationStack {
         GoalDetailView(
             goal: Goal(
-                name: "Travel to Japan",
-                details: "Plan and take the trip.",
-                createdAt: Date(),
+                name: "Climb Mount Kilimanjaro",
+                details: "Reach the summit of Mount Kilimanjaro by the end of the year..",
                 progress: .outcomePending,
             )
         )
     }
 }
 
-#Preview("Measurable goal") {
+#Preview("Measurable") {
     NavigationStack {
         GoalDetailView(
             goal: Goal(
                 name: "Run a 5K",
                 details: "Build up endurance with three runs per week.",
-                createdAt: Date(),
                 progress: .measurable(currentValue: 1, targetValue: 5),
             )
         )

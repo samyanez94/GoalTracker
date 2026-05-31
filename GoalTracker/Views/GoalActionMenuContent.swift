@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct GoalActionMenuItems: View {
+struct GoalActionMenuContent: View {
     let isCompleted: Bool
     let edit: () -> Void
     let toggleCompletion: () -> Void
