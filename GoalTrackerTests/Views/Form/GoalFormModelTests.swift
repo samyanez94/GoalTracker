@@ -22,9 +22,8 @@ struct GoalFormModelTests {
         #expect(model.reminder == nil)
         #expect(model.isDueDatePickerExpanded == false)
         #expect(model.isProgressBased == false)
-        #expect(model.currentValue == nil)
-        #expect(model.targetValue == nil)
-        #expect(model.step == nil)
+        #expect(model.targetValue == 1)
+        #expect(model.step == 1)
         #expect(model.selectedProgressUnit == nil)
         #expect(model.recurrence == nil)
         #expect(model.selectedTags.isEmpty)
@@ -61,7 +60,6 @@ struct GoalFormModelTests {
         #expect(model.hasDueDate)
         #expect(model.dueDate == dueDate)
         #expect(model.isProgressBased)
-        #expect(model.currentValue == 3)
         #expect(model.targetValue == 10)
         #expect(model.step == 2)
         #expect(model.selectedProgressUnit == .miles)
@@ -104,7 +102,6 @@ struct GoalFormModelTests {
         let model = GoalFormModel(mode: .create)
         model.name = "Read books"
         model.isProgressBased = true
-        model.currentValue = 0
         model.targetValue = 0
         model.step = 1
 
@@ -112,27 +109,14 @@ struct GoalFormModelTests {
     }
 
     @Test
-    func `Empty measurable values disable saving`() {
+    func `Default measurable values allow saving`() {
         let model = GoalFormModel(mode: .create)
         model.name = "Read books"
         model.isProgressBased = true
 
-        #expect(model.currentValue == nil)
-        #expect(model.targetValue == nil)
-        #expect(model.step == nil)
-        #expect(model.isSaveDisabled)
-    }
-
-    @Test
-    func `Create mode disables saving for already complete measurable progress`() {
-        let model = GoalFormModel(mode: .create)
-        model.name = "Read books"
-        model.isProgressBased = true
-        model.currentValue = 10
-        model.targetValue = 10
-        model.step = 1
-
-        #expect(model.isSaveDisabled)
+        #expect(model.targetValue == 1)
+        #expect(model.step == 1)
+        #expect(model.isSaveDisabled == false)
     }
 
     @Test
@@ -332,43 +316,6 @@ struct GoalFormModelTests {
         let data = model.makeFormData()
 
         #expect(data.recurrence == nil)
-    }
-
-    @Test
-    func `Create form data stores initial measurable progress as timestamped event`() throws {
-        let timestamp = Date(timeIntervalSinceReferenceDate: 789)
-        let model = GoalFormModel(mode: .create, now: { timestamp })
-        model.name = "Read books"
-        model.isProgressBased = true
-        model.currentValue = 2
-        model.targetValue = 10
-        model.step = 1
-
-        let data = model.makeFormData()
-
-        let event = try #require(data.progress.events.first)
-        #expect(data.progress.currentValue == 2)
-        #expect(event.delta == 2)
-        #expect(event.timestamp == timestamp)
-    }
-
-    @Test
-    func `Edit form data represents updated measurable current value`() {
-        let model = GoalFormModel(
-            mode: .edit(
-                GoalFormData(
-                    name: "Read books",
-                    details: "",
-                    progress: .measurable(currentValue: 2, targetValue: 10),
-                ),
-            ),
-            now: { Date(timeIntervalSinceReferenceDate: 789) },
-        )
-        model.currentValue = 5
-
-        let data = model.makeFormData()
-
-        #expect(data.progress.currentValue == 5)
     }
 
     @Test

@@ -18,9 +18,8 @@ final class GoalFormModel {
     var reminder: GoalReminder?
     var isDueDatePickerExpanded = false
     var isProgressBased: Bool
-    var currentValue: Double?
-    var targetValue: Double?
-    var step: Double?
+    var targetValue: Double = 1
+    var step: Double = 1
     var selectedProgressUnit: GoalProgressUnit?
     var recurrence: GoalRecurrence? {
         didSet {
@@ -52,15 +51,11 @@ final class GoalFormModel {
         switch data.progress.kind {
         case .measurable:
             isProgressBased = true
-            currentValue = data.progress.currentValue
             targetValue = data.progress.targetValue
             step = data.progress.step
             selectedProgressUnit = data.progress.unit
         case .outcome:
             isProgressBased = false
-            currentValue = nil
-            targetValue = nil
-            step = nil
             selectedProgressUnit = nil
         }
     }
@@ -75,12 +70,7 @@ final class GoalFormModel {
         guard hasValidProgressValues else {
             return true
         }
-        switch mode {
-        case .create:
-            return !progressStartsIncomplete
-        case .edit:
-            return false
-        }
+        return false
     }
 
     var saveFailureKind: GoalSaveFailure {
@@ -135,30 +125,17 @@ final class GoalFormModel {
     }
 
     private var hasValidProgressValues: Bool {
-        guard let currentValue, let targetValue, let step else {
-            return false
-        }
         return GoalProgress.isValid(
-            currentValue: currentValue,
+            currentValue: .zero,
             targetValue: targetValue,
             step: step,
         )
     }
 
-    private var progressStartsIncomplete: Bool {
-        guard let currentValue, let targetValue else {
-            return false
-        }
-        return currentValue < targetValue
-    }
-
     private var progress: GoalProgress {
         if isProgressBased {
-            guard let currentValue, let targetValue, let step else {
-                preconditionFailure("Progress values must be valid before saving.")
-            }
             return .measurable(
-                currentValue: currentValue,
+                currentValue: .zero,
                 targetValue: targetValue,
                 step: step,
                 unit: selectedProgressUnit,
