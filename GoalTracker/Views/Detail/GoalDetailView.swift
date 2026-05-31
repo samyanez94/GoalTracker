@@ -67,7 +67,7 @@ struct GoalDetailView: View {
         }
         .sheet(isPresented: $isPresentingProgressUpdateSheet) {
             NavigationStack {
-                GoalProgressUpdateView()
+                GoalProgressUpdateView(goal: goal)
             }
         }
         .safeAreaInset(edge: .bottom) {

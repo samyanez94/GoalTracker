@@ -181,6 +181,19 @@ struct GoalManager {
         }
     }
 
+    /// Applies a custom signed amount to a measurable goal's progress and saves the change.
+    ///
+    /// - Returns: `true` when the goal's progress changed.
+    @discardableResult
+    func updateProgress(
+        _ goal: Goal,
+        by amount: Double,
+    ) throws -> Bool {
+        try updateProgress(goal) { goal in
+            goal.updateProgress(by: amount, timestamp: now())
+        }
+    }
+
     /// Deletes a single goal and removes any of its tags that are no longer used.
     func deleteGoal(_ goal: Goal) throws {
         try deleteGoals([goal])

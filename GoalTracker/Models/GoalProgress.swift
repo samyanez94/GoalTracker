@@ -186,6 +186,17 @@ nonisolated struct GoalProgress: Codable {
     }
 
     @discardableResult
+    mutating func update(
+        by amount: Double,
+        timestamp: Date = Date(),
+    ) -> Bool {
+        guard isMeasurable, amount.isFinite else {
+            return false
+        }
+        return setCurrentValue(currentValue + amount, timestamp: timestamp)
+    }
+
+    @discardableResult
     mutating func replaceCurrentValue(
         _ currentValue: Double,
         timestamp: Date = Date(),
@@ -267,6 +278,23 @@ nonisolated struct GoalProgress: Codable {
         }
         return setCurrentValue(
             currentValue(in: period) - step,
+            in: period,
+            timestamp: timestamp,
+        )
+    }
+
+    @discardableResult
+    mutating func update(
+        by amount: Double,
+        in period: DateInterval,
+        timestamp: Date = Date(),
+    ) -> Bool {
+        guard isMeasurable,
+              amount.isFinite else {
+            return false
+        }
+        return setCurrentValue(
+            currentValue(in: period) + amount,
             in: period,
             timestamp: timestamp,
         )

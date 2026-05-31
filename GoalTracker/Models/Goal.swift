@@ -170,6 +170,18 @@ extension GoalTrackerSchemaV1 {
             return progress.decrement(in: period, timestamp: timestamp)
         }
 
+        @discardableResult
+        func updateProgress(
+            by amount: Double,
+            timestamp: Date = Date(),
+            calendar: Calendar = .current,
+        ) -> Bool {
+            guard let period = recurrence?.period(containing: timestamp, calendar: calendar) else {
+                return progress.update(by: amount, timestamp: timestamp)
+            }
+            return progress.update(by: amount, in: period, timestamp: timestamp)
+        }
+
         init(
             id: UUID = UUID(),
             name: String,
