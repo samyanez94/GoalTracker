@@ -9,89 +9,129 @@ import SwiftData
 import SwiftUI
 
 struct GoalProgressUpdateView: View {
-	@Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss) private var dismiss
+    
+    @Environment(\.modelContext) private var modelContext
+    
+    let goal: Goal
 
-	@Environment(\.modelContext) private var modelContext
+    @FocusState private var isProgressFieldFocused: Bool
 
-	let goal: Goal
+    @State private var progressAmount: Double?
 
-	@FocusState private var isProgressFieldFocused: Bool
+    @State private var saveFailure: GoalSaveFailure?
 
-	@State private var progressAmount: Double?
+    var body: some View {
+        VStack(spacing: 8) {
+            TextField("0", value: $progressAmount, format: .number.sign(strategy: .automatic))
+                .focused($isProgressFieldFocused)
+                .tint(.clear)
+                .keyboardType(.decimalPad)
+                .font(.system(size: 72, weight: .bold))
+                .multilineTextAlignment(.center)
+                .textFieldStyle(.plain)
+            if let unitTitle {
+                Text(unitTitle)
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .navigationTitle(progressAmountTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel", systemImage: "xmark") {
+                    dismiss()
+                }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save", systemImage: "checkmark") {
+                    saveProgressUpdate()
+                }
+                .buttonStyle(.glassProminent)
+                .disabled(isSaveDisabled)
+            }
+            ToolbarItemGroup(placement: .keyboard) {
+                Button(
+                    "Toggle Sign",
+                    systemImage: "plus.forwardslash.minus",
+                    action: toggleSign
+                )
+                Spacer()
+            }
+        }
+        .onAppear {
+            isProgressFieldFocused = true
+        }
+        .goalSaveFailureAlert(failure: $saveFailure)
+    }
 
-	@State private var saveFailure: GoalSaveFailure?
+    private var unitTitle: String? {
+        guard let unit = goal.progress.unit else {
+            return nil
+        }
+        return unit.title.capitalized
+    }
 
-	var body: some View {
-		VStack(spacing: 8) {
-			TextField("0", value: $progressAmount, format: .number.sign(strategy: .automatic))
-				.focused($isProgressFieldFocused).tint(.clear).keyboardType(.decimalPad)
-				.font(.system(size: 72, weight: .bold)).multilineTextAlignment(.center)
-				.textFieldStyle(.plain)
-			if let unitTitle { Text(unitTitle).font(.title3).foregroundStyle(.secondary) }
-		}
-		.frame(maxWidth: .infinity).padding().navigationTitle(progressAmountTitle)
-		.navigationBarTitleDisplayMode(.inline)
-		.toolbar {
-			ToolbarItem(placement: .cancellationAction) {
-				Button("Cancel", systemImage: "xmark") { dismiss() }
-			}
-			ToolbarItem(placement: .confirmationAction) {
-				Button("Save", systemImage: "checkmark") { saveProgressUpdate() }
-					.buttonStyle(.glassProminent).disabled(isSaveDisabled)
-			}
-			ToolbarItemGroup(placement: .keyboard) {
-				Button("Toggle Sign", systemImage: "plus.forwardslash.minus", action: toggleSign)
-				Spacer()
-			}
-		}
-		.onAppear { isProgressFieldFocused = true }.goalSaveFailureAlert(failure: $saveFailure)
-	}
+    private var isSaveDisabled: Bool {
+        guard let progressAmount else {
+            return true
+        }
+        guard progressAmount != 0 else {
+            return true
+        }
+        return false
+    }
 
-	private var unitTitle: String? {
-		guard let unit = goal.progress.unit else { return nil }
-		return unit.title.capitalized
-	}
+    private var progressAmountTitle: String {
+        guard let progressAmount, progressAmount < 0 else {
+            return "Increase Progress"
+        }
+        return "Decrease Progress"
+    }
 
-	private var isSaveDisabled: Bool {
-		guard let progressAmount else { return true }
-		guard progressAmount != 0 else { return true }
-		return false
-	}
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
+    }
 
-	private var progressAmountTitle: String {
-		guard let progressAmount, progressAmount < 0 else { return "Increase Progress" }
-		return "Decrease Progress"
-	}
+    private func toggleSign() {
+        guard let progressAmount else {
+            return
+        }
+        self.progressAmount = -progressAmount
+    }
 
-	private var goalManager: GoalManager { GoalManager(modelContext: modelContext) }
-
-	private func toggleSign() {
-		guard let progressAmount else { return }
-		self.progressAmount = -progressAmount
-	}
-
-	private func saveProgressUpdate() {
-		guard let progressAmount else { return }
-		do {
-			try goalManager.updateProgress(goal, by: progressAmount)
-			dismiss()
-		} catch { saveFailure = .updateProgress }
-	}
+    private func saveProgressUpdate() {
+        guard let progressAmount else {
+            return
+        }
+        do {
+            try goalManager.updateProgress(goal, by: progressAmount)
+            dismiss()
+        } catch {
+            saveFailure = .updateProgress
+        }
+    }
 }
 
 #Preview("Update Progress") {
-	NavigationStack {
-		GoalProgressUpdateView(
-			goal: Goal(
-				name: "Read 2 books",
-				details: nil,
-				createdAt: Date(),
-				progress: .measurable(
-					currentValue: 1,
-					targetValue: 2,
-					unit: .custom(title: "Books", abbreviatedTitle: "books", ),
-				),
-			)
-		)
-	}
+    NavigationStack {
+        GoalProgressUpdateView(
+            goal: Goal(
+                name: "Read 2 books",
+                details: nil,
+                createdAt: Date(),
+                progress: .measurable(
+                    currentValue: 1,
+                    targetValue: 2,
+                    unit: .custom(
+                        title: "Books",
+                        abbreviatedTitle: "books",
+                    ),
+                ),
+            )
+        )
+    }
 }

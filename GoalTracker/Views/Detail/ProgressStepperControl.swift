@@ -10,68 +10,71 @@ import SwiftUI
 // MARK: - ProgressStepperControl
 
 struct ProgressStepperControl: View {
-	let canDecrement: Bool
-	let canIncrement: Bool
-	let onDecrement: () -> Void
-	let onIncrement: () -> Void
+    let canDecrement: Bool
+    let canIncrement: Bool
+    let onDecrement: () -> Void
+    let onIncrement: () -> Void
 
-	var body: some View {
-		HStack(spacing: 12) {
-			StepperButton(
-				systemName: "minus",
-				accessibilityLabel: "Decrease progress",
-				action: onDecrement,
-			)
-			.disabled(!canDecrement)
-			StepperButton(
-				systemName: "plus",
-				accessibilityLabel: "Increase progress",
-				action: onIncrement,
-			)
-			.disabled(!canIncrement)
-		}
-	}
+    var body: some View {
+        HStack(spacing: 12) {
+            StepperButton(
+                systemName: "minus",
+                accessibilityLabel: "Decrease progress",
+                action: onDecrement,
+            )
+            .disabled(!canDecrement)
+            StepperButton(
+                systemName: "plus",
+                accessibilityLabel: "Increase progress",
+                action: onIncrement,
+            )
+            .disabled(!canIncrement)
+        }
+    }
+    
+    struct StepperButton: View {
+        let systemName: String
+        let accessibilityLabel: String
+        let action: () -> Void
 
-	struct StepperButton: View {
-		let systemName: String
-		let accessibilityLabel: String
-		let action: () -> Void
-
-		var body: some View {
-			Button(action: action) {
-				Label(accessibilityLabel, systemImage: systemName).font(.title3.weight(.semibold))
-					.labelStyle(.iconOnly).frame(height: 38)
-			}
-			.buttonSizing(.flexible).buttonStyle(.glassProminent)
-		}
-	}
+        var body: some View {
+            Button(action: action) {
+                Label(accessibilityLabel, systemImage: systemName)
+                    .font(.title3.weight(.semibold))
+                    .labelStyle(.iconOnly)
+                    .frame(height: 38)
+            }
+            .buttonSizing(.flexible)
+            .buttonStyle(.glassProminent)
+        }
+    }
 }
 
 // MARK: - Previews
 
 #Preview("Enabled") {
-	ProgressStepperControl(
-		canDecrement: true,
-		canIncrement: true,
-		onDecrement: {},
-		onIncrement: {},
-	)
+    ProgressStepperControl(
+        canDecrement: true,
+        canIncrement: true,
+        onDecrement: {},
+        onIncrement: {},
+    )
 }
 
 #Preview("At minimum") {
-	ProgressStepperControl(
-		canDecrement: false,
-		canIncrement: true,
-		onDecrement: {},
-		onIncrement: {},
-	)
+    ProgressStepperControl(
+        canDecrement: false,
+        canIncrement: true,
+        onDecrement: {},
+        onIncrement: {},
+    )
 }
 
 #Preview("At maximum") {
-	ProgressStepperControl(
-		canDecrement: true,
-		canIncrement: false,
-		onDecrement: {},
-		onIncrement: {},
-	)
+    ProgressStepperControl(
+        canDecrement: true,
+        canIncrement: false,
+        onDecrement: {},
+        onIncrement: {},
+    )
 }
