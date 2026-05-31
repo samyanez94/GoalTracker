@@ -8,25 +8,25 @@
 import SwiftUI
 
 struct GoalSectionView: View {
-    let title: String
+	let title: String
 
-    let goals: [Goal]
+	let goals: [Goal]
 
-    @Binding var isExpanded: Bool
+	@Binding var isExpanded: Bool
 
-    var body: some View {
-        if !goals.isEmpty {
-            Section(isExpanded: $isExpanded) {
-                ForEach(goals) { goal in
-                    GoalRowView(goal: goal)
-                        .tag(goal.id)
-                }
-            } header: {
-                CollapsibleSectionHeader(
-                    title: title,
-                    isExpanded: $isExpanded,
-                )
-            }
-        }
-    }
+	var body: some View {
+		if !goals.isEmpty {
+			Section(isExpanded: $isExpanded) {
+				ForEach(goals) { goal in
+					GoalRowView(goal: goal)
+						.tag(goal.id)
+				}
+			} header: {
+				CollapsibleSectionHeader(
+					title: title,
+					isExpanded: $isExpanded,
+				)
+			}
+		}
+	}
 }

@@ -8,19 +8,19 @@
 import Foundation
 
 enum GoalSortDirection: String, CaseIterable, Identifiable {
-    case ascending
-    case descending
+	case ascending
+	case descending
 
-    var id: Self {
-        self
-    }
+	var id: Self {
+		self
+	}
 
-    var title: String {
-        switch self {
-        case .ascending:
-            "Ascending"
-        case .descending:
-            "Descending"
-        }
-    }
+	var title: String {
+		switch self {
+		case .ascending:
+			"Ascending"
+		case .descending:
+			"Descending"
+		}
+	}
 }

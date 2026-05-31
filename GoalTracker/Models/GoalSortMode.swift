@@ -8,22 +8,22 @@
 import Foundation
 
 enum GoalSortMode: String, CaseIterable, Identifiable {
-    case dueDate
-    case creationDate
-    case name
+	case dueDate
+	case creationDate
+	case name
 
-    var id: Self {
-        self
-    }
+	var id: Self {
+		self
+	}
 
-    var title: String {
-        switch self {
-        case .dueDate:
-            "Due Date"
-        case .creationDate:
-            "Date Created"
-        case .name:
-            "Name"
-        }
-    }
+	var title: String {
+		switch self {
+		case .dueDate:
+			"Due Date"
+		case .creationDate:
+			"Date Created"
+		case .name:
+			"Name"
+		}
+	}
 }

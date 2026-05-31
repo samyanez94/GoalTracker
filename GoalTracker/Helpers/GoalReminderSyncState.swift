@@ -9,19 +9,19 @@ import Foundation
 
 /// Immutable goal reminder state safe to pass across asynchronous scheduling work.
 struct GoalReminderSyncState {
-    let goalId: UUID
-    let goalName: String
-    let dueDate: Date?
-    let reminder: GoalReminder?
-    let progress: GoalProgress
-    let recurrence: GoalRecurrence?
+	let goalId: UUID
+	let goalName: String
+	let dueDate: Date?
+	let reminder: GoalReminder?
+	let progress: GoalProgress
+	let recurrence: GoalRecurrence?
 
-    init(goal: Goal) {
-        goalId = goal.id
-        goalName = goal.name
-        dueDate = goal.dueDate
-        reminder = goal.reminder
-        progress = goal.progress
-        recurrence = goal.recurrence
-    }
+	init(goal: Goal) {
+		goalId = goal.id
+		goalName = goal.name
+		dueDate = goal.dueDate
+		reminder = goal.reminder
+		progress = goal.progress
+		recurrence = goal.recurrence
+	}
 }
