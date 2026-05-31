@@ -2,7 +2,7 @@
 //  GoalProgressUpdateView.swift
 //  GoalTracker
 //
-//  Created by Codex on 5/30/26.
+//  Created by Samuel Yanez on 5/30/26.
 //
 
 import SwiftData

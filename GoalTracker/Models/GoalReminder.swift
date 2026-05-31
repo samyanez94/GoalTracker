@@ -2,7 +2,7 @@
 //  GoalReminder.swift
 //  GoalTracker
 //
-//  Created by Codex on 5/21/26.
+//  Created by Samuel Yanez on 5/21/26.
 //
 
 import Foundation

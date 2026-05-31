@@ -2,7 +2,7 @@
 //  GoalNotificationScheduler.swift
 //  GoalTracker
 //
-//  Created by Codex on 5/21/26.
+//  Created by Samuel Yanez on 5/21/26.
 //
 
 import Foundation
@@ -10,8 +10,7 @@ import UserNotifications
 
 /// The small notification-center surface GoalTracker needs for reminder scheduling.
 ///
-/// Keeping this protocol narrow lets scheduler tests verify notification requests without
-/// talking to the process-wide `UNUserNotificationCenter`.
+/// Keeping this protocol narrow lets scheduler tests verify notification requests without talking to the process-wide `UNUserNotificationCenter`.
 @MainActor protocol GoalNotificationCenterClient {
 	/// Returns the app's current notification authorization state.
 	func authorizationStatus() async -> GoalNotificationAuthorizationStatus
@@ -60,8 +59,7 @@ extension UNUserNotificationCenter: GoalNotificationCenterClient {
 
 /// Schedules and cancels local notification reminders for goals.
 ///
-/// This type owns notification request construction and authorization. It does not persist
-/// goals or decide when goal changes should trigger scheduling.
+/// This type owns notification request construction and authorization. It does not persist goals or decide when goal changes should trigger scheduling.
 @MainActor struct GoalNotificationScheduler: GoalReminderScheduling {
 	private static let notificationIdentifierPrefix = "goal-reminder"
 
@@ -95,8 +93,7 @@ extension UNUserNotificationCenter: GoalNotificationCenterClient {
 
 	/// Reconciles the pending reminder notification with the goal's current reminder state.
 	///
-	/// Existing pending reminders for the goal are cancelled first. If the goal cannot produce
-	/// a future reminder, no replacement notification is scheduled.
+	/// Existing pending reminders for the goal are cancelled first. If the goal cannot produce a future reminder, no replacement notification is scheduled.
 	/// - Returns: `true` when a notification request was scheduled.
 	@discardableResult func syncReminder(
 		for state: GoalReminderSyncState,

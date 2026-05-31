@@ -11,8 +11,7 @@ import SwiftData
 extension GoalTrackerSchemaV1 {
 	/// A goal the user wants to complete.
 	///
-	/// `Goal` stores the current summary state for the goal, including its name,
-	/// optional due date, and current progress.
+	/// `Goal` stores the current summary state for the goal, including its name, optional due date, and current progress.
 	@Model final class Goal {
 		/// A stable app-level identifier for navigation and lookups.
 		var id: UUID = UUID()

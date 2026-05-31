@@ -9,8 +9,7 @@ import SwiftData
 
 /// The first persisted SwiftData schema for GoalTracker.
 ///
-/// Add future schema versions instead of editing this baseline after the app has
-/// user data that must be migrated.
+/// Add future schema versions instead of editing this baseline after the app has user data that must be migrated.
 enum GoalTrackerSchemaV1: VersionedSchema {
 	static let versionIdentifier = Schema.Version(1, 0, 0)
 

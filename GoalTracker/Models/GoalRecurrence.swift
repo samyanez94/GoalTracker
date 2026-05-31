@@ -2,7 +2,7 @@
 //  GoalRecurrence.swift
 //  GoalTracker
 //
-//  Created by Codex on 5/28/26.
+//  Created by Samuel Yanez on 5/28/26.
 //
 
 import Foundation
@@ -11,8 +11,7 @@ import Foundation
 nonisolated struct GoalRecurrence: Codable, Equatable, Hashable {
 	/// The cadence used to determine the active progress period.
 	///
-	/// Future custom cadences should extend this value with additional optional
-	/// configuration fields while preserving the built-in cadence values.
+	/// Future custom cadences should extend this value with additional optional configuration fields while preserving the built-in cadence values.
 	var cadence: GoalRecurrenceCadence
 
 	init(cadence: GoalRecurrenceCadence) { self.cadence = cadence }

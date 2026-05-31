@@ -9,9 +9,7 @@ import Foundation
 
 /// Describes how measurable progress values should be displayed.
 ///
-/// Preset units are resolved by `id` when decoded so saved goals automatically
-/// use the latest built-in unit labels. Custom units keep their stored display
-/// values.
+/// Preset units are resolved by `id` when decoded so saved goals automatically use the latest built-in unit labels. Custom units keep their stored display values.
 nonisolated struct GoalProgressUnit: Codable, Hashable, Identifiable {
 	/// The broad grouping used when presenting unit choices.
 	nonisolated enum Category: String, Codable, CaseIterable, Identifiable {

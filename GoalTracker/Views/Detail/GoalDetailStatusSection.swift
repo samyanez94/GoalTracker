@@ -2,7 +2,7 @@
 //  GoalDetailStatusSection.swift
 //  GoalTracker
 //
-//  Created by Codex on 5/24/26.
+//  Created by Samuel Yanez on 5/24/26.
 //
 
 import SwiftUI
