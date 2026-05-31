@@ -10,9 +10,9 @@
 /// Keeping these keys in one place makes preference storage easier to audit and
 /// helps avoid accidental key drift between views.
 enum AppStorageKey {
-    static let goalSortMode = "goalSortMode"
-    static let goalSortDirection = "goalSortDirection"
-    static let isShowingCompletedGoals = "isShowingCompletedGoals"
-    static let isPendingSectionExpanded = "isPendingSectionExpanded"
-    static let isCompletedSectionExpanded = "isCompletedSectionExpanded"
+	static let goalSortMode = "goalSortMode"
+	static let goalSortDirection = "goalSortDirection"
+	static let isShowingCompletedGoals = "isShowingCompletedGoals"
+	static let isPendingSectionExpanded = "isPendingSectionExpanded"
+	static let isCompletedSectionExpanded = "isCompletedSectionExpanded"
 }

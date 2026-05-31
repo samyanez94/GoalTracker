@@ -8,15 +8,10 @@
 import SwiftUI
 
 struct GoalDetailTagChip: View {
-    let tag: Tag
+	let tag: Tag
 
-    var body: some View {
-        Text("#\(tag.name)")
-            .font(.subheadline.bold())
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(.blue)
-            .clipShape(.capsule)
-    }
+	var body: some View {
+		Text("#\(tag.name)").font(.subheadline.bold()).foregroundStyle(.white)
+			.padding(.horizontal, 12).padding(.vertical, 8).background(.blue).clipShape(.capsule)
+	}
 }

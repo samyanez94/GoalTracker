@@ -11,193 +11,160 @@ import Observation
 /// Keeps track of the editable state for the form.
 ///
 /// The view binds to this model while the model handles validation, save data, and dirty-state checks.
-@MainActor
-@Observable
-final class GoalFormModel {
-    var name: String
-    var details: String
-    var hasDueDate: Bool
-    var dueDate: Date
-    var reminder: GoalReminder?
-    var isDueDatePickerExpanded = false
-    var isProgressBased: Bool
-    var targetValue: Double = 1
-    var step: Double = 1
-    var selectedProgressUnit: GoalProgressUnit?
-    
-    var recurrence: GoalRecurrence? {
-        didSet {
-            clearDueDateIfNeededForRecurrence()
-        }
-    }
-    var selectedTags: [Tag]
+@MainActor @Observable final class GoalFormModel {
+	var name: String
+	var details: String
+	var hasDueDate: Bool
+	var dueDate: Date
+	var reminder: GoalReminder?
+	var isDueDatePickerExpanded = false
+	var isProgressBased: Bool
+	var targetValue: Double = 1
+	var step: Double = 1
+	var selectedProgressUnit: GoalProgressUnit?
 
-    let mode: GoalFormMode
-    private let initialOutcomeIsCompleted: Bool
-    private var initialSnapshot = GoalFormSnapshot.empty
-    private let now: () -> Date
+	var recurrence: GoalRecurrence? { didSet { clearDueDateIfNeededForRecurrence() } }
+	var selectedTags: [Tag]
 
-    init(
-        mode: GoalFormMode,
-        now: @escaping () -> Date = Date.init,
-    ) {
-        self.mode = mode
-        self.now = now
-        let data = mode.initialData
-        name = data.name
-        details = data.details
-        hasDueDate = data.dueDate != nil && data.recurrence == nil
-        dueDate = data.dueDate ?? Date()
-        reminder = data.reminder
-        recurrence = data.recurrence
-        selectedTags = data.tags
-        initialOutcomeIsCompleted = data.progress.isCompleted
+	let mode: GoalFormMode
+	private let initialOutcomeIsCompleted: Bool
+	private var initialSnapshot = GoalFormSnapshot.empty
+	private let now: () -> Date
 
-        switch data.progress.kind {
-        case .measurable:
-            isProgressBased = true
-            targetValue = data.progress.targetValue
-            step = data.progress.step
-            selectedProgressUnit = data.progress.unit
-        case .outcome:
-            isProgressBased = false
-            selectedProgressUnit = nil
-        }
+	init(mode: GoalFormMode, now: @escaping () -> Date = Date.init, ) {
+		self.mode = mode
+		self.now = now
+		let data = mode.initialData
+		name = data.name
+		details = data.details
+		hasDueDate = data.dueDate != nil && data.recurrence == nil
+		dueDate = data.dueDate ?? Date()
+		reminder = data.reminder
+		recurrence = data.recurrence
+		selectedTags = data.tags
+		initialOutcomeIsCompleted = data.progress.isCompleted
 
-        initialSnapshot = currentSnapshot
-    }
+		switch data.progress.kind {
+		case .measurable:
+			isProgressBased = true
+			targetValue = data.progress.targetValue
+			step = data.progress.step
+			selectedProgressUnit = data.progress.unit
+		case .outcome:
+			isProgressBased = false
+			selectedProgressUnit = nil
+		}
 
-    var isSaveDisabled: Bool {
-        guard !trimmedName.isEmpty else {
-            return true
-        }
-        guard isProgressBased else {
-            return false
-        }
-        guard hasValidProgressValues else {
-            return true
-        }
-        return false
-    }
+		initialSnapshot = currentSnapshot
+	}
 
-    var saveFailureKind: GoalSaveFailure {
-        switch mode {
-        case .create:
-            .addGoal
-        case .edit:
-            .updateGoal
-        }
-    }
+	var isSaveDisabled: Bool {
+		guard !trimmedName.isEmpty else { return true }
+		guard isProgressBased else { return false }
+		guard hasValidProgressValues else { return true }
+		return false
+	}
 
-    var hasChanges: Bool {
-        currentSnapshot != initialSnapshot
-    }
+	var saveFailureKind: GoalSaveFailure {
+		switch mode {
+		case .create: .addGoal
+		case .edit: .updateGoal
+		}
+	}
 
-    var allowsDueDate: Bool {
-        recurrence == nil
-    }
+	var hasChanges: Bool { currentSnapshot != initialSnapshot }
 
-    func toggleDueDatePicker() {
-        guard hasDueDate else {
-            return
-        }
-        isDueDatePickerExpanded.toggle()
-    }
+	var allowsDueDate: Bool { recurrence == nil }
 
-    func setDueDateEnabled(_ isEnabled: Bool) {
-        isDueDatePickerExpanded = isEnabled
-        if !isEnabled, recurrence == nil {
-            reminder = nil
-        }
-    }
+	func toggleDueDatePicker() {
+		guard hasDueDate else { return }
+		isDueDatePickerExpanded.toggle()
+	}
 
-    func makeFormData() -> GoalFormData {
-        GoalFormData(
-            name: trimmedName,
-            details: details,
-            dueDate: allowsDueDate && hasDueDate ? dueDate : nil,
-            reminder: recurrence != nil || hasDueDate ? reminder : nil,
-            progress: progress,
-            recurrence: recurrence,
-            tags: selectedTags,
-        )
-    }
+	func setDueDateEnabled(_ isEnabled: Bool) {
+		isDueDatePickerExpanded = isEnabled
+		if !isEnabled, recurrence == nil { reminder = nil }
+	}
 
-    private func clearDueDateIfNeededForRecurrence() {
-        guard recurrence != nil else {
-            return
-        }
-        hasDueDate = false
-        isDueDatePickerExpanded = false
-    }
+	func makeFormData() -> GoalFormData {
+		GoalFormData(
+			name: trimmedName,
+			details: details,
+			dueDate: allowsDueDate && hasDueDate ? dueDate : nil,
+			reminder: recurrence != nil || hasDueDate ? reminder : nil,
+			progress: progress,
+			recurrence: recurrence,
+			tags: selectedTags,
+		)
+	}
 
-    private var trimmedName: String {
-        name.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
+	private func clearDueDateIfNeededForRecurrence() {
+		guard recurrence != nil else { return }
+		hasDueDate = false
+		isDueDatePickerExpanded = false
+	}
 
-    private var currentSnapshot: GoalFormSnapshot {
-        GoalFormSnapshot(
-            name: trimmedName,
-            details: details,
-            dueDate: allowsDueDate && hasDueDate ? dueDate : nil,
-            reminder: recurrence != nil || hasDueDate ? reminder : nil,
-            recurrence: recurrence,
-            isProgressBased: isProgressBased,
-            targetValue: isProgressBased ? targetValue : nil,
-            step: isProgressBased ? step : nil,
-            progressUnitId: isProgressBased ? selectedProgressUnit?.id : nil,
-            tagIds: selectedTags.map(\.id.uuidString).sorted(),
-        )
-    }
+	private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-    private var hasValidProgressValues: Bool {
-        return GoalProgress.isValid(
-            currentValue: .zero,
-            targetValue: targetValue,
-            step: step,
-        )
-    }
+	private var currentSnapshot: GoalFormSnapshot {
+		GoalFormSnapshot(
+			name: trimmedName,
+			details: details,
+			dueDate: allowsDueDate && hasDueDate ? dueDate : nil,
+			reminder: recurrence != nil || hasDueDate ? reminder : nil,
+			recurrence: recurrence,
+			isProgressBased: isProgressBased,
+			targetValue: isProgressBased ? targetValue : nil,
+			step: isProgressBased ? step : nil,
+			progressUnitId: isProgressBased ? selectedProgressUnit?.id : nil,
+			tagIds: selectedTags.map(\.id.uuidString).sorted(),
+		)
+	}
 
-    private var progress: GoalProgress {
-        if isProgressBased {
-            return .measurable(
-                currentValue: .zero,
-                targetValue: targetValue,
-                step: step,
-                unit: selectedProgressUnit,
-                timestamp: now(),
-            )
-        } else {
-            return initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending
-        }
-    }
+	private var hasValidProgressValues: Bool {
+		return GoalProgress.isValid(currentValue: .zero, targetValue: targetValue, step: step, )
+	}
+
+	private var progress: GoalProgress {
+		if isProgressBased {
+			return .measurable(
+				currentValue: .zero,
+				targetValue: targetValue,
+				step: step,
+				unit: selectedProgressUnit,
+				timestamp: now(),
+			)
+		} else {
+			return initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending
+		}
+	}
 }
 
 /// A normalized representation of the form's save data.
 ///
 /// This snapshot is used to detect unsaved changes in the form.
 private struct GoalFormSnapshot: Equatable {
-    var name: String
-    var details: String
-    var dueDate: Date?
-    var reminder: GoalReminder?
-    var recurrence: GoalRecurrence?
-    var isProgressBased: Bool
-    var targetValue: Double?
-    var step: Double?
-    var progressUnitId: String?
-    var tagIds: [String]
+	var name: String
+	var details: String
+	var dueDate: Date?
+	var reminder: GoalReminder?
+	var recurrence: GoalRecurrence?
+	var isProgressBased: Bool
+	var targetValue: Double?
+	var step: Double?
+	var progressUnitId: String?
+	var tagIds: [String]
 
-    static let empty = GoalFormSnapshot(
-        name: "",
-        details: "",
-        dueDate: nil,
-        reminder: nil,
-        recurrence: nil,
-        isProgressBased: false,
-        targetValue: nil,
-        step: nil,
-        progressUnitId: nil,
-        tagIds: [],
-    )
+	static let empty = GoalFormSnapshot(
+		name: "",
+		details: "",
+		dueDate: nil,
+		reminder: nil,
+		recurrence: nil,
+		isProgressBased: false,
+		targetValue: nil,
+		step: nil,
+		progressUnitId: nil,
+		tagIds: [],
+	)
 }
