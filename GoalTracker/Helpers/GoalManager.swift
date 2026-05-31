@@ -10,7 +10,9 @@ import SwiftData
 
 /// Coordinates goal write actions using SwiftData's model context.
 ///
-/// `GoalManager` does not own or cache goal state. SwiftUI views read goals with `@Query`, then pass the current model values here when an action needs to create, update, delete, or save a goal.
+/// `GoalManager` does not own or cache goal state. SwiftUI views read goals with
+/// `@Query`, then pass the current model values here when an action needs to
+/// create, update, delete, or save a goal.
 @MainActor struct GoalManager {
 	private let modelContext: ModelContext
 
@@ -46,7 +48,8 @@ import SwiftData
 
 	/// Updates a goal's editable fields, cleans up unused tags, and saves the change.
 	///
-	/// When `tags` is provided, the goal's tag relationship is replaced and any tags that are no longer attached to a goal are deleted.
+	/// When `tags` is provided, the goal's tag relationship is replaced and any
+	/// tags that are no longer attached to a goal are deleted.
 	func updateGoal(
 		_ goal: Goal,
 		name: String,
@@ -238,7 +241,9 @@ import SwiftData
 
 	/// Captures the editable state of a goal before a write operation mutates it.
 	///
-	/// `GoalSnapshot` lets `GoalManager` restore in-memory model values after a SwiftData save failure so the UI and model context return to the last successfully saved state.
+	/// `GoalSnapshot` lets `GoalManager` restore in-memory model values after a
+	/// SwiftData save failure so the UI and model context return to the last
+	/// successfully saved state.
 	private struct GoalSnapshot {
 		let name: String
 		let details: String?

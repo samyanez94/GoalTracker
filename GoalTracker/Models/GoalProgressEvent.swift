@@ -2,7 +2,7 @@
 //  GoalProgressEvent.swift
 //  GoalTracker
 //
-//  Created by Samuel Yanez on 5/28/26.
+//  Created by Codex on 5/28/26.
 //
 
 import Foundation
