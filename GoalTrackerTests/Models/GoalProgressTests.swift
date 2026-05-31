@@ -118,6 +118,75 @@ struct GoalProgressTests {
     }
 
     @Test
+    func `Custom update increases current value by amount`() throws {
+        var progress = makeProgress(currentValue: 2, targetValue: 10)
+        let timestamp = Date(timeIntervalSinceReferenceDate: 456)
+
+        let didChange = progress.update(by: 3.5, timestamp: timestamp)
+
+        let event = try #require(progress.events.last)
+        #expect(didChange)
+        #expect(progress.currentValue == 5.5)
+        #expect(event.delta == 3.5)
+        #expect(event.timestamp == timestamp)
+    }
+
+    @Test
+    func `Custom update decreases current value by amount`() throws {
+        var progress = makeProgress(currentValue: 6, targetValue: 10)
+        let timestamp = Date(timeIntervalSinceReferenceDate: 456)
+
+        let didChange = progress.update(by: -2.5, timestamp: timestamp)
+
+        let event = try #require(progress.events.last)
+        #expect(didChange)
+        #expect(progress.currentValue == 3.5)
+        #expect(event.delta == -2.5)
+        #expect(event.timestamp == timestamp)
+    }
+
+    @Test
+    func `Custom update clamps at target value`() throws {
+        var progress = makeProgress(currentValue: 2, targetValue: 10)
+
+        let didChange = progress.update(by: 100)
+
+        let event = try #require(progress.events.last)
+        #expect(didChange)
+        #expect(progress.currentValue == 10)
+        #expect(event.delta == 8)
+    }
+
+    @Test
+    func `Custom update clamps at zero`() throws {
+        var progress = makeProgress(currentValue: 2, targetValue: 10)
+
+        let didChange = progress.update(by: -100)
+
+        let event = try #require(progress.events.last)
+        #expect(didChange)
+        #expect(progress.currentValue == 0)
+        #expect(event.delta == -2)
+    }
+
+    @Test
+    func `Custom update ignores zero and non-finite amounts`() {
+        var progress = makeProgress(currentValue: 2, targetValue: 10)
+
+        let zeroChanged = progress.update(by: 0)
+        let infinityChanged = progress.update(by: .infinity)
+        let negativeInfinityChanged = progress.update(by: -.infinity)
+        let nanChanged = progress.update(by: .nan)
+
+        #expect(zeroChanged == false)
+        #expect(infinityChanged == false)
+        #expect(negativeInfinityChanged == false)
+        #expect(nanChanged == false)
+        #expect(progress.currentValue == 2)
+        #expect(progress.events.map(\.delta) == [2])
+    }
+
+    @Test
     func `Progress methods report whether state changed`() {
         var progress = makeProgress(currentValue: 0, targetValue: 10, step: 5)
 
@@ -237,6 +306,32 @@ struct GoalProgressTests {
         #expect(didDecrement == true)
         #expect(progress.events.map(\.delta) == [10, 2, -2])
         #expect(progress.currentValue(in: period) == 0)
+    }
+
+    @Test
+    func `Period custom update mutates current period value`() throws {
+        let period = DateInterval(
+            start: Date(timeIntervalSinceReferenceDate: 100),
+            end: Date(timeIntervalSinceReferenceDate: 200),
+        )
+        let timestamp = Date(timeIntervalSinceReferenceDate: 150)
+        var progress = GoalProgress(
+            kind: .measurable,
+            events: [
+                GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 50)),
+                GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 125)),
+            ],
+            targetValue: 10,
+            step: 2,
+        )
+
+        let didChange = progress.update(by: 3, in: period, timestamp: timestamp)
+
+        let event = try #require(progress.events.last)
+        #expect(didChange)
+        #expect(progress.events.map(\.delta) == [10, 4, 3])
+        #expect(progress.currentValue(in: period) == 7)
+        #expect(event.timestamp == timestamp)
     }
 
     @Test

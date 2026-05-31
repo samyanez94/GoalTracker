@@ -79,6 +79,52 @@ struct GoalManagerTests {
     }
 
     @Test
+    func `Custom progress update appends signed amount`() async throws {
+        let container = try makeContainer()
+        let timestamp = Date(timeIntervalSinceReferenceDate: 123)
+        let goal = makeGoal(
+            progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
+        )
+        insert(goal, into: container)
+        let manager = makeManager(in: container, now: { timestamp })
+
+        let didChange = try manager.updateProgress(goal, by: 3.5)
+
+        #expect(didChange)
+        #expect(goal.progress.currentValue == 7.5)
+        #expect(goal.progress.events.map(\.delta) == [4, 3.5])
+        #expect(goal.progress.events.last?.timestamp == timestamp)
+    }
+
+    @Test
+    func `Recurring custom progress update applies to current cadence period only`() async throws {
+        let container = try makeContainer()
+        let yesterday = date(year: 2026, month: 5, day: 27, hour: 12)
+        let today = date(year: 2026, month: 5, day: 28, hour: 12)
+        let goal = makeGoal(
+            progress: GoalProgress(
+                kind: .measurable,
+                events: [
+                    GoalProgressEvent(delta: 10, timestamp: yesterday),
+                    GoalProgressEvent(delta: 4, timestamp: today),
+                ],
+                targetValue: 10,
+                step: 5,
+            ),
+            recurrence: GoalRecurrence(cadence: .daily),
+        )
+        insert(goal, into: container)
+        let manager = makeManager(in: container, now: { today })
+
+        let didChange = try manager.updateProgress(goal, by: 3)
+
+        #expect(didChange)
+        #expect(goal.progress.events.map(\.delta) == [10, 4, 3])
+        #expect(goal.currentProgressValue(at: yesterday) == 10)
+        #expect(goal.currentProgressValue(at: today) == 7)
+    }
+
+    @Test
     func `Updating recurrence preserves progress history`() async throws {
         let container = try makeContainer()
         let completionDate = date(year: 2026, month: 5, day: 27, hour: 12)
