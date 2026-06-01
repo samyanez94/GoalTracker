@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Sorts goals using the selected sort mode and direction.
 struct GoalSorter {
 	func sorted(
 		_ goals: [Goal],

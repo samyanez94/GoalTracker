@@ -182,14 +182,6 @@ nonisolated struct MeasurableProgress: Codable, Equatable {
 		return setCurrentValue(currentValue + amount, timestamp: timestamp)
 	}
 
-	@discardableResult
-	mutating func replaceCurrentValue(
-		_ currentValue: Double,
-		timestamp: Date = Date(),
-	) -> Bool {
-		setCurrentValue(currentValue, timestamp: timestamp)
-	}
-
 	func currentValue(in period: DateInterval) -> Double {
 		boundedValue(from: eventValue(in: period))
 	}

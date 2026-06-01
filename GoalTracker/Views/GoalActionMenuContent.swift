@@ -1,5 +1,5 @@
 //
-//  GoalActionMenuItems.swift
+//  GoalActionMenuContent.swift
 //  GoalTracker
 //
 //  Created by Samuel Yanez on 5/27/26.

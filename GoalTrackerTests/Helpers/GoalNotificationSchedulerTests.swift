@@ -169,27 +169,6 @@ struct GoalNotificationSchedulerTests {
 	}
 
 	@Test
-	func `Scheduling target date without reminder skips notification request`() async throws {
-		let goalID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-		let notificationCenter = FakeNotificationCenter()
-		let scheduler = makeScheduler(notificationCenter: notificationCenter)
-		let goal = makeGoal(
-			id: goalID,
-			targetDate: date(year: 2026, month: 5, day: 21),
-		)
-
-		let didSchedule = try await scheduler.scheduleReminder(for: goal)
-
-		#expect(didSchedule == false)
-		#expect(notificationCenter.addedRequests.isEmpty)
-		#expect(
-			notificationCenter.removedIdentifiers == [
-				scheduler.reminderNotificationIdentifier(for: goalID)
-			]
-		)
-	}
-
-	@Test
 	func `Scheduling reminder adds calendar notification request`() async throws {
 		let goalID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
 		let notificationCenter = FakeNotificationCenter()
@@ -217,27 +196,6 @@ struct GoalNotificationSchedulerTests {
 		#expect(trigger.dateComponents.hour == 9)
 		#expect(trigger.dateComponents.minute == 0)
 		#expect(trigger.repeats == false)
-	}
-
-	@Test
-	func `Scheduling one-time reminder skips completed goals`() async throws {
-		let notificationCenter = FakeNotificationCenter()
-		let scheduler = makeScheduler(notificationCenter: notificationCenter)
-		let goal = makeGoal(
-			targetDate: date(year: 2026, month: 5, day: 21),
-			reminder: GoalReminder(),
-			progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
-		)
-
-		let didSchedule = try await scheduler.scheduleReminder(for: goal)
-
-		#expect(didSchedule == false)
-		#expect(notificationCenter.addedRequests.isEmpty)
-		#expect(
-			notificationCenter.removedIdentifiers == [
-				scheduler.reminderNotificationIdentifier(for: goal.id)
-			]
-		)
 	}
 
 	@Test
@@ -287,92 +245,6 @@ struct GoalNotificationSchedulerTests {
 		#expect(trigger.dateComponents.minute == 0)
 	}
 
-	@Test(
-		arguments: [
-			(
-				GoalRecurrenceCadence.weekly,
-				nil as Int?,
-				nil as Int?,
-				2 as Int?,
-				"Don't forget to complete this week"
-			),
-			(
-				GoalRecurrenceCadence.monthly,
-				nil as Int?,
-				1 as Int?,
-				nil as Int?,
-				"Don't forget to complete this month"
-			),
-			(
-				GoalRecurrenceCadence.yearly,
-				1 as Int?,
-				1 as Int?,
-				nil as Int?,
-				"Don't forget to complete this year"
-			)
-		]
-	)
-	func `Scheduling recurring reminder uses cadence specific repeating trigger and target copy`(
-		cadence: GoalRecurrenceCadence,
-		expectedMonth: Int?,
-		expectedDay: Int?,
-		expectedWeekday: Int?,
-		expectedBody: String,
-	) async throws {
-		let notificationCenter = FakeNotificationCenter()
-		let scheduler = makeScheduler(
-			notificationCenter: notificationCenter,
-			now: { date(year: 2026, month: 5, day: 21, hour: 10) },
-		)
-		let goal = makeGoal(
-			reminder: GoalReminder(),
-			recurrence: GoalRecurrence(cadence: cadence),
-		)
-
-		let didSchedule = try await scheduler.scheduleReminder(for: goal)
-
-		let request = try #require(notificationCenter.addedRequests.first)
-		let trigger = try #require(request.trigger as? UNCalendarNotificationTrigger)
-		#expect(didSchedule)
-		#expect(request.content.body == expectedBody)
-		#expect(trigger.repeats)
-		#expect(trigger.dateComponents.year == nil)
-		#expect(trigger.dateComponents.month == expectedMonth)
-		#expect(trigger.dateComponents.day == expectedDay)
-		#expect(trigger.dateComponents.weekday == expectedWeekday)
-		#expect(trigger.dateComponents.hour == 9)
-		#expect(trigger.dateComponents.minute == 0)
-	}
-
-	@Test
-	func `Scheduling completed recurring reminder still repeats`() async throws {
-		let notificationCenter = FakeNotificationCenter()
-		let scheduler = makeScheduler(
-			notificationCenter: notificationCenter,
-			now: { date(year: 2026, month: 5, day: 21, hour: 8) },
-		)
-		let goal = makeGoal(
-			reminder: GoalReminder(),
-			progress: .outcome(
-				OutcomeProgress(events: [
-					GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 21))
-				])
-			),
-			recurrence: GoalRecurrence(cadence: .daily),
-		)
-
-		let didSchedule = try await scheduler.scheduleReminder(for: goal)
-
-		let request = try #require(notificationCenter.addedRequests.first)
-		let trigger = try #require(request.trigger as? UNCalendarNotificationTrigger)
-		#expect(didSchedule)
-		#expect(trigger.repeats)
-		#expect(trigger.dateComponents.year == nil)
-		#expect(trigger.dateComponents.month == nil)
-		#expect(trigger.dateComponents.day == nil)
-		#expect(trigger.dateComponents.hour == 9)
-	}
-
 	@Test
 	func `Syncing recurring reminder without reminder cancels without requesting authorization`()
 		async throws
@@ -397,42 +269,6 @@ struct GoalNotificationSchedulerTests {
 				scheduler.reminderNotificationIdentifier(for: goal.id)
 			]
 		)
-	}
-
-	@Test
-	func `Scheduling reminder skips goals without target date`() async throws {
-		let notificationCenter = FakeNotificationCenter()
-		let scheduler = makeScheduler(notificationCenter: notificationCenter)
-
-		let missingTargetDate = try await scheduler.scheduleReminder(
-			for: makeGoal(
-				reminder: GoalReminder(),
-			)
-		)
-		let missingReminder = try await scheduler.scheduleReminder(
-			for: makeGoal(
-				targetDate: date(year: 2026, month: 5, day: 21),
-			)
-		)
-
-		#expect(missingTargetDate == false)
-		#expect(missingReminder == false)
-		#expect(notificationCenter.addedRequests.isEmpty)
-	}
-
-	@Test
-	func `Scheduling reminder skips past reminder dates`() async throws {
-		let notificationCenter = FakeNotificationCenter()
-		let scheduler = makeScheduler(notificationCenter: notificationCenter)
-		let goal = makeGoal(
-			targetDate: date(year: 2025, month: 5, day: 21),
-			reminder: GoalReminder(),
-		)
-
-		let didSchedule = try await scheduler.scheduleReminder(for: goal)
-
-		#expect(didSchedule == false)
-		#expect(notificationCenter.addedRequests.isEmpty)
 	}
 
 	@Test

@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Filters goals by search text across goal names and tags.
 struct GoalSearchFilter {
 	func filtered(
 		_ goals: [Goal],

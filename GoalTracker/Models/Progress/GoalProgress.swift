@@ -137,20 +137,6 @@ nonisolated enum GoalProgress: Codable, Equatable {
 	}
 
 	@discardableResult
-	mutating func reset(timestamp: Date = Date()) -> Bool {
-		switch self {
-		case .outcome(var progress):
-			let didChange = progress.reset(timestamp: timestamp)
-			self = .outcome(progress)
-			return didChange
-		case .measurable(var progress):
-			let didChange = progress.reset(timestamp: timestamp)
-			self = .measurable(progress)
-			return didChange
-		}
-	}
-
-	@discardableResult
 	mutating func toggleCompletion(timestamp: Date = Date()) -> Bool {
 		switch self {
 		case .outcome(var progress):
@@ -197,19 +183,6 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		return didChange
 	}
 
-	@discardableResult
-	mutating func replaceCurrentValue(
-		_ currentValue: Double,
-		timestamp: Date = Date(),
-	) -> Bool {
-		guard case .measurable(var progress) = self else {
-			return false
-		}
-		let didChange = progress.replaceCurrentValue(currentValue, timestamp: timestamp)
-		self = .measurable(progress)
-		return didChange
-	}
-
 	func currentValue(in period: DateInterval) -> Double {
 		switch self {
 		case .outcome(let progress):
@@ -246,15 +219,6 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		}
 	}
 
-	func fractionCompleted(in period: DateInterval) -> Double {
-		switch self {
-		case .outcome(let progress):
-			progress.fractionCompleted(in: period)
-		case .measurable(let progress):
-			progress.fractionCompleted(in: period)
-		}
-	}
-
 	@discardableResult
 	mutating func complete(
 		in period: DateInterval,
@@ -267,23 +231,6 @@ nonisolated enum GoalProgress: Codable, Equatable {
 			return didChange
 		case .measurable(var progress):
 			let didChange = progress.complete(in: period, timestamp: timestamp)
-			self = .measurable(progress)
-			return didChange
-		}
-	}
-
-	@discardableResult
-	mutating func reset(
-		in period: DateInterval,
-		timestamp: Date = Date(),
-	) -> Bool {
-		switch self {
-		case .outcome(var progress):
-			let didChange = progress.reset(in: period, timestamp: timestamp)
-			self = .outcome(progress)
-			return didChange
-		case .measurable(var progress):
-			let didChange = progress.reset(in: period, timestamp: timestamp)
 			self = .measurable(progress)
 			return didChange
 		}
