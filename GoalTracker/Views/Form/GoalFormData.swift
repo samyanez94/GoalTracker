@@ -21,7 +21,7 @@ struct GoalFormData {
 		details: "",
 		targetDate: nil,
 		reminder: nil,
-		progress: .outcomePending,
+		progress: .outcome(OutcomeProgress()),
 		recurrence: nil,
 		tags: [],
 	)

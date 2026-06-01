@@ -112,8 +112,8 @@ struct GoalSearchFilterTests {
 	@Test
 	func `Completion visibility can be applied after search`() {
 		let goals = [
-			goal(named: "Run a 5K", progress: .outcomePending),
-			goal(named: "Run a marathon", progress: .outcomeCompleted)
+			goal(named: "Run a 5K", progress: .outcome(OutcomeProgress())),
+			goal(named: "Run a marathon", progress: .outcome(OutcomeProgress.completed(timestamp: Date())))
 		]
 
 		let visibleSearchResults =
@@ -130,7 +130,7 @@ struct GoalSearchFilterTests {
 		named name: String,
 		details: String? = nil,
 		tags: [GoalTrackerSchemaV1.Tag] = [],
-		progress: GoalProgress = .outcomePending,
+		progress: GoalProgress = .outcome(OutcomeProgress()),
 	) -> Goal {
 		let goal = Goal(
 			name: name,

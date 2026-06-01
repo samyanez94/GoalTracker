@@ -41,7 +41,7 @@ struct TagTests {
 			name: "Run a 5K",
 			details: nil,
 			createdAt: Date(timeIntervalSinceReferenceDate: 0),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		)
 		let tag = Tag(
 			name: "#Health",

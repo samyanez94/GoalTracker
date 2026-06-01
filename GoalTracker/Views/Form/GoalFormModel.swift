@@ -53,12 +53,12 @@ final class GoalFormModel {
 		selectedTags = data.tags
 		initialOutcomeIsCompleted = data.progress.isCompleted
 
-		switch data.progress.kind {
-		case .measurable:
+		switch data.progress {
+		case .measurable(let progress):
 			isProgressBased = true
-			targetValue = data.progress.targetValue
-			step = data.progress.step
-			selectedProgressUnit = data.progress.unit
+			targetValue = progress.targetValue
+			step = progress.step
+			selectedProgressUnit = progress.unit
 		case .outcome:
 			isProgressBased = false
 			selectedProgressUnit = nil
@@ -151,7 +151,7 @@ final class GoalFormModel {
 	}
 
 	private var hasValidProgressValues: Bool {
-		return GoalProgress.isValid(
+		return MeasurableProgress.isValid(
 			currentValue: .zero,
 			targetValue: targetValue,
 			step: step,
@@ -167,9 +167,11 @@ final class GoalFormModel {
 				unit: selectedProgressUnit,
 				timestamp: now(),
 			)
-		} else {
-			return initialOutcomeIsCompleted ? .outcomeCompleted : .outcomePending
 		}
+		if initialOutcomeIsCompleted {
+			return .outcome(OutcomeProgress.completed(timestamp: now()))
+		}
+		return .outcome(OutcomeProgress())
 	}
 }
 

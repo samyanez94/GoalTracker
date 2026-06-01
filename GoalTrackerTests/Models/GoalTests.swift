@@ -17,7 +17,7 @@ struct GoalTests {
 
 	@Test
 	func `Goal status is pending when progress is zero`() {
-		let goal = makeGoal(progress: .outcomePending)
+		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
 
 		#expect(goal.status() == .pending)
 	}
@@ -31,7 +31,7 @@ struct GoalTests {
 
 	@Test
 	func `Goal status is completed when progress reaches target`() {
-		let goal = makeGoal(progress: .outcomeCompleted)
+		let goal = makeGoal(progress: .outcome(OutcomeProgress.completed(timestamp: Date())))
 
 		#expect(goal.status() == .completed)
 	}
@@ -39,16 +39,13 @@ struct GoalTests {
 	@Test
 	func `Recurring goal status is pending when only a previous period is completed`() {
 		let goal = makeGoal(
-			progress: GoalProgress(
-				kind: .outcome,
-				events: [
+			progress: .outcome(
+				OutcomeProgress(events: [
 					GoalProgressEvent(
 						delta: 1,
 						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 27),
 					)
-				],
-				targetValue: 1,
-				step: 1,
+				])
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -70,20 +67,21 @@ struct GoalTests {
 	@Test
 	func `Recurring measurable goal status uses current period progress`() {
 		let goal = makeGoal(
-			progress: GoalProgress(
-				kind: .measurable,
-				events: [
-					GoalProgressEvent(
-						delta: 10,
-						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 27),
-					),
-					GoalProgressEvent(
-						delta: 4,
-						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 28, hour: 10),
-					)
-				],
-				targetValue: 10,
-				step: 2,
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(
+							delta: 10,
+							timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 27),
+						),
+						GoalProgressEvent(
+							delta: 4,
+							timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 28, hour: 10),
+						)
+					],
+					targetValue: 10,
+					step: 2,
+				)
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -110,7 +108,7 @@ struct GoalTests {
 			name: "Read",
 			details: nil,
 			createdAt: ModelTestSupport.date(year: 2026, month: 5, day: 28),
-			progress: .outcomeCompleted,
+			progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
 		)
 
 		#expect(
@@ -127,9 +125,8 @@ struct GoalTests {
 			name: "Read",
 			details: nil,
 			createdAt: ModelTestSupport.date(year: 2026, month: 5, day: 28),
-			progress: GoalProgress(
-				kind: .outcome,
-				events: [
+			progress: .outcome(
+				OutcomeProgress(events: [
 					GoalProgressEvent(
 						delta: 1,
 						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 27),
@@ -138,8 +135,7 @@ struct GoalTests {
 						delta: 1,
 						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 26),
 					)
-				],
-				targetValue: 1,
+				])
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -158,15 +154,13 @@ struct GoalTests {
 			name: "Read",
 			details: nil,
 			createdAt: ModelTestSupport.date(year: 2026, month: 5, day: 26),
-			progress: GoalProgress(
-				kind: .outcome,
-				events: [
+			progress: .outcome(
+				OutcomeProgress(events: [
 					GoalProgressEvent(
 						delta: 1,
 						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 26),
 					)
-				],
-				targetValue: 1,
+				])
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -185,15 +179,16 @@ struct GoalTests {
 			name: "Run",
 			details: nil,
 			createdAt: ModelTestSupport.date(year: 2026, month: 5, day: 28),
-			progress: GoalProgress(
-				kind: .measurable,
-				events: [
-					GoalProgressEvent(
-						delta: 10,
-						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 29),
-					)
-				],
-				targetValue: 10,
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(
+							delta: 10,
+							timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 29),
+						)
+					],
+					targetValue: 10,
+				)
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -212,9 +207,8 @@ struct GoalTests {
 			name: "Read",
 			details: nil,
 			createdAt: ModelTestSupport.date(year: 2026, month: 5, day: 28),
-			progress: GoalProgress(
-				kind: .outcome,
-				events: [
+			progress: .outcome(
+				OutcomeProgress(events: [
 					GoalProgressEvent(
 						delta: 1,
 						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 28),
@@ -227,8 +221,7 @@ struct GoalTests {
 						delta: 1,
 						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 26),
 					)
-				],
-				targetValue: 1,
+				])
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -247,9 +240,8 @@ struct GoalTests {
 			name: "Read",
 			details: nil,
 			createdAt: ModelTestSupport.date(year: 2026, month: 5, day: 25),
-			progress: GoalProgress(
-				kind: .outcome,
-				events: [
+			progress: .outcome(
+				OutcomeProgress(events: [
 					GoalProgressEvent(
 						delta: 1,
 						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 28),
@@ -262,8 +254,7 @@ struct GoalTests {
 						delta: 1,
 						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 25),
 					)
-				],
-				targetValue: 1,
+				])
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -282,23 +273,24 @@ struct GoalTests {
 			name: "Run",
 			details: nil,
 			createdAt: ModelTestSupport.date(year: 2026, month: 5, day: 1),
-			progress: GoalProgress(
-				kind: .measurable,
-				events: [
-					GoalProgressEvent(
-						delta: 10,
-						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 28),
-					),
-					GoalProgressEvent(
-						delta: 10,
-						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 21),
-					),
-					GoalProgressEvent(
-						delta: 5,
-						timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 14),
-					)
-				],
-				targetValue: 10,
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(
+							delta: 10,
+							timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 28),
+						),
+						GoalProgressEvent(
+							delta: 10,
+							timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 21),
+						),
+						GoalProgressEvent(
+							delta: 5,
+							timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 14),
+						)
+					],
+					targetValue: 10,
+				)
 			),
 			recurrence: GoalRecurrence(cadence: .weekly),
 		)
@@ -320,7 +312,7 @@ struct GoalTests {
 			name: "Read",
 			details: nil,
 			createdAt: ModelTestSupport.date(year: 2026, month: 5, day: 28),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 			recurrence: GoalRecurrence(cadence: .monthly),
 		)
 		container.mainContext.insert(goal)
@@ -332,10 +324,68 @@ struct GoalTests {
 		#expect(fetchedGoal.recurrence == GoalRecurrence(cadence: .monthly))
 	}
 
+	@Test
+	func `Measurable goal progress persists with SwiftData`() throws {
+		let container = try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
+		let timestamp = ModelTestSupport.date(year: 2026, month: 5, day: 28)
+		let goal = Goal(
+			name: "Run",
+			details: nil,
+			createdAt: timestamp,
+			progress: .measurable(
+				currentValue: 4,
+				targetValue: 10,
+				step: 2,
+				unit: .kilometers,
+				timestamp: timestamp,
+			),
+		)
+		container.mainContext.insert(goal)
+		try container.mainContext.save()
+
+		let fetchedGoals = try container.mainContext.fetch(FetchDescriptor<Goal>())
+		let fetchedGoal = try #require(fetchedGoals.first)
+		let progress = try #require(fetchedGoal.progress.measurableProgress)
+
+		#expect(progress.currentValue == 4)
+		#expect(progress.targetValue == 10)
+		#expect(progress.step == 2)
+		#expect(progress.unit == .kilometers)
+	}
+
+	@Test
+	func `Measurable goal progress without unit persists with SwiftData`() throws {
+		let container = try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
+		let timestamp = ModelTestSupport.date(year: 2026, month: 5, day: 28)
+		let goal = Goal(
+			name: "Run",
+			details: nil,
+			createdAt: timestamp,
+			progress: .measurable(
+				currentValue: 4,
+				targetValue: 10,
+				step: 2,
+				unit: nil,
+				timestamp: timestamp,
+			),
+		)
+		container.mainContext.insert(goal)
+		try container.mainContext.save()
+
+		let fetchedGoals = try container.mainContext.fetch(FetchDescriptor<Goal>())
+		let fetchedGoal = try #require(fetchedGoals.first)
+		let progress = try #require(fetchedGoal.progress.measurableProgress)
+
+		#expect(progress.currentValue == 4)
+		#expect(progress.targetValue == 10)
+		#expect(progress.step == 2)
+		#expect(progress.unit == nil)
+	}
+
 	// MARK: - Helpers
 
 	private func makeGoal(
-		progress: GoalProgress = .outcomePending,
+		progress: GoalProgress = .outcome(OutcomeProgress()),
 		recurrence: GoalRecurrence? = nil,
 	) -> Goal {
 		Goal(

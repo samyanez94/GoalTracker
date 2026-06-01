@@ -116,7 +116,7 @@ struct GoalSorterTests {
 		named name: String,
 		targetDate: Date? = nil,
 		createdAt: Date = Date(timeIntervalSinceReferenceDate: 0),
-		progress: GoalProgress = .outcomePending,
+		progress: GoalProgress = .outcome(OutcomeProgress()),
 	) -> Goal {
 		Goal(
 			id: UUID(),

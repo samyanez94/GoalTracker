@@ -1,8 +1,8 @@
 //
-//  GoalProgressTests.swift
+//  MeasurableProgressTests.swift
 //  GoalTrackerTests
 //
-//  Created by Samuel Yanez on 5/12/26.
+//  Created by Samuel Yanez on 6/1/26.
 //
 
 import Foundation
@@ -11,7 +11,7 @@ import Testing
 @testable import GoalTracker
 
 @MainActor
-struct GoalProgressTests {
+struct MeasurableProgressTests {
 	// MARK: - Initialization
 
 	@Test
@@ -222,8 +222,7 @@ struct GoalProgressTests {
 			start: Date(timeIntervalSinceReferenceDate: 100),
 			end: Date(timeIntervalSinceReferenceDate: 200),
 		)
-		let progress = GoalProgress(
-			kind: .measurable,
+		let progress = measurableProgress(
 			events: [
 				GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 50)),
 				GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 150)),
@@ -243,8 +242,7 @@ struct GoalProgressTests {
 			start: Date(timeIntervalSinceReferenceDate: 100),
 			end: Date(timeIntervalSinceReferenceDate: 200),
 		)
-		let progress = GoalProgress(
-			kind: .measurable,
+		let progress = measurableProgress(
 			events: [
 				GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 50)),
 				GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 150))
@@ -264,8 +262,7 @@ struct GoalProgressTests {
 			end: Date(timeIntervalSinceReferenceDate: 200),
 		)
 		let timestamp = Date(timeIntervalSinceReferenceDate: 150)
-		var progress = GoalProgress(
-			kind: .measurable,
+		var progress = measurableProgress(
 			events: [
 				GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 50))
 			],
@@ -289,8 +286,7 @@ struct GoalProgressTests {
 			start: Date(timeIntervalSinceReferenceDate: 100),
 			end: Date(timeIntervalSinceReferenceDate: 200),
 		)
-		var progress = GoalProgress(
-			kind: .measurable,
+		var progress = measurableProgress(
 			events: [
 				GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 50))
 			],
@@ -320,8 +316,7 @@ struct GoalProgressTests {
 			end: Date(timeIntervalSinceReferenceDate: 200),
 		)
 		let timestamp = Date(timeIntervalSinceReferenceDate: 150)
-		var progress = GoalProgress(
-			kind: .measurable,
+		var progress = measurableProgress(
 			events: [
 				GoalProgressEvent(delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 50)),
 				GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 125))
@@ -339,107 +334,14 @@ struct GoalProgressTests {
 		#expect(event.timestamp == timestamp)
 	}
 
-	// MARK: - Outcome Progress
-
-	@Test
-	func `Outcome progress acts like zero or one progress`() {
-		#expect(GoalProgress.outcomePending.kind == .outcome)
-		#expect(GoalProgress.outcomePending.events.isEmpty)
-		#expect(GoalProgress.outcomePending.fractionCompleted == 0)
-		#expect(GoalProgress.outcomeCompleted.fractionCompleted == 1)
-	}
-
-	@Test
-	func `Completed outcome progress uses supplied timestamp`() throws {
-		let timestamp = Date(timeIntervalSinceReferenceDate: 123)
-
-		let progress = GoalProgress.outcomeCompleted(timestamp: timestamp)
-		let event = try #require(progress.events.first)
-
-		#expect(progress.currentValue == 1)
-		#expect(event.timestamp == timestamp)
-	}
-
-	@Test
-	func `Outcome progress does not step incrementally`() {
-		var progress = GoalProgress.outcomePending
-
-		let didIncrement = progress.increment()
-		let didDecrement = progress.decrement()
-
-		#expect(didIncrement == false)
-		#expect(didDecrement == false)
-		#expect(progress.currentValue == 0)
-		#expect(progress.events.isEmpty)
-	}
-
-	// MARK: - Editing
-
-	@Test
-	func `Updated progress preserves events when current value is unchanged`() {
-		let originalTimestamp = Date(timeIntervalSinceReferenceDate: 123)
-		let previousProgress = makeProgress(
-			currentValue: 4,
-			targetValue: 10,
-			step: 2,
-			timestamp: originalTimestamp,
-		)
-		let editedProgress = makeProgress(currentValue: 4, targetValue: 12, step: 3)
-
-		let updatedProgress = editedProgress.updated(preservingEventsFrom: previousProgress)
-
-		#expect(updatedProgress.currentValue == 4)
-		#expect(updatedProgress.targetValue == 12)
-		#expect(updatedProgress.step == 3)
-		#expect(updatedProgress.events.count == 1)
-		#expect(updatedProgress.events.first?.timestamp == originalTimestamp)
-	}
-
-	@Test
-	func `Updated progress preserves events when edited current value differs`() {
-		let previousProgress = makeProgress(currentValue: 4, targetValue: 10)
-		let editedProgress = makeProgress(currentValue: 7, targetValue: 10)
-
-		let updatedProgress = editedProgress.updated(preservingEventsFrom: previousProgress)
-
-		#expect(updatedProgress.currentValue == 4)
-		#expect(updatedProgress.events.map(\.delta) == [4])
-	}
-
 	// MARK: - Codable
-
-	@Test
-	func `Valid progress values decode successfully`() throws {
-		let progress = try decodeProgress(
-			"""
-			{
-			    "kind": "measurable",
-			    "events": [
-			        {
-			            "delta": 4,
-			            "timestamp": 0
-			        }
-			    ],
-			    "targetValue": 10,
-			    "step": 2
-			}
-			""",
-		)
-
-		#expect(progress.kind == .measurable)
-		#expect(progress.events.map(\.delta) == [4])
-		#expect(progress.currentValue == 4)
-		#expect(progress.targetValue == 10)
-		#expect(progress.step == 2)
-	}
 
 	@Test
 	func `Invalid negative progress values throw a data corrupted error`() {
 		#expect(throws: DecodingError.self) {
-			try decodeProgress(
+			try decodeMeasurableProgress(
 				"""
 				{
-				    "kind": "measurable",
 				    "events": [
 				        {
 				            "delta": -1,
@@ -456,10 +358,9 @@ struct GoalProgressTests {
 
 	@Test
 	func `Historical progress may exceed one target value`() throws {
-		let progress = try decodeProgress(
+		let progress = try decodeMeasurableProgress(
 			"""
 			{
-			    "kind": "measurable",
 			    "events": [
 			        {
 			            "delta": 10,
@@ -482,10 +383,9 @@ struct GoalProgressTests {
 
 	@Test
 	func `Missing step decodes with default of one`() throws {
-		let progress = try decodeProgress(
+		let progress = try decodeMeasurableProgress(
 			"""
 			{
-			    "kind": "measurable",
 			    "events": [
 			        {
 			            "delta": 4,
@@ -501,7 +401,7 @@ struct GoalProgressTests {
 	}
 
 	@Test
-	func `Progress encodes unit as a nested value`() throws {
+	func `Progress encodes unit storage as a nested value`() throws {
 		let progress = GoalProgress.measurable(
 			currentValue: 1,
 			targetValue: 5,
@@ -510,16 +410,29 @@ struct GoalProgressTests {
 		let data = try JSONEncoder().encode(progress)
 		let json = try #require(String(data: data, encoding: .utf8))
 
-		#expect(json.contains(#""unit":{"#))
+		#expect(json.contains(#""unitStorage":{"#))
 		#expect(json.contains(#""id":"time.minutes""#))
 	}
 
 	@Test
-	func `Progress decodes nested preset unit`() throws {
-		let progress = try decodeProgress(
+	func `Progress encodes empty unit storage when unit is nil`() throws {
+		let progress = GoalProgress.measurable(
+			currentValue: 1,
+			targetValue: 5,
+			unit: nil,
+		)
+		let data = try JSONEncoder().encode(progress)
+		let json = try #require(String(data: data, encoding: .utf8))
+
+		#expect(json.contains(#""unitStorage":{"#))
+		#expect(!json.contains(#""id":"#))
+	}
+
+	@Test
+	func `Progress decodes nested preset unit storage`() throws {
+		let progress = try decodeMeasurableProgress(
 			"""
 			{
-			    "kind": "measurable",
 			    "events": [
 			        {
 			            "delta": 1,
@@ -528,7 +441,7 @@ struct GoalProgressTests {
 			    ],
 			    "targetValue": 5,
 			    "step": 1,
-			    "unit": {
+			    "unitStorage": {
 			        "id": "time.minutes"
 			    }
 			}
@@ -539,11 +452,10 @@ struct GoalProgressTests {
 	}
 
 	@Test
-	func `Progress decodes nested custom unit`() throws {
-		let progress = try decodeProgress(
+	func `Progress decodes nested custom unit storage`() throws {
+		let progress = try decodeMeasurableProgress(
 			"""
 			{
-			    "kind": "measurable",
 			    "events": [
 			        {
 			            "delta": 1,
@@ -552,7 +464,7 @@ struct GoalProgressTests {
 			    ],
 			    "targetValue": 5,
 			    "step": 1,
-			    "unit": {
+			    "unitStorage": {
 			        "id": "custom.pages",
 			        "category": "custom",
 			        "title": "Pages",
@@ -569,11 +481,10 @@ struct GoalProgressTests {
 	}
 
 	@Test
-	func `Progress ignores nested unit without id`() throws {
-		let progress = try decodeProgress(
+	func `Progress ignores unit storage without id`() throws {
+		let progress = try decodeMeasurableProgress(
 			"""
 			{
-			    "kind": "measurable",
 			    "events": [
 			        {
 			            "delta": 1,
@@ -582,7 +493,7 @@ struct GoalProgressTests {
 			    ],
 			    "targetValue": 5,
 			    "step": 1,
-			    "unit": {}
+			    "unitStorage": {}
 			}
 			"""
 		)
@@ -593,10 +504,9 @@ struct GoalProgressTests {
 	@Test
 	func `Legacy current value payload does not decode`() {
 		#expect(throws: DecodingError.self) {
-			try decodeProgress(
+			try decodeMeasurableProgress(
 				"""
 				{
-				    "kind": "measurable",
 				    "currentValue": 4,
 				    "targetValue": 10,
 				    "step": 1
@@ -606,15 +516,13 @@ struct GoalProgressTests {
 		}
 	}
 
-	// MARK: - Helpers
-
 	private func makeProgress(
 		currentValue: Double,
 		targetValue: Double,
 		step: Double = 1,
 		timestamp: Date = Date(timeIntervalSinceReferenceDate: 0),
-	) -> GoalProgress {
-		GoalProgress.measurable(
+	) -> MeasurableProgress {
+		MeasurableProgress(
 			currentValue: currentValue,
 			targetValue: targetValue,
 			step: step,
@@ -622,8 +530,22 @@ struct GoalProgressTests {
 		)
 	}
 
-	private func decodeProgress(_ json: String) throws -> GoalProgress {
+	private func measurableProgress(
+		events: [GoalProgressEvent],
+		targetValue: Double,
+		step: Double = 1,
+		unit: GoalProgressUnit? = nil,
+	) -> MeasurableProgress {
+		MeasurableProgress(
+			events: events,
+			targetValue: targetValue,
+			step: step,
+			unit: unit,
+		)
+	}
+
+	private func decodeMeasurableProgress(_ json: String) throws -> MeasurableProgress {
 		let data = try #require(json.data(using: .utf8))
-		return try JSONDecoder().decode(GoalProgress.self, from: data)
+		return try JSONDecoder().decode(MeasurableProgress.self, from: data)
 	}
 }

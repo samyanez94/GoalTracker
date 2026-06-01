@@ -112,13 +112,13 @@ struct GoalRowView: View {
 				to: Date()
 			),
 			createdAt: Date(),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		),
 		Goal(
 			name: "Travel to Japan",
 			details: "Plan and take the trip.",
 			createdAt: Date(),
-			progress: .outcomeCompleted,
+			progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
 			recurrence: GoalRecurrence(cadence: .monthly),
 		)
 	]

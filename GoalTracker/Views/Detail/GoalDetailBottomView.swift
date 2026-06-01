@@ -22,7 +22,7 @@ struct GoalDetailBottomView: View {
 
 	var body: some View {
 		Group {
-			switch goal.progress.kind {
+			switch goal.progress {
 			case .outcome:
 				CompleteGoalButton(
 					isCompleted: goal.isCompleted(),
@@ -92,7 +92,7 @@ struct GoalDetailBottomView: View {
 			name: "Climb Mount Kilimanjaro",
 			details: "Reach the summit of Mount Kilimanjaro by the end of the year.",
 			createdAt: Date(),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		),
 		openProgressUpdateView: {},
 	)

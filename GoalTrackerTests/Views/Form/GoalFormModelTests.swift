@@ -116,7 +116,7 @@ struct GoalFormModelTests {
 					name: "Run",
 					details: "",
 					reminder: reminder,
-					progress: .outcomePending,
+					progress: .outcome(OutcomeProgress()),
 					recurrence: GoalRecurrence(cadence: .weekly),
 				),
 			),
@@ -223,7 +223,7 @@ struct GoalFormModelTests {
 					details: "",
 					targetDate: Date(timeIntervalSinceReferenceDate: 456),
 					reminder: reminder,
-					progress: .outcomePending,
+					progress: .outcome(OutcomeProgress()),
 					recurrence: GoalRecurrence(cadence: .weekly),
 				),
 			),
@@ -282,7 +282,7 @@ struct GoalFormModelTests {
 					details: "",
 					targetDate: Date(timeIntervalSinceReferenceDate: 456),
 					reminder: reminder,
-					progress: .outcomePending,
+					progress: .outcome(OutcomeProgress()),
 				),
 			),
 		)
@@ -314,7 +314,7 @@ struct GoalFormModelTests {
 				GoalFormData(
 					name: "Run",
 					details: "",
-					progress: .outcomePending,
+					progress: .outcome(OutcomeProgress()),
 					tags: tags,
 				),
 			),
@@ -345,7 +345,7 @@ struct GoalFormModelTests {
 				GoalFormData(
 					name: "Read",
 					details: "",
-					progress: .outcomePending,
+					progress: .outcome(OutcomeProgress()),
 					recurrence: GoalRecurrence(cadence: .yearly),
 				),
 			),
@@ -364,14 +364,14 @@ struct GoalFormModelTests {
 				GoalFormData(
 					name: "Book trip",
 					details: "",
-					progress: .outcomeCompleted,
+					progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
 				),
 			),
 		)
 
 		let data = model.makeFormData()
 
-		#expect(data.progress.kind == .outcome)
+		#expect(data.progress.outcomeProgress != nil)
 		#expect(data.progress.isCompleted)
 	}
 

@@ -64,7 +64,7 @@ struct GoalDetailStreakSection: View {
 			name: "Run",
 			details: nil,
 			createdAt: Date(),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
 	)

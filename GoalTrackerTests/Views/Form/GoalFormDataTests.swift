@@ -20,7 +20,7 @@ struct GoalFormDataTests {
 			details: nil,
 			reminder: reminder,
 			createdAt: Date(timeIntervalSinceReferenceDate: 0),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		)
 
 		let data = GoalFormData(goal: goal)

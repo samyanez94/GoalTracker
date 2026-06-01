@@ -192,7 +192,7 @@ struct GoalNotificationSchedulerTests {
 		let goal = makeGoal(
 			targetDate: date(year: 2026, month: 5, day: 21),
 			reminder: GoalReminder(),
-			progress: .outcomeCompleted,
+			progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
 		)
 
 		let didSchedule = try await scheduler.scheduleReminder(for: goal)
@@ -319,12 +319,10 @@ struct GoalNotificationSchedulerTests {
 		)
 		let goal = makeGoal(
 			reminder: GoalReminder(),
-			progress: GoalProgress(
-				kind: .outcome,
-				events: [
+			progress: .outcome(
+				OutcomeProgress(events: [
 					GoalProgressEvent(delta: 1, timestamp: date(year: 2026, month: 5, day: 21))
-				],
-				targetValue: 1,
+				])
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -435,7 +433,7 @@ struct GoalNotificationSchedulerTests {
 		id: UUID = UUID(),
 		targetDate: Date? = nil,
 		reminder: GoalReminder? = nil,
-		progress: GoalProgress = .outcomePending,
+		progress: GoalProgress = .outcome(OutcomeProgress()),
 		recurrence: GoalRecurrence? = nil,
 	) -> Goal {
 		Goal(

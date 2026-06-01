@@ -30,7 +30,7 @@ struct GoalDetailView: View {
 				if goal.isRecurring {
 					GoalDetailStreakSection(goal: goal)
 				}
-				switch goal.progress.kind {
+				switch goal.progress {
 				case .outcome:
 					GoalDetailStatusSection(goal: goal)
 				case .measurable:
@@ -113,7 +113,7 @@ struct GoalDetailView: View {
 			goal: Goal(
 				name: "Climb Mount Kilimanjaro",
 				details: "Reach the summit of Mount Kilimanjaro by the end of the year..",
-				progress: .outcomePending,
+				progress: .outcome(OutcomeProgress()),
 			)
 		)
 	}

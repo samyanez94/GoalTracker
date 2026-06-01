@@ -43,7 +43,7 @@ struct GoalDetailStatusSection: View {
 			name: "Travel to Japan",
 			details: "Plan and take the trip.",
 			createdAt: Date(),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		)
 	)
 	.padding()
@@ -56,7 +56,7 @@ struct GoalDetailStatusSection: View {
 			name: "Travel to Japan",
 			details: "Plan and take the trip.",
 			createdAt: Date(),
-			progress: .outcomeCompleted,
+			progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
 		)
 	)
 	.padding()

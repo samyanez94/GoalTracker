@@ -69,7 +69,9 @@ struct GoalProgressUpdateView: View {
 	}
 
 	private var unitTitle: String? {
-		guard let unit = goal.progress.unit else {
+		guard case .measurable(let progress) = goal.progress,
+			let unit = progress.unit
+		else {
 			return nil
 		}
 		return unit.title.capitalized

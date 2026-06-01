@@ -40,8 +40,11 @@ struct GoalDetailProgressSection: View {
 		}
 	}
 
-	private var progress: GoalProgress {
-		goal.progress
+	private var progress: MeasurableProgress {
+		guard case .measurable(let progress) = goal.progress else {
+			preconditionFailure("GoalDetailProgressSection requires measurable progress.")
+		}
+		return progress
 	}
 
 	private var fractionCompleted: Double {
@@ -82,7 +85,7 @@ struct GoalDetailProgressSection: View {
 		return "\(remainingText) more to go"
 	}
 
-	private func formattedNumber(_ value: Double, for progress: GoalProgress) -> String {
+	private func formattedNumber(_ value: Double, for progress: MeasurableProgress) -> String {
 		guard let prefix = progress.unit?.prefix else {
 			return formattedNumber(value)
 		}

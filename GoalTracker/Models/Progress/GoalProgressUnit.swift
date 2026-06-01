@@ -259,3 +259,55 @@ nonisolated extension GoalProgressUnit {
 		}
 	}
 }
+
+// MARK: - GoalProgressUnitStorage
+
+/// Stores an optional progress unit without making the whole unit value optional.
+///
+/// SwiftData can struggle when an optional nested Codable value is nil. This storage type keeps the persisted composite present and treats a missing `id` as no selected unit.
+///
+/// See FB21496971: https://openradar.appspot.com/FB21496971
+nonisolated struct GoalProgressUnitStorage: Codable, Equatable {
+	private let id: String?
+	private let category: String?
+	private let title: String?
+	private let abbreviatedTitle: String?
+	private let prefix: String?
+	private let suffix: String?
+
+	init() {
+		id = nil
+		category = nil
+		title = nil
+		abbreviatedTitle = nil
+		prefix = nil
+		suffix = nil
+	}
+
+	init(_ unit: GoalProgressUnit?) {
+		id = unit?.id
+		category = unit?.category.rawValue
+		title = unit?.title
+		abbreviatedTitle = unit?.abbreviatedTitle
+		prefix = unit?.prefix
+		suffix = unit?.suffix
+	}
+
+	func resolvedUnit() -> GoalProgressUnit? {
+		guard let id else {
+			return nil
+		}
+		if let preset = GoalProgressUnit.preset(withId: id) {
+			return preset
+		}
+		let fallbackTitle = title ?? abbreviatedTitle ?? id
+		return GoalProgressUnit(
+			id: id,
+			category: category.flatMap(GoalProgressUnit.Category.init(rawValue:)) ?? .custom,
+			title: fallbackTitle,
+			abbreviatedTitle: abbreviatedTitle ?? fallbackTitle,
+			prefix: prefix,
+			suffix: suffix,
+		)
+	}
+}

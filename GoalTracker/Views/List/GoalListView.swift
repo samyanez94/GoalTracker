@@ -227,13 +227,13 @@ struct GoalListView: View {
 				name: "Travel to Switzerland",
 				details: nil,
 				createdAt: Date(),
-				progress: .outcomeCompleted,
+				progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
 			),
 			Goal(
 				name: "Climb Mount Kilimanjaro",
 				details: nil,
 				createdAt: Date(),
-				progress: .outcomePending,
+				progress: .outcome(OutcomeProgress()),
 			),
 			Goal(
 				name: "Run 10 marathons",

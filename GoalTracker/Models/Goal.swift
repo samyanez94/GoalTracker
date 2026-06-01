@@ -27,7 +27,7 @@ extension GoalTrackerSchemaV1 {
 		/// An optional notification reminder for the target date or recurring cadence.
 		var reminder: GoalReminder? = nil
 		/// The current progress summary for this goal.
-		var progress: GoalProgress = GoalProgress.outcomePending
+		var progress: GoalProgress = GoalProgress.outcome(OutcomeProgress())
 		/// Optional recurrence rules for goals that reset completion each cadence period.
 		var recurrence: GoalRecurrence?
 		/// Reusable tags associated with this goal.

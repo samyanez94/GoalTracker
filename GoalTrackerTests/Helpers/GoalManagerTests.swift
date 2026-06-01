@@ -37,7 +37,7 @@ struct GoalManagerTests {
 	func `Completing outcome goal appends timestamped event`() async throws {
 		let container = try makeContainer()
 		let timestamp = Date(timeIntervalSinceReferenceDate: 123)
-		let goal = makeGoal(progress: .outcomePending)
+		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
 		insert(goal, into: container)
 		let manager = makeManager(in: container, now: { timestamp })
 
@@ -55,13 +55,14 @@ struct GoalManagerTests {
 		let yesterday = date(year: 2026, month: 5, day: 27, hour: 12)
 		let today = date(year: 2026, month: 5, day: 28, hour: 12)
 		let goal = makeGoal(
-			progress: GoalProgress(
-				kind: .measurable,
-				events: [
-					GoalProgressEvent(delta: 10, timestamp: yesterday)
-				],
-				targetValue: 10,
-				step: 5,
+			progress: .measurable(
+					MeasurableProgress(
+						events: [
+							GoalProgressEvent(delta: 10, timestamp: yesterday)
+						],
+						targetValue: 10,
+					step: 5,
+				)
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -102,14 +103,15 @@ struct GoalManagerTests {
 		let yesterday = date(year: 2026, month: 5, day: 27, hour: 12)
 		let today = date(year: 2026, month: 5, day: 28, hour: 12)
 		let goal = makeGoal(
-			progress: GoalProgress(
-				kind: .measurable,
-				events: [
-					GoalProgressEvent(delta: 10, timestamp: yesterday),
-					GoalProgressEvent(delta: 4, timestamp: today)
-				],
-				targetValue: 10,
-				step: 5,
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(delta: 10, timestamp: yesterday),
+						GoalProgressEvent(delta: 4, timestamp: today)
+					],
+					targetValue: 10,
+					step: 5,
+				)
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -130,13 +132,10 @@ struct GoalManagerTests {
 		let completionDate = date(year: 2026, month: 5, day: 27, hour: 12)
 		let currentDate = date(year: 2026, month: 5, day: 28, hour: 12)
 		let goal = makeGoal(
-			progress: GoalProgress(
-				kind: .outcome,
-				events: [
+			progress: .outcome(
+				OutcomeProgress(events: [
 					GoalProgressEvent(delta: 1, timestamp: completionDate)
-				],
-				targetValue: 1,
-				step: 1,
+				])
 			),
 		)
 		insert(goal, into: container)
@@ -155,7 +154,7 @@ struct GoalManagerTests {
 	@Test
 	func `Updating goal with form data sets recurrence`() async throws {
 		let container = try makeContainer()
-		let goal = makeGoal(progress: .outcomePending)
+		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
 		insert(goal, into: container)
 		let manager = makeManager(in: container)
 
@@ -176,7 +175,7 @@ struct GoalManagerTests {
 	func `Updating goal with form data clears recurrence`() async throws {
 		let container = try makeContainer()
 		let goal = makeGoal(
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
 		insert(goal, into: container)
@@ -200,7 +199,7 @@ struct GoalManagerTests {
 		let container = try makeContainer()
 		let recurrence = GoalRecurrence(cadence: .weekly)
 		let goal = makeGoal(
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 			recurrence: recurrence,
 		)
 		insert(goal, into: container)
@@ -243,12 +242,13 @@ struct GoalManagerTests {
 			progress: .measurable(currentValue: .zero, targetValue: 12, step: 3),
 		)
 
-		#expect(goal.progress.targetValue == 12)
-		#expect(goal.progress.step == 3)
-		#expect(goal.progress.currentValue == 4)
-		#expect(goal.progress.events.count == 1)
-		#expect(goal.progress.events.first?.delta == 4)
-		#expect(goal.progress.events.first?.timestamp == originalTimestamp)
+		let progress = try #require(goal.progress.measurableProgress)
+		#expect(progress.targetValue == 12)
+		#expect(progress.step == 3)
+		#expect(progress.currentValue == 4)
+		#expect(progress.events.count == 1)
+		#expect(progress.events.first?.delta == 4)
+		#expect(progress.events.first?.timestamp == originalTimestamp)
 	}
 
 	@Test
@@ -277,12 +277,13 @@ struct GoalManagerTests {
 			progress: .measurable(currentValue: 4, targetValue: 12, step: 3),
 		)
 
-		#expect(goal.progress.targetValue == 12)
-		#expect(goal.progress.step == 3)
-		#expect(goal.progress.currentValue == 4)
-		#expect(goal.progress.events.count == 1)
-		#expect(goal.progress.events.first?.delta == 4)
-		#expect(goal.progress.events.first?.timestamp == originalTimestamp)
+		let progress = try #require(goal.progress.measurableProgress)
+		#expect(progress.targetValue == 12)
+		#expect(progress.step == 3)
+		#expect(progress.currentValue == 4)
+		#expect(progress.events.count == 1)
+		#expect(progress.events.first?.delta == 4)
+		#expect(progress.events.first?.timestamp == originalTimestamp)
 	}
 
 	@Test
@@ -292,14 +293,15 @@ struct GoalManagerTests {
 		let today = date(year: 2026, month: 5, day: 28, hour: 12)
 		let reminder = GoalReminder()
 		let goal = makeGoal(
-			progress: GoalProgress(
-				kind: .measurable,
-				events: [
-					GoalProgressEvent(delta: 10, timestamp: yesterday),
-					GoalProgressEvent(delta: 5, timestamp: today)
-				],
-				targetValue: 10,
-				step: 5,
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(delta: 10, timestamp: yesterday),
+						GoalProgressEvent(delta: 5, timestamp: today)
+					],
+					targetValue: 10,
+					step: 5,
+				)
 			),
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
@@ -314,8 +316,8 @@ struct GoalManagerTests {
 			reminder: reminder,
 			progress: .measurable(
 				currentValue: .zero,
-				targetValue: goal.progress.targetValue,
-				step: goal.progress.step,
+				targetValue: try #require(goal.progress.measurableProgress?.targetValue),
+				step: try #require(goal.progress.measurableProgress?.step),
 			),
 		)
 
@@ -330,7 +332,7 @@ struct GoalManagerTests {
 		let scheduler = FakeGoalReminderScheduler()
 		let goal = makeGoal(
 			targetDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		)
 		let reminder = GoalReminder()
 		insert(goal, into: container)
@@ -354,7 +356,7 @@ struct GoalManagerTests {
 	@Test
 	func `Editing goal updates selected tags`() async throws {
 		let container = try makeContainer()
-		let goal = makeGoal(progress: .outcomePending)
+		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
 		let healthTag = Tag(name: "Health")
 		let runningTag = Tag(name: "Running")
 		insert(goal, into: container)
@@ -377,7 +379,7 @@ struct GoalManagerTests {
 		let container = try makeContainer()
 		let oldTag = Tag(name: "Old")
 		let newTag = Tag(name: "New")
-		let goal = makeGoal(progress: .outcomePending)
+		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
 		goal.tags = [oldTag]
 		insert(goal, into: container)
 		container.mainContext.insert(newTag)
@@ -414,7 +416,7 @@ struct GoalManagerTests {
 	func `Deleting a goal deletes tags that are no longer used`() async throws {
 		let container = try makeContainer()
 		let tag = Tag(name: "Solo")
-		let goal = makeGoal(progress: .outcomePending)
+		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
 		goal.tags = [tag]
 		insert(goal, into: container)
 		let manager = makeManager(in: container)
@@ -429,8 +431,8 @@ struct GoalManagerTests {
 	func `Deleting a goal keeps tags used by another goal`() async throws {
 		let container = try makeContainer()
 		let tag = Tag(name: "Shared")
-		let deletedGoal = makeGoal(name: "Deleted Goal", progress: .outcomePending)
-		let retainedGoal = makeGoal(name: "Retained Goal", progress: .outcomePending)
+		let deletedGoal = makeGoal(name: "Deleted Goal", progress: .outcome(OutcomeProgress()))
+		let retainedGoal = makeGoal(name: "Retained Goal", progress: .outcome(OutcomeProgress()))
 		deletedGoal.tags = [tag]
 		retainedGoal.tags = [tag]
 		insert(deletedGoal, into: container)
@@ -447,7 +449,7 @@ struct GoalManagerTests {
 	func `Deleting a tag removes it from goals`() throws {
 		let container = try makeContainer()
 		let tag = Tag(name: "Health")
-		let goal = makeGoal(progress: .outcomePending)
+		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
 		goal.tags = [tag]
 		insert(goal, into: container)
 		let manager = makeManager(in: container)
@@ -483,11 +485,11 @@ struct GoalManagerTests {
 		)
 		let secondGoal = makeGoal(
 			name: "Second Goal",
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		)
 		let retainedGoal = makeGoal(
 			name: "Retained Goal",
-			progress: .outcomeCompleted,
+			progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
 		)
 		insert(firstGoal, into: container)
 		insert(secondGoal, into: container)
@@ -509,7 +511,7 @@ struct GoalManagerTests {
 		)
 		let secondGoal = makeGoal(
 			name: "Second Goal",
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		)
 		insert(firstGoal, into: container)
 		insert(secondGoal, into: container)
@@ -535,7 +537,7 @@ struct GoalManagerTests {
 		let newTag = Tag(name: "New")
 		let goal = makeGoal(
 			name: "Original Goal",
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		)
 		goal.tags = [oldTag]
 		insert(goal, into: container)
@@ -593,7 +595,7 @@ struct GoalManagerTests {
 		let goal = makeGoal(
 			targetDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
 			reminder: GoalReminder(),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		)
 		let manager = makeManager(in: container, notificationScheduler: scheduler)
 
@@ -612,7 +614,7 @@ struct GoalManagerTests {
 		let goal = makeGoal(
 			targetDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
 			reminder: GoalReminder(),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		)
 		insert(goal, into: container)
 		let manager = makeManager(in: container, notificationScheduler: scheduler)
@@ -639,7 +641,7 @@ struct GoalManagerTests {
 		let goal = makeGoal(
 			targetDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
 			reminder: GoalReminder(),
-			progress: .outcomePending,
+			progress: .outcome(OutcomeProgress()),
 		)
 		insert(goal, into: container)
 		let manager = makeManager(in: container, notificationScheduler: scheduler)
@@ -659,7 +661,7 @@ struct GoalManagerTests {
 		let goal = makeGoal(
 			targetDate: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30),
 			reminder: GoalReminder(),
-			progress: .outcomeCompleted,
+			progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
 		)
 		insert(goal, into: container)
 		let manager = makeManager(in: container, notificationScheduler: scheduler)
@@ -675,8 +677,8 @@ struct GoalManagerTests {
 	func `Deleting goals cancels notification reminders`() async throws {
 		let container = try makeContainer()
 		let scheduler = FakeGoalReminderScheduler()
-		let firstGoal = makeGoal(name: "First Goal", progress: .outcomePending)
-		let secondGoal = makeGoal(name: "Second Goal", progress: .outcomePending)
+		let firstGoal = makeGoal(name: "First Goal", progress: .outcome(OutcomeProgress()))
+		let secondGoal = makeGoal(name: "Second Goal", progress: .outcome(OutcomeProgress()))
 		insert(firstGoal, into: container)
 		insert(secondGoal, into: container)
 		let manager = makeManager(in: container, notificationScheduler: scheduler)
