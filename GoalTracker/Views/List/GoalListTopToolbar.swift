@@ -14,16 +14,16 @@ struct GoalListTopToolbar: ToolbarContent {
 
 	let isSelectingGoals: Bool
 	let canSelectGoals: Bool
-	let onSelectGoals: () -> Void
-	let onFinishSelectingGoals: () -> Void
+	let selectGoals: () -> Void
+	let finishSelectingGoals: () -> Void
 
 	var body: some ToolbarContent {
 		ToolbarItem(placement: .topBarTrailing) {
 			if isSelectingGoals {
-				Button("Done", systemImage: "checkmark", action: onFinishSelectingGoals)
+				Button("Done", systemImage: "checkmark", action: finishSelectingGoals)
 			} else {
 				Menu {
-					Button(action: onSelectGoals) {
+					Button(action: selectGoals) {
 						Label("Select Goals", systemImage: "checkmark.circle")
 					}
 					.disabled(!canSelectGoals)

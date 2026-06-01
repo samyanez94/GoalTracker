@@ -169,7 +169,7 @@ extension GoalTrackerSchemaV1 {
 		init(
 			id: UUID = UUID(),
 			name: String,
-			details: String?,
+			details: String? = nil,
 			targetDate: Date? = nil,
 			reminder: GoalReminder? = nil,
 			createdAt: Date = Date(),

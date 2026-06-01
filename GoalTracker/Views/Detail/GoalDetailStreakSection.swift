@@ -18,10 +18,9 @@ struct GoalDetailStreakSection: View {
 					.foregroundStyle(.secondary)
 				HStack {
 					Image(systemName: streakDetails.iconSystemName)
-						.font(.title2)
+                        .imageScale(.large)
 						.foregroundStyle(streakDetails.iconForegroundStyle)
 						.contentTransition(.symbolEffect(.replace))
-						.accessibilityHidden(true)
 					Text("Current Streak")
 					Spacer(minLength: 8)
 					Text(streakDetails.title)
@@ -47,14 +46,14 @@ struct GoalDetailStreakSection: View {
 		return StreakDetails(
 			title: recurrence.cadence.streakValueTitle(for: streak),
 			iconSystemName: streak > 0 ? "flame.circle.fill" : "circle",
-			iconForegroundStyle: streak > 0 ? Color.red : Color.secondary
+			iconForegroundStyle: streak > 0 ? AnyShapeStyle(.red) : AnyShapeStyle(.tertiary)
 		)
 	}
 
 	private struct StreakDetails {
 		var title: String
 		var iconSystemName: String
-		var iconForegroundStyle: Color
+		var iconForegroundStyle: AnyShapeStyle
 	}
 }
 

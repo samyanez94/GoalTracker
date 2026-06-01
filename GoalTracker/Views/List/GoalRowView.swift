@@ -2,6 +2,8 @@ import SwiftData
 import SwiftUI
 
 struct GoalRowView: View {
+	@Environment(\.editMode) private var editMode
+
 	@Environment(\.modelContext) private var modelContext
 
 	@State private var isPresentingEditForm = false
@@ -13,11 +15,12 @@ struct GoalRowView: View {
 	var body: some View {
 		NavigationLink(value: goal) {
 			HStack(spacing: 12) {
-				Image(systemName: goal.status().iconSystemName)
-					.font(.title2)
-					.foregroundStyle(goal.isCompleted() ? Color.blue : Color.secondary)
-					.contentTransition(.symbolEffect(.replace))
-					.accessibilityHidden(true)
+				if editMode?.wrappedValue.isEditing != true {
+					Image(systemName: goal.status().iconSystemName)
+						.imageScale(.large)
+						.foregroundStyle(statusImageStyle)
+						.contentTransition(.symbolEffect(.replace))
+				}
 				VStack(alignment: .leading, spacing: 2) {
 					Text(goal.name)
 						.foregroundStyle(goal.isCompleted() ? .secondary : .primary)
@@ -68,9 +71,15 @@ struct GoalRowView: View {
 		GoalManager(modelContext: modelContext)
 	}
 
+	private var statusImageStyle: AnyShapeStyle {
+		goal.isCompleted() ? AnyShapeStyle(.blue) : AnyShapeStyle(.tertiary)
+	}
+
 	private func toggleCompletion() {
 		do {
-			try goalManager.toggleCompletion(goal)
+            _ = try withAnimation {
+                try goalManager.toggleCompletion(goal)
+            }
 		} catch {
 			saveFailure = .updateProgress
 		}
@@ -78,15 +87,20 @@ struct GoalRowView: View {
 
 	private func deleteGoal() {
 		do {
-			try goalManager.deleteGoal(goal)
+            _ = try withAnimation {
+                try goalManager.deleteGoal(goal)
+            }
 		} catch {
 			saveFailure = .deleteGoal
 		}
 	}
 
 	private func isPastTargetDate(_ targetDate: Date) -> Bool {
-		!goal.isCompleted()
-			&& Calendar.current.startOfDay(for: targetDate) < Calendar.current.startOfDay(for: Date())
+		guard !goal.isCompleted() else {
+			return false
+		}
+		let calendar = Calendar.current
+		return calendar.startOfDay(for: targetDate) < calendar.startOfDay(for: Date())
 	}
 }
 
@@ -100,7 +114,6 @@ struct GoalRowView: View {
 				value: 1,
 				to: Date()
 			),
-			createdAt: Date(),
 			progress: .measurable(currentValue: 2, targetValue: 5),
 		),
 		Goal(
@@ -111,13 +124,11 @@ struct GoalRowView: View {
 				value: -1,
 				to: Date()
 			),
-			createdAt: Date(),
 			progress: .outcome(OutcomeProgress()),
 		),
 		Goal(
-			name: "Travel to Japan",
-			details: "Plan and take the trip.",
-			createdAt: Date(),
+			name: "Go climbing",
+			details: "Go climbing every month.",
 			progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
 			recurrence: GoalRecurrence(cadence: .monthly),
 		)
@@ -125,9 +136,7 @@ struct GoalRowView: View {
 	NavigationStack {
 		List {
 			ForEach(goals) { goal in
-				GoalRowView(
-					goal: goal,
-				)
+				GoalRowView(goal: goal)
 			}
 		}
 	}

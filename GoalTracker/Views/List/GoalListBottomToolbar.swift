@@ -11,7 +11,7 @@ struct GoalListBottomToolbar: ToolbarContent {
 	let isSelectingGoals: Bool
 	let selectedGoalCount: Int
 	let onAddGoal: () -> Void
-	let onDeleteSelectedGoals: () -> Void
+	let deleteSelectedGoals: () -> Void
 
 	var body: some ToolbarContent {
 		if isSelectingGoals {
@@ -20,7 +20,7 @@ struct GoalListBottomToolbar: ToolbarContent {
 					selectedGoalCount == 1 ? "Delete Goal" : "Delete Goals",
 					systemImage: "trash",
 					role: .destructive,
-					action: onDeleteSelectedGoals,
+					action: deleteSelectedGoals,
 				)
 				.disabled(selectedGoalCount == 0)
 			}

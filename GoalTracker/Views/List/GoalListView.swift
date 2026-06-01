@@ -8,6 +8,8 @@
 import SwiftData
 import SwiftUI
 
+// MARK: - GoalListView
+
 struct GoalListView: View {
 	@Environment(\.modelContext) private var modelContext
 
@@ -43,15 +45,10 @@ struct GoalListView: View {
 		NavigationStack {
 			Group {
 				if goals.isEmpty {
-					Text("No goals")
-						.font(.body)
-						.foregroundStyle(.secondary)
-						.frame(maxWidth: .infinity, maxHeight: .infinity)
-				} else if isSearching, visibleSearchResultsAreEmpty {
-					Text("No matching goals")
-						.font(.body)
-						.foregroundStyle(.secondary)
-						.frame(maxWidth: .infinity, maxHeight: .infinity)
+					emptyStateView("No goals")
+				} else if isSearching,
+                          visibleSearchResultsAreEmpty {
+					emptyStateView("No matching goals")
 				} else {
 					List(selection: $selectedGoalIds) {
 						if isShowingCompletedGoals {
@@ -84,9 +81,7 @@ struct GoalListView: View {
 					onAddGoal: {
 						isPresentingGoalFormView = true
 					},
-					onDeleteSelectedGoals: {
-						deleteSelectedGoals()
-					}
+                    deleteSelectedGoals: deleteSelectedGoals
 				)
 				GoalListTopToolbar(
 					sortMode: $sortMode,
@@ -94,12 +89,10 @@ struct GoalListView: View {
 					isShowingCompletedGoals: $isShowingCompletedGoals,
 					isSelectingGoals: isSelectingGoals,
 					canSelectGoals: !visibleSelectableGoals.isEmpty,
-					onSelectGoals: {
+					selectGoals: {
 						editMode = .active
 					},
-					onFinishSelectingGoals: {
-						finishSelectingGoals()
-					}
+                    finishSelectingGoals: finishSelectingGoals
 				)
 			}
 			.sheet(isPresented: $isPresentingGoalFormView) {
@@ -131,6 +124,14 @@ struct GoalListView: View {
 
 	private var goalManager: GoalManager {
 		GoalManager(modelContext: modelContext)
+	}
+
+	private func emptyStateView(_ title: String) -> some View {
+		Text(title)
+			.font(.body)
+			.foregroundStyle(.secondary)
+			.frame(maxWidth: .infinity, maxHeight: .infinity)
+			.background(Color(.systemGroupedBackground))
 	}
 
 	private var isSearching: Bool {
@@ -212,6 +213,8 @@ struct GoalListView: View {
 	}
 }
 
+// MARK: - Previews
+
 #Preview("No goals") {
 	let container = GoalPreviewContainer.make(
 		goals: [],
@@ -225,20 +228,14 @@ struct GoalListView: View {
 		goals: [
 			Goal(
 				name: "Travel to Switzerland",
-				details: nil,
-				createdAt: Date(),
 				progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
 			),
 			Goal(
 				name: "Climb Mount Kilimanjaro",
-				details: nil,
-				createdAt: Date(),
 				progress: .outcome(OutcomeProgress()),
 			),
 			Goal(
 				name: "Run 10 marathons",
-				details: nil,
-				createdAt: Date(),
 				progress: .measurable(
 					currentValue: 2,
 					targetValue: 10

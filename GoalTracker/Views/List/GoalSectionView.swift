@@ -9,7 +9,6 @@ import SwiftUI
 
 struct GoalSectionView: View {
 	let title: String
-
 	let goals: [Goal]
 
 	@Binding var isExpanded: Bool
