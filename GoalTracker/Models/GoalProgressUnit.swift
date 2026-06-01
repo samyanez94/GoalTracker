@@ -7,9 +7,12 @@
 
 import Foundation
 
-/// Describes how measurable progress values should be displayed.
+// MARK: - GoalProgressUnit
+
+/// Describes the unit shown next to a measurable goal's progress.
 ///
-/// Preset units are resolved by `id` when decoded so saved goals automatically use the latest built-in unit labels. Custom units keep their stored display values.
+/// A unit provides the labels and optional prefix or suffix used when presenting values, such as
+/// dollars, minutes, pounds, or a custom unit created by the user.
 nonisolated struct GoalProgressUnit: Codable, Hashable, Identifiable {
 	/// The broad grouping used when presenting unit choices.
 	nonisolated enum Category: String, Codable, CaseIterable, Identifiable {
@@ -74,7 +77,7 @@ nonisolated struct GoalProgressUnit: Codable, Hashable, Identifiable {
 	init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		let id = try container.decode(String.self, forKey: .id)
-		if let preset = Self.preset(withID: id) {
+		if let preset = Self.preset(withId: id) {
 			self = preset
 			return
 		}
@@ -85,7 +88,11 @@ nonisolated struct GoalProgressUnit: Codable, Hashable, Identifiable {
 		prefix = try container.decodeIfPresent(String.self, forKey: .prefix)
 		suffix = try container.decodeIfPresent(String.self, forKey: .suffix)
 	}
+}
 
+// MARK: - GoalProgressUnit+Presets
+
+nonisolated extension GoalProgressUnit {
 	static let dollars = GoalProgressUnit(
 		id: "currency.usd",
 		category: .currency,
@@ -222,7 +229,7 @@ nonisolated struct GoalProgressUnit: Codable, Hashable, Identifiable {
 		)
 	]
 
-	static func preset(withID id: String) -> GoalProgressUnit? {
+	static func preset(withId id: String) -> GoalProgressUnit? {
 		presetSections
 			.flatMap(\.units)
 			.first { $0.id == id }

@@ -14,14 +14,14 @@ import Testing
 struct GoalProgressUnitTests {
 	@Test
 	func `Preset lookup returns the matching preset unit`() {
-		let unit = GoalProgressUnit.preset(withID: "currency.usd")
+		let unit = GoalProgressUnit.preset(withId: "currency.usd")
 
 		#expect(unit == .dollars)
 	}
 
 	@Test
 	func `Preset lookup returns nil for an unknown id`() {
-		let unit = GoalProgressUnit.preset(withID: "unknown.unit")
+		let unit = GoalProgressUnit.preset(withId: "unknown.unit")
 
 		#expect(unit == nil)
 	}

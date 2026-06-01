@@ -25,7 +25,7 @@ struct GoalDetailBottomView: View {
 			switch goal.progress.kind {
 			case .outcome:
 				CompleteGoalButton(
-					isCompleted: goal.isCompleted,
+					isCompleted: goal.isCompleted(),
 					action: completeGoal
 				)
 			case .measurable:

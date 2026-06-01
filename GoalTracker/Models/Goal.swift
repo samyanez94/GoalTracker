@@ -32,26 +32,9 @@ extension GoalTrackerSchemaV1 {
 		var recurrence: GoalRecurrence?
 		/// Reusable tags associated with this goal.
 		var tags: [Tag] = []
-        
-        /// The current user-facing status derived from progress.
-        var status: GoalStatus {
-            status()
-        }
-
-		/// Whether the current progress has reached its target.
-		var isCompleted: Bool {
-			isCompleted()
-		}
-
-        /// Whether the goal is measurable.
-		var isMeasurable: Bool {
-			progress.isMeasurable
-		}
 
         /// Whether the goal is recurring.
-		var isRecurring: Bool {
-			recurrence != nil
-		}
+		var isRecurring: Bool { recurrence != nil }
 
 		func status(
 			at date: Date = Date(),
@@ -96,14 +79,12 @@ extension GoalTrackerSchemaV1 {
 			var streak = 0
 			var period = recurrence.period(containing: date, calendar: calendar)
 			if let currentPeriod = period,
-				!progress.isCompleted(in: currentPeriod)
-			{
-				period = recurrence.period(before: currentPeriod, calendar: calendar)
+                !progress.isCompleted(in: currentPeriod) {
+                period = recurrence.period(before: currentPeriod, calendar: calendar)
 			}
 			while let currentPeriod = period,
-				progress.isCompleted(in: currentPeriod)
-			{
-				streak += 1
+				progress.isCompleted(in: currentPeriod) {
+                streak += 1
 				period = recurrence.period(before: currentPeriod, calendar: calendar)
 			}
 			return streak

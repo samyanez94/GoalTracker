@@ -7,19 +7,15 @@
 
 import Foundation
 
-/// Describes how often a goal's progress starts a new completion period.
+/// Defines how a recurring goal resets its progress window.
+///
+/// A recurrence turns the goal's event history into calendar-based completion periods, such as the current day, week, month, or year.
 nonisolated struct GoalRecurrence: Codable, Equatable, Hashable {
-	/// The cadence used to determine the active progress period.
-	///
-	/// Future custom cadences should extend this value with additional optional configuration fields while preserving the built-in cadence values.
+	/// The repeat interval used to find the active completion period.
 	var cadence: GoalRecurrenceCadence
 
 	init(cadence: GoalRecurrenceCadence) {
 		self.cadence = cadence
-	}
-
-	var displayTitle: String {
-		cadence.displayTitle
 	}
 
 	var detailTitle: String {

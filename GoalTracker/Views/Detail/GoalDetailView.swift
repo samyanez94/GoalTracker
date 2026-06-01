@@ -44,7 +44,7 @@ struct GoalDetailView: View {
 			ToolbarItem(placement: .topBarTrailing) {
 				Menu("Goal Actions", systemImage: "ellipsis") {
 					GoalActionMenuContent(
-						isCompleted: goal.isCompleted,
+						isCompleted: goal.isCompleted(),
 						edit: {
 							isPresentingEditForm = true
 						},

@@ -154,7 +154,7 @@ struct GoalListView: View {
 
 	private var pendingGoals: [Goal] {
 		sorter.sorted(
-			searchedGoals.filter { !$0.isCompleted },
+			searchedGoals.filter { !$0.isCompleted() },
 			by: sortMode,
 			direction: sortDirection,
 		)
@@ -162,7 +162,7 @@ struct GoalListView: View {
 
 	private var completedGoals: [Goal] {
 		sorter.sorted(
-			searchedGoals.filter(\.isCompleted),
+            searchedGoals.filter { $0.isCompleted() },
 			by: sortMode,
 			direction: sortDirection,
 		)

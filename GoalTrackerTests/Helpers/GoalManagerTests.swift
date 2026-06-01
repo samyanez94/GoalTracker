@@ -218,26 +218,37 @@ struct GoalManagerTests {
 	}
 
 	@Test
-	func `Editing measurable current value appends balancing event`() async throws {
+	func `Editing measurable form progress preserves existing events`() async throws {
 		let container = try makeContainer()
-		let timestamp = Date(timeIntervalSinceReferenceDate: 123)
+		let originalTimestamp = Date(timeIntervalSinceReferenceDate: 12)
 		let goal = makeGoal(
-			progress: .measurable(currentValue: 4, targetValue: 10, step: 2),
+			progress: .measurable(
+				currentValue: 4,
+				targetValue: 10,
+				step: 2,
+				timestamp: originalTimestamp,
+			),
 		)
 		insert(goal, into: container)
-		let manager = makeManager(in: container, now: { timestamp })
+		let manager = makeManager(
+			in: container,
+			now: { Date(timeIntervalSinceReferenceDate: 123) },
+		)
 
 		try manager.updateGoal(
 			goal,
 			name: goal.name,
 			details: goal.details,
 			targetDate: goal.targetDate,
-			progress: .measurable(currentValue: 7, targetValue: 10, step: 2),
+			progress: .measurable(currentValue: .zero, targetValue: 12, step: 3),
 		)
 
-		#expect(goal.progress.currentValue == 7)
-		#expect(goal.progress.events.map(\.delta) == [4, 3])
-		#expect(goal.progress.events.last?.timestamp == timestamp)
+		#expect(goal.progress.targetValue == 12)
+		#expect(goal.progress.step == 3)
+		#expect(goal.progress.currentValue == 4)
+		#expect(goal.progress.events.count == 1)
+		#expect(goal.progress.events.first?.delta == 4)
+		#expect(goal.progress.events.first?.timestamp == originalTimestamp)
 	}
 
 	@Test
@@ -302,7 +313,7 @@ struct GoalManagerTests {
 			targetDate: goal.targetDate,
 			reminder: reminder,
 			progress: .measurable(
-				currentValue: goal.progress.currentValue,
+				currentValue: .zero,
 				targetValue: goal.progress.targetValue,
 				step: goal.progress.step,
 			),

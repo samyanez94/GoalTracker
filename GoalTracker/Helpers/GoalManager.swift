@@ -75,10 +75,7 @@ struct GoalManager {
 				goal.details = details
 				goal.targetDate = targetDate
 				goal.reminder = reminder
-				goal.progress = progress.updated(
-					preservingEventsFrom: goal.progress,
-					timestamp: now(),
-				)
+				goal.progress = progress.updated(preservingEventsFrom: goal.progress)
 				if updatesRecurrence {
 					goal.recurrence = recurrence
 				}

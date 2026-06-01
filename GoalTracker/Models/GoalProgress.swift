@@ -7,10 +7,11 @@
 
 import Foundation
 
-/// Stores the current progress summary for a goal.
+// MARK: - GoalProgress
+
+/// Tracks a goal's completion state from timestamped progress changes.
 ///
-/// `GoalProgress` is the source of truth for where a goal stands right now.
-///
+/// `GoalProgress` supports binary outcome goals and measurable goals with a numeric target. It preserves progress history as signed events, then derives the current value, completion state, and fraction complete either across all events or within a recurrence period.
 nonisolated struct GoalProgress: Codable {
 	/// Whether this progress represents a binary outcome or a measurable target.
 	private(set) var kind: GoalProgressKind
@@ -23,6 +24,7 @@ nonisolated struct GoalProgress: Codable {
 	/// The optional unit used when displaying measurable progress values.
 	private(set) var unit: GoalProgressUnit?
 
+	/// The default progress state for an incomplete binary outcome goal.
 	static let outcomePending = GoalProgress(
 		kind: .outcome,
 		events: [],
@@ -31,10 +33,11 @@ nonisolated struct GoalProgress: Codable {
 		unit: nil,
 	)
 
+	/// A completed binary outcome goal represented by a single full-progress event.
 	static let outcomeCompleted = GoalProgress(
 		kind: .outcome,
 		events: [
-			GoalProgressEvent(delta: 1, timestamp: Date(timeIntervalSinceReferenceDate: 0))
+			GoalProgressEvent(delta: 1, timestamp: Date())
 		],
 		targetValue: 1,
 		step: 1,
@@ -51,14 +54,17 @@ nonisolated struct GoalProgress: Codable {
 		currentValue >= targetValue
 	}
 
+	/// Whether this progress tracks a numeric value.
 	var isMeasurable: Bool {
 		kind == .measurable
 	}
 
+	/// Whether there is progress available to subtract.
 	var canDecrement: Bool {
 		isMeasurable && currentValue > 0
 	}
 
+	/// Whether there is still room to add more progress.
 	var canIncrement: Bool {
 		isMeasurable && currentValue < upperBound
 	}
@@ -91,22 +97,6 @@ nonisolated struct GoalProgress: Codable {
 		self.targetValue = targetValue
 		self.step = step
 		self.unit = unit
-	}
-
-	init(
-		currentValue: Double,
-		targetValue: Double,
-		step: Double = 1,
-		unit: GoalProgressUnit? = nil,
-		timestamp: Date = Date(),
-	) {
-		self.init(
-			kind: .measurable,
-			events: Self.events(for: currentValue, timestamp: timestamp),
-			targetValue: targetValue,
-			step: step,
-			unit: unit,
-		)
 	}
 
 	static func measurable(
@@ -301,56 +291,16 @@ nonisolated struct GoalProgress: Codable {
 		)
 	}
 
-	func updated(
-		preservingEventsFrom previousProgress: GoalProgress,
-		timestamp: Date = Date(),
-	) -> GoalProgress {
+	/// Returns this progress with the previous event history preserved when the kind matches.
+	///
+	/// Use this when editing configuration such as target value, step, or unit without changing the user's recorded progress.
+	func updated(preservingEventsFrom previousProgress: GoalProgress) -> GoalProgress {
 		guard kind == previousProgress.kind else {
 			return self
 		}
-		let updatedCurrentValue = currentValue
 		var updatedProgress = self
 		updatedProgress.events = previousProgress.events
-		guard updatedCurrentValue != previousProgress.currentValue else {
-			return updatedProgress
-		}
-		updatedProgress.replaceCurrentValue(updatedCurrentValue, timestamp: timestamp)
 		return updatedProgress
-	}
-
-	init(from decoder: Decoder) throws {
-		let storage = try GoalProgressStorage(from: decoder)
-		guard
-			Self.isValid(
-				events: storage.events,
-				targetValue: storage.targetValue,
-				step: storage.step,
-			)
-		else {
-			throw DecodingError.dataCorrupted(
-				DecodingError.Context(
-					codingPath: decoder.codingPath,
-					debugDescription:
-						"Progress values must be finite, non-negative, and have a positive target and step.",
-				),
-			)
-		}
-		kind = storage.kind
-		events = storage.events
-		targetValue = storage.targetValue
-		step = storage.step
-		unit = storage.unit?.resolvedUnit()
-	}
-
-	func encode(to encoder: Encoder) throws {
-		try GoalProgressStorage(
-			kind: kind,
-			events: events,
-			targetValue: targetValue,
-			step: step,
-			unit: unit,
-		)
-		.encode(to: encoder)
 	}
 
 	private var upperBound: Double {
@@ -414,7 +364,44 @@ nonisolated struct GoalProgress: Codable {
 		events.append(GoalProgressEvent(delta: delta, timestamp: timestamp))
 		return true
 	}
+    
+    init(from decoder: Decoder) throws {
+        let storage = try GoalProgressStorage(from: decoder)
+        guard
+            Self.isValid(
+                events: storage.events,
+                targetValue: storage.targetValue,
+                step: storage.step,
+            )
+        else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription:
+                        "Progress values must be finite, non-negative, and have a positive target and step.",
+                ),
+            )
+        }
+        kind = storage.kind
+        events = storage.events
+        targetValue = storage.targetValue
+        step = storage.step
+        unit = storage.unit?.resolvedUnit()
+    }
+
+    func encode(to encoder: Encoder) throws {
+        try GoalProgressStorage(
+            kind: kind,
+            events: events,
+            targetValue: targetValue,
+            step: step,
+            unit: unit,
+        )
+        .encode(to: encoder)
+    }
 }
+
+// MARK: - Date+Helpers
 
 nonisolated extension Date {
 	fileprivate func isInsideProgressPeriod(_ period: DateInterval) -> Bool {
@@ -422,6 +409,11 @@ nonisolated extension Date {
 	}
 }
 
+// MARK: - GoalProgressStorage
+
+/// The persisted representation of `GoalProgress`.
+///
+/// This storage wrapper keeps decoding concerns out of the domain type, including older payloads that may not include newer fields such as `step`.
 nonisolated private struct GoalProgressStorage: Codable {
 	var kind: GoalProgressKind
 	var events: [GoalProgressEvent]
@@ -461,6 +453,11 @@ nonisolated private struct GoalProgressStorage: Codable {
 	}
 }
 
+// MARK: - GoalProgressUnitSnapshot
+
+/// A stable encoded copy of a progress unit.
+///
+/// Preset units are resolved by `id` when decoded so saved goals pick up the latest built-in labels, while custom units can fall back to their stored display values.
 nonisolated private struct GoalProgressUnitSnapshot: Codable {
 	var id: String?
 	var category: GoalProgressUnit.Category?
@@ -482,7 +479,7 @@ nonisolated private struct GoalProgressUnitSnapshot: Codable {
 		guard let id else {
 			return nil
 		}
-		if let preset = GoalProgressUnit.preset(withID: id) {
+		if let preset = GoalProgressUnit.preset(withId: id) {
 			return preset
 		}
 		let fallbackTitle = title ?? abbreviatedTitle ?? id

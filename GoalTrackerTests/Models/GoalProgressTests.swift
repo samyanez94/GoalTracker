@@ -373,10 +373,7 @@ struct GoalProgressTests {
 		)
 		let editedProgress = makeProgress(currentValue: 4, targetValue: 12, step: 3)
 
-		let updatedProgress = editedProgress.updated(
-			preservingEventsFrom: previousProgress,
-			timestamp: Date(timeIntervalSinceReferenceDate: 456),
-		)
+		let updatedProgress = editedProgress.updated(preservingEventsFrom: previousProgress)
 
 		#expect(updatedProgress.currentValue == 4)
 		#expect(updatedProgress.targetValue == 12)
@@ -386,19 +383,14 @@ struct GoalProgressTests {
 	}
 
 	@Test
-	func `Updated progress appends balancing event when current value changes`() {
+	func `Updated progress preserves events when edited current value differs`() {
 		let previousProgress = makeProgress(currentValue: 4, targetValue: 10)
 		let editedProgress = makeProgress(currentValue: 7, targetValue: 10)
-		let timestamp = Date(timeIntervalSinceReferenceDate: 456)
 
-		let updatedProgress = editedProgress.updated(
-			preservingEventsFrom: previousProgress,
-			timestamp: timestamp,
-		)
+		let updatedProgress = editedProgress.updated(preservingEventsFrom: previousProgress)
 
-		#expect(updatedProgress.currentValue == 7)
-		#expect(updatedProgress.events.map(\.delta) == [4, 3])
-		#expect(updatedProgress.events.last?.timestamp == timestamp)
+		#expect(updatedProgress.currentValue == 4)
+		#expect(updatedProgress.events.map(\.delta) == [4])
 	}
 
 	@Test

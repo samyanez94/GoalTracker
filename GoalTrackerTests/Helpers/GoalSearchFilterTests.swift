@@ -121,7 +121,7 @@ struct GoalSearchFilterTests {
 				goals,
 				searchText: "run",
 			)
-			.filter { !$0.isCompleted }
+			.filter { !$0.isCompleted() }
 
 		#expect(visibleSearchResults.map(\.name) == ["Run a 5K"])
 	}

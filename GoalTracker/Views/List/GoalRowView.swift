@@ -13,14 +13,14 @@ struct GoalRowView: View {
 	var body: some View {
 		NavigationLink(value: goal) {
 			HStack(spacing: 12) {
-				Image(systemName: goal.status.iconSystemName)
+				Image(systemName: goal.status().iconSystemName)
 					.font(.title2)
-					.foregroundStyle(goal.isCompleted ? Color.blue : Color.secondary)
+					.foregroundStyle(goal.isCompleted() ? Color.blue : Color.secondary)
 					.contentTransition(.symbolEffect(.replace))
 					.accessibilityHidden(true)
 				VStack(alignment: .leading, spacing: 2) {
 					Text(goal.name)
-						.foregroundStyle(goal.isCompleted ? .secondary : .primary)
+						.foregroundStyle(goal.isCompleted() ? .secondary : .primary)
 					if let targetDate = goal.targetDate {
 						Text(GoalTargetDateFormatter.string(from: targetDate))
 							.font(.subheadline)
@@ -37,7 +37,7 @@ struct GoalRowView: View {
 		}
 		.contextMenu {
 			GoalActionMenuContent(
-				isCompleted: goal.isCompleted,
+				isCompleted: goal.isCompleted(),
 				edit: {
 					isPresentingEditForm = true
 				},
@@ -85,7 +85,7 @@ struct GoalRowView: View {
 	}
 
 	private func isPastTargetDate(_ targetDate: Date) -> Bool {
-		!goal.isCompleted
+		!goal.isCompleted()
 			&& Calendar.current.startOfDay(for: targetDate) < Calendar.current.startOfDay(for: Date())
 	}
 }

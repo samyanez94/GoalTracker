@@ -16,14 +16,14 @@ struct GoalDetailStatusSection: View {
 				.font(.headline)
 				.foregroundStyle(.secondary)
 			HStack {
-				Image(systemName: goal.status.iconSystemName)
+				Image(systemName: goal.status().iconSystemName)
 					.font(.title2)
-					.foregroundStyle(goal.isCompleted ? Color.blue : Color.secondary)
+					.foregroundStyle(goal.isCompleted() ? Color.blue : Color.secondary)
 					.contentTransition(.symbolEffect(.replace))
 					.accessibilityHidden(true)
 				Text("Status")
 				Spacer(minLength: 8)
-				Text(goal.status.displayString)
+				Text(goal.status().displayString)
 					.foregroundStyle(.secondary)
 					.multilineTextAlignment(.trailing)
 			}
