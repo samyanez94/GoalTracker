@@ -16,7 +16,7 @@ struct GoalDetailTagChip: View {
 			.foregroundStyle(.white)
 			.padding(.horizontal, 12)
 			.padding(.vertical, 8)
-			.background(.blue)
+            .background(Color.accentColor)
 			.clipShape(.capsule)
 	}
 }

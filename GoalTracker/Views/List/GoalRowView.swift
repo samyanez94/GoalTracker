@@ -81,7 +81,7 @@ struct GoalRowView: View {
 	}
 
 	private var statusImageStyle: AnyShapeStyle {
-		goal.isCompleted() ? AnyShapeStyle(.blue) : AnyShapeStyle(.tertiary)
+        goal.isCompleted() ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.tertiary)
 	}
 
 	private func toggleCompletion() {

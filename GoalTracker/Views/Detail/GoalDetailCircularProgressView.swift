@@ -13,7 +13,7 @@ struct GoalDetailCircularProgressView: View {
 	@State private var displayedProgress = 0.0
 
 	let progress: Double
-	let color: Color = .blue
+	let color: Color = .accentColor
 	let lineWidth: CGFloat = 15
 
 	private var clampedProgress: Double {

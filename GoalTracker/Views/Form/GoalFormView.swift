@@ -217,7 +217,6 @@ struct GoalFormView: View {
 			}
 			ToolbarItem(placement: .confirmationAction) {
 				Button("Save", systemImage: "checkmark", action: save)
-					.tint(.blue)
 					.buttonStyle(.glassProminent)
 					.disabled(model.isSaveDisabled)
 			}

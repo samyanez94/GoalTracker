@@ -57,7 +57,6 @@ struct CustomUnitFormView: View {
 			ToolbarItem(placement: .confirmationAction) {
 				Button("Save", systemImage: "checkmark", action: save)
 					.labelStyle(.iconOnly)
-					.tint(.blue)
 					.buttonStyle(.glassProminent)
 					.disabled(isSaveDisabled)
 					.opacity(isSaveDisabled ? 0.5 : 1)

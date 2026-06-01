@@ -21,22 +21,9 @@
 		91ACC02C2FA6B4E6003E8F87 /* GoalTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GoalTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9112148F2FBBDFA000948AA8 /* Exceptions for "GoalTracker" folder in "GoalTracker" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 91ACC01E2FA6B4E6003E8F87 /* GoalTracker */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		91ACC0212FA6B4E6003E8F87 /* GoalTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				9112148F2FBBDFA000948AA8 /* Exceptions for "GoalTracker" folder in "GoalTracker" target */,
-			);
 			path = GoalTracker;
 			sourceTree = "<group>";
 		};
@@ -348,7 +335,6 @@
 				DEVELOPMENT_TEAM = QFXSZ288GU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = GoalTracker/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Rings;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -383,7 +369,6 @@
 				DEVELOPMENT_TEAM = QFXSZ288GU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = GoalTracker/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Rings;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
