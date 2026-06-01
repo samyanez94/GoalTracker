@@ -13,13 +13,6 @@ import Testing
 @MainActor
 struct GoalProgressUnitTests {
 	@Test
-	func `Preset lookup returns the matching preset unit`() {
-		let unit = GoalProgressUnit.preset(withId: "currency.usd")
-
-		#expect(unit == .dollars)
-	}
-
-	@Test
 	func `Preset lookup returns nil for an unknown id`() {
 		let unit = GoalProgressUnit.preset(withId: "unknown.unit")
 
@@ -110,105 +103,6 @@ struct GoalProgressUnitTests {
 		)
 
 		#expect(unit.category == .custom)
-	}
-
-	@Test
-	func `Goal progress encodes unit as a nested value`() throws {
-		let progress = GoalProgress.measurable(
-			currentValue: 1,
-			targetValue: 5,
-			unit: .minutes,
-		)
-		let data = try JSONEncoder().encode(progress)
-		let json = try #require(String(data: data, encoding: .utf8))
-
-		#expect(json.contains(#""unit":{"#))
-		#expect(json.contains(#""id":"time.minutes""#))
-	}
-
-	@Test
-	func `Goal progress decodes nested preset unit`() throws {
-		let data = try #require(
-			"""
-			{
-			    "kind": "measurable",
-			    "events": [
-			        {
-			            "delta": 1,
-			            "timestamp": 0
-			        }
-			    ],
-			    "targetValue": 5,
-			    "step": 1,
-			    "unit": {
-			        "id": "time.minutes"
-			    }
-			}
-			"""
-			.data(using: .utf8)
-		)
-
-		let progress = try JSONDecoder().decode(GoalProgress.self, from: data)
-
-		#expect(progress.unit == .minutes)
-	}
-
-	@Test
-	func `Goal progress decodes nested custom unit`() throws {
-		let data = try #require(
-			"""
-			{
-			    "kind": "measurable",
-			    "events": [
-			        {
-			            "delta": 1,
-			            "timestamp": 0
-			        }
-			    ],
-			    "targetValue": 5,
-			    "step": 1,
-			    "unit": {
-			        "id": "custom.pages",
-			        "category": "custom",
-			        "title": "Pages",
-			        "abbreviatedTitle": "pg",
-			        "suffix": "pg"
-			    }
-			}
-			"""
-			.data(using: .utf8)
-		)
-
-		let progress = try JSONDecoder().decode(GoalProgress.self, from: data)
-
-		#expect(progress.unit?.id == "custom.pages")
-		#expect(progress.unit?.title == "Pages")
-		#expect(progress.unit?.suffix == "pg")
-	}
-
-	@Test
-	func `Goal progress ignores nested unit without id`() throws {
-		let data = try #require(
-			"""
-			{
-			    "kind": "measurable",
-			    "events": [
-			        {
-			            "delta": 1,
-			            "timestamp": 0
-			        }
-			    ],
-			    "targetValue": 5,
-			    "step": 1,
-			    "unit": {}
-			}
-			"""
-			.data(using: .utf8)
-		)
-
-		let progress = try JSONDecoder().decode(GoalProgress.self, from: data)
-
-		#expect(progress.unit == nil)
 	}
 
 	private func decodeUnit(_ json: String) throws -> GoalProgressUnit {

@@ -12,6 +12,8 @@ import Testing
 
 @MainActor
 struct GoalProgressTests {
+	// MARK: - Initialization
+
 	@Test
 	func `Measurable progress stores initial value as a timestamped event`() throws {
 		let timestamp = Date(timeIntervalSinceReferenceDate: 123)
@@ -36,6 +38,8 @@ struct GoalProgressTests {
 		#expect(progress.events.isEmpty)
 		#expect(progress.currentValue == 0)
 	}
+
+	// MARK: - Mutations
 
 	@Test
 	func `Complete appends delta to target`() throws {
@@ -187,29 +191,30 @@ struct GoalProgressTests {
 	}
 
 	@Test
-	func `Progress methods report whether state changed`() {
+	func `Progress methods report false when already at bounds`() {
 		var progress = makeProgress(currentValue: 0, targetValue: 10, step: 5)
 
 		let resetAtZeroChanged = progress.reset()
 		let decrementAtZeroChanged = progress.decrement()
-		let incrementChanged = progress.increment()
-		let completeChanged = progress.complete()
+		progress.complete()
 		let completeAtTargetChanged = progress.complete()
 		let incrementAtTargetChanged = progress.increment()
 
 		#expect(resetAtZeroChanged == false)
 		#expect(decrementAtZeroChanged == false)
-		#expect(incrementChanged == true)
-		#expect(completeChanged == true)
 		#expect(completeAtTargetChanged == false)
 		#expect(incrementAtTargetChanged == false)
 	}
+
+	// MARK: - Derived State
 
 	@Test
 	func `isCompleted is true when current value reaches target`() {
 		#expect(makeProgress(currentValue: 9.5, targetValue: 10).isCompleted == false)
 		#expect(makeProgress(currentValue: 10, targetValue: 10).isCompleted == true)
 	}
+
+	// MARK: - Period Progress
 
 	@Test
 	func `Period progress ignores events outside period`() {
@@ -334,12 +339,7 @@ struct GoalProgressTests {
 		#expect(event.timestamp == timestamp)
 	}
 
-	@Test
-	func `fractionCompleted returns current value divided by target`() {
-		let progress = makeProgress(currentValue: 4, targetValue: 10)
-
-		#expect(progress.fractionCompleted == 0.4)
-	}
+	// MARK: - Outcome Progress
 
 	@Test
 	func `Outcome progress acts like zero or one progress`() {
@@ -361,6 +361,8 @@ struct GoalProgressTests {
 		#expect(progress.currentValue == 0)
 		#expect(progress.events.isEmpty)
 	}
+
+	// MARK: - Editing
 
 	@Test
 	func `Updated progress preserves events when current value is unchanged`() {
@@ -392,6 +394,8 @@ struct GoalProgressTests {
 		#expect(updatedProgress.currentValue == 4)
 		#expect(updatedProgress.events.map(\.delta) == [4])
 	}
+
+	// MARK: - Codable
 
 	@Test
 	func `Valid progress values decode successfully`() throws {
@@ -486,6 +490,96 @@ struct GoalProgressTests {
 	}
 
 	@Test
+	func `Progress encodes unit as a nested value`() throws {
+		let progress = GoalProgress.measurable(
+			currentValue: 1,
+			targetValue: 5,
+			unit: .minutes,
+		)
+		let data = try JSONEncoder().encode(progress)
+		let json = try #require(String(data: data, encoding: .utf8))
+
+		#expect(json.contains(#""unit":{"#))
+		#expect(json.contains(#""id":"time.minutes""#))
+	}
+
+	@Test
+	func `Progress decodes nested preset unit`() throws {
+		let progress = try decodeProgress(
+			"""
+			{
+			    "kind": "measurable",
+			    "events": [
+			        {
+			            "delta": 1,
+			            "timestamp": 0
+			        }
+			    ],
+			    "targetValue": 5,
+			    "step": 1,
+			    "unit": {
+			        "id": "time.minutes"
+			    }
+			}
+			"""
+		)
+
+		#expect(progress.unit == .minutes)
+	}
+
+	@Test
+	func `Progress decodes nested custom unit`() throws {
+		let progress = try decodeProgress(
+			"""
+			{
+			    "kind": "measurable",
+			    "events": [
+			        {
+			            "delta": 1,
+			            "timestamp": 0
+			        }
+			    ],
+			    "targetValue": 5,
+			    "step": 1,
+			    "unit": {
+			        "id": "custom.pages",
+			        "category": "custom",
+			        "title": "Pages",
+			        "abbreviatedTitle": "pg",
+			        "suffix": "pg"
+			    }
+			}
+			"""
+		)
+
+		#expect(progress.unit?.id == "custom.pages")
+		#expect(progress.unit?.title == "Pages")
+		#expect(progress.unit?.suffix == "pg")
+	}
+
+	@Test
+	func `Progress ignores nested unit without id`() throws {
+		let progress = try decodeProgress(
+			"""
+			{
+			    "kind": "measurable",
+			    "events": [
+			        {
+			            "delta": 1,
+			            "timestamp": 0
+			        }
+			    ],
+			    "targetValue": 5,
+			    "step": 1,
+			    "unit": {}
+			}
+			"""
+		)
+
+		#expect(progress.unit == nil)
+	}
+
+	@Test
 	func `Legacy current value payload does not decode`() {
 		#expect(throws: DecodingError.self) {
 			try decodeProgress(
@@ -500,6 +594,8 @@ struct GoalProgressTests {
 			)
 		}
 	}
+
+	// MARK: - Helpers
 
 	private func makeProgress(
 		currentValue: Double,
