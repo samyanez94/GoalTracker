@@ -350,6 +350,17 @@ struct GoalProgressTests {
 	}
 
 	@Test
+	func `Completed outcome progress uses supplied timestamp`() throws {
+		let timestamp = Date(timeIntervalSinceReferenceDate: 123)
+
+		let progress = GoalProgress.outcomeCompleted(timestamp: timestamp)
+		let event = try #require(progress.events.first)
+
+		#expect(progress.currentValue == 1)
+		#expect(event.timestamp == timestamp)
+	}
+
+	@Test
 	func `Outcome progress does not step incrementally`() {
 		var progress = GoalProgress.outcomePending
 

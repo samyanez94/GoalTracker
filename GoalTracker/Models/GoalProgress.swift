@@ -34,15 +34,9 @@ nonisolated struct GoalProgress: Codable {
 	)
 
 	/// A completed binary outcome goal represented by a single full-progress event.
-	static let outcomeCompleted = GoalProgress(
-		kind: .outcome,
-		events: [
-			GoalProgressEvent(delta: 1, timestamp: Date())
-		],
-		targetValue: 1,
-		step: 1,
-		unit: nil,
-	)
+	static var outcomeCompleted: GoalProgress {
+		outcomeCompleted(timestamp: Date())
+	}
 
 	/// The user's current progress toward the target value.
 	var currentValue: Double {
@@ -112,6 +106,18 @@ nonisolated struct GoalProgress: Codable {
 			targetValue: targetValue,
 			step: step,
 			unit: unit,
+		)
+	}
+
+	static func outcomeCompleted(timestamp: Date) -> GoalProgress {
+		GoalProgress(
+			kind: .outcome,
+			events: [
+				GoalProgressEvent(delta: 1, timestamp: timestamp)
+			],
+			targetValue: 1,
+			step: 1,
+			unit: nil,
 		)
 	}
 
