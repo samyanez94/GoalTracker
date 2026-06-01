@@ -56,11 +56,7 @@ struct GoalNotificationSchedulerTests {
 		#expect(didSchedule)
 		#expect(notificationCenter.requestedAuthorizationOptions == [.alert, .sound])
 		#expect(notificationCenter.addedRequests.count == 1)
-		#expect(
-			notificationCenter.removedIdentifiers == [
-				scheduler.reminderNotificationIdentifier(for: goal.id)
-			]
-		)
+		#expect(notificationCenter.removedIdentifiers.isEmpty)
 	}
 
 	@Test
@@ -136,6 +132,43 @@ struct GoalNotificationSchedulerTests {
 	}
 
 	@Test
+	func `Syncing reminder revalidates schedule after authorization`() async throws {
+		let notificationCenter = FakeNotificationCenter(status: .notDetermined)
+		let dates = [
+			date(year: 2026, month: 5, day: 20, hour: 8),
+			date(year: 2026, month: 5, day: 21, hour: 10)
+		]
+		var dateIndex = 0
+		let scheduler = makeScheduler(
+			notificationCenter: notificationCenter,
+			now: {
+				defer {
+					dateIndex = min(dateIndex + 1, dates.count - 1)
+				}
+				return dates[dateIndex]
+			},
+		)
+		let goal = makeGoal(
+			targetDate: date(year: 2026, month: 5, day: 21),
+			reminder: GoalReminder(),
+		)
+
+		let didSchedule = try await scheduler.syncReminder(
+			for: goal,
+			requestsAuthorization: true,
+		)
+
+		#expect(didSchedule == false)
+		#expect(notificationCenter.requestedAuthorizationOptions == [.alert, .sound])
+		#expect(notificationCenter.addedRequests.isEmpty)
+		#expect(
+			notificationCenter.removedIdentifiers == [
+				scheduler.reminderNotificationIdentifier(for: goal.id)
+			]
+		)
+	}
+
+	@Test
 	func `Scheduling target date without reminder skips notification request`() async throws {
 		let goalID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
 		let notificationCenter = FakeNotificationCenter()
@@ -173,9 +206,10 @@ struct GoalNotificationSchedulerTests {
 		let trigger = try #require(request.trigger as? UNCalendarNotificationTrigger)
 		#expect(didSchedule)
 		#expect(notificationCenter.addedRequests.count == 1)
+		#expect(notificationCenter.removedIdentifiers.isEmpty)
 		#expect(request.identifier == scheduler.reminderNotificationIdentifier(for: goalID))
 		#expect(request.content.title == "File taxes")
-		#expect(request.content.body == "Don't forget to complete by next month")
+		#expect(request.content.body == "Don't forget to complete today")
 		#expect(request.content.sound == .default)
 		#expect(trigger.dateComponents.year == 2026)
 		#expect(trigger.dateComponents.month == 5)
@@ -207,7 +241,7 @@ struct GoalNotificationSchedulerTests {
 	}
 
 	@Test
-	func `Scheduling reminder uses today as body for goals targeted for today`() async throws {
+	func `Scheduling one-time reminder uses complete today body`() async throws {
 		let notificationCenter = FakeNotificationCenter()
 		let scheduler = GoalNotificationScheduler(
 			notificationCenter: notificationCenter,
@@ -224,7 +258,7 @@ struct GoalNotificationSchedulerTests {
 		let request = try #require(notificationCenter.addedRequests.first)
 		#expect(didSchedule)
 		#expect(request.content.title == "File taxes")
-		#expect(request.content.body == "Don't forget to complete by today")
+		#expect(request.content.body == "Don't forget to complete today")
 	}
 
 	@Test
@@ -244,7 +278,7 @@ struct GoalNotificationSchedulerTests {
 		let request = try #require(notificationCenter.addedRequests.first)
 		let trigger = try #require(request.trigger as? UNCalendarNotificationTrigger)
 		#expect(didSchedule)
-		#expect(request.content.body == "Don't forget to complete by today")
+		#expect(request.content.body == "Don't forget to complete today")
 		#expect(trigger.repeats)
 		#expect(trigger.dateComponents.year == nil)
 		#expect(trigger.dateComponents.month == nil)
@@ -260,21 +294,21 @@ struct GoalNotificationSchedulerTests {
 				nil as Int?,
 				nil as Int?,
 				2 as Int?,
-				"Don't forget to complete by this week"
+				"Don't forget to complete this week"
 			),
 			(
 				GoalRecurrenceCadence.monthly,
 				nil as Int?,
 				1 as Int?,
 				nil as Int?,
-				"Don't forget to complete by this month"
+				"Don't forget to complete this month"
 			),
 			(
 				GoalRecurrenceCadence.yearly,
 				1 as Int?,
 				1 as Int?,
 				nil as Int?,
-				"Don't forget to complete by this year"
+				"Don't forget to complete this year"
 			)
 		]
 	)
@@ -402,6 +436,22 @@ struct GoalNotificationSchedulerTests {
 	}
 
 	@Test
+	func `Scheduling failure leaves existing pending reminder in place`() async throws {
+		let notificationCenter = FakeNotificationCenter(addError: TestNotificationError.failed)
+		let scheduler = makeScheduler(notificationCenter: notificationCenter)
+		let goal = makeGoal(
+			targetDate: date(year: 2026, month: 5, day: 21),
+			reminder: GoalReminder(),
+		)
+
+		await #expect(throws: TestNotificationError.self) {
+			try await scheduler.scheduleReminder(for: goal)
+		}
+
+		#expect(notificationCenter.removedIdentifiers.isEmpty)
+	}
+
+	@Test
 	func `Canceling reminders removes stable notification identifiers`() {
 		let firstID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
 		let secondID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
@@ -475,6 +525,8 @@ private final class FakeNotificationCenter: GoalNotificationCenterClient {
 
 	var requestAuthorizationResult: Bool
 
+	var addError: (any Error)?
+
 	var requestedAuthorizationOptions: UNAuthorizationOptions?
 
 	var addedRequests: [UNNotificationRequest] = []
@@ -484,9 +536,11 @@ private final class FakeNotificationCenter: GoalNotificationCenterClient {
 	init(
 		status: GoalNotificationAuthorizationStatus = .authorized,
 		requestAuthorizationResult: Bool = true,
+		addError: (any Error)? = nil,
 	) {
 		self.status = status
 		self.requestAuthorizationResult = requestAuthorizationResult
+		self.addError = addError
 	}
 
 	func authorizationStatus() async -> GoalNotificationAuthorizationStatus {
@@ -499,10 +553,17 @@ private final class FakeNotificationCenter: GoalNotificationCenterClient {
 	}
 
 	func add(_ request: UNNotificationRequest) async throws {
+		if let addError {
+			throw addError
+		}
 		addedRequests.append(request)
 	}
 
 	func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {
 		removedIdentifiers.append(contentsOf: identifiers)
 	}
+}
+
+private enum TestNotificationError: Error {
+	case failed
 }
