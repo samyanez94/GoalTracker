@@ -100,6 +100,55 @@ struct GoalTests {
 		)
 	}
 
+	// MARK: - Target Date
+
+	@Test
+	func `Goal is past target date when incomplete target date is before current day`() {
+		let goal = makeGoal(
+			targetDate: ModelTestSupport.date(year: 2026, month: 5, day: 27),
+		)
+
+		#expect(
+			goal.isPastTargetDate(
+				at: ModelTestSupport.date(year: 2026, month: 5, day: 28),
+				calendar: ModelTestSupport.calendar,
+			)
+		)
+	}
+
+	@Test
+	func `Goal is not past target date when target date is current day`() {
+		let goal = makeGoal(
+			targetDate: ModelTestSupport.date(year: 2026, month: 5, day: 28),
+		)
+
+		#expect(
+			!goal.isPastTargetDate(
+				at: ModelTestSupport.date(year: 2026, month: 5, day: 28, hour: 12),
+				calendar: ModelTestSupport.calendar,
+			)
+		)
+	}
+
+	@Test
+	func `Completed goal is not past target date`() {
+		let goal = makeGoal(
+			targetDate: ModelTestSupport.date(year: 2026, month: 5, day: 27),
+			progress: .outcome(
+				OutcomeProgress.completed(
+					timestamp: ModelTestSupport.date(year: 2026, month: 5, day: 28),
+				)
+			),
+		)
+
+		#expect(
+			!goal.isPastTargetDate(
+				at: ModelTestSupport.date(year: 2026, month: 5, day: 28),
+				calendar: ModelTestSupport.calendar,
+			)
+		)
+	}
+
 	// MARK: - Streaks
 
 	@Test
@@ -385,12 +434,14 @@ struct GoalTests {
 	// MARK: - Helpers
 
 	private func makeGoal(
+		targetDate: Date? = nil,
 		progress: GoalProgress = .outcome(OutcomeProgress()),
 		recurrence: GoalRecurrence? = nil,
 	) -> Goal {
 		Goal(
 			name: "Test Goal",
 			details: nil,
+			targetDate: targetDate,
 			createdAt: Date(timeIntervalSinceReferenceDate: 0),
 			progress: progress,
 			recurrence: recurrence,

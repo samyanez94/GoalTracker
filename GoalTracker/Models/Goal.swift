@@ -69,6 +69,18 @@ extension GoalTrackerSchemaV1 {
 			return progress.currentValue(in: period)
 		}
 
+		func isPastTargetDate(
+			at date: Date = Date(),
+			calendar: Calendar = .current,
+		) -> Bool {
+			guard let targetDate,
+				!isCompleted(at: date, calendar: calendar)
+			else {
+				return false
+			}
+			return calendar.startOfDay(for: targetDate) < calendar.startOfDay(for: date)
+		}
+
 		func currentStreak(
 			at date: Date = Date(),
 			calendar: Calendar = .current,

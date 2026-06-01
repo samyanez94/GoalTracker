@@ -11,6 +11,9 @@ struct GoalListBottomToolbar: ToolbarContent {
 	let isSelectingGoals: Bool
 	let selectedGoalCount: Int
 	let onAddGoal: () -> Void
+
+	@Binding var isPresentingDeleteConfirmation: Bool
+
 	let deleteSelectedGoals: () -> Void
 
 	var body: some ToolbarContent {
@@ -20,9 +23,16 @@ struct GoalListBottomToolbar: ToolbarContent {
 					selectedGoalCount == 1 ? "Delete Goal" : "Delete Goals",
 					systemImage: "trash",
 					role: .destructive,
-					action: deleteSelectedGoals,
+					action: {
+						isPresentingDeleteConfirmation = true
+					},
 				)
 				.disabled(selectedGoalCount == 0)
+				.goalDeleteConfirmationDialog(
+					isPresented: $isPresentingDeleteConfirmation,
+					goalCount: selectedGoalCount,
+					onDelete: deleteSelectedGoals,
+				)
 			}
 		} else {
 			DefaultToolbarItem(kind: .search, placement: .bottomBar)
@@ -33,4 +43,5 @@ struct GoalListBottomToolbar: ToolbarContent {
 			}
 		}
 	}
+
 }

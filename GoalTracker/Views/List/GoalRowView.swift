@@ -8,6 +8,8 @@ struct GoalRowView: View {
 
 	@State private var isPresentingEditForm = false
 
+	@State private var isPresentingDeleteConfirmation = false
+
 	@State private var saveFailure: GoalSaveFailure?
 
 	let goal: Goal
@@ -27,7 +29,7 @@ struct GoalRowView: View {
 					if let targetDate = goal.targetDate {
 						Text(GoalTargetDateFormatter.string(from: targetDate))
 							.font(.subheadline)
-							.foregroundStyle(isPastTargetDate(targetDate) ? .red : .secondary)
+							.foregroundStyle(goal.isPastTargetDate() ? .red : .secondary)
 					}
 					if let recurrence = goal.recurrence {
 						Text(recurrence.rowTitle)
@@ -45,7 +47,9 @@ struct GoalRowView: View {
 					isPresentingEditForm = true
 				},
 				toggleCompletion: toggleCompletion,
-				delete: deleteGoal,
+				delete: {
+					isPresentingDeleteConfirmation = true
+				},
 			)
 		}
 		.sheet(isPresented: $isPresentingEditForm) {
@@ -64,6 +68,11 @@ struct GoalRowView: View {
 				Label("Delete", systemImage: "trash")
 			}
 		}
+		.goalDeleteConfirmationDialog(
+			isPresented: $isPresentingDeleteConfirmation,
+			goalCount: 1,
+			onDelete: deleteGoal,
+		)
 		.goalSaveFailureAlert(failure: $saveFailure)
 	}
 
@@ -95,13 +104,6 @@ struct GoalRowView: View {
 		}
 	}
 
-	private func isPastTargetDate(_ targetDate: Date) -> Bool {
-		guard !goal.isCompleted() else {
-			return false
-		}
-		let calendar = Calendar.current
-		return calendar.startOfDay(for: targetDate) < calendar.startOfDay(for: Date())
-	}
 }
 
 #Preview {

@@ -30,7 +30,7 @@ struct GoalDetailHeaderSection: View {
 				let text = targetDateText(for: targetDate)
 				Text(text)
 					.font(.body.bold())
-					.foregroundStyle(isPastTargetDate(targetDate) ? .red : .secondary)
+					.foregroundStyle(goal.isPastTargetDate() ? .red : .secondary)
 			}
 			if !goal.tags.isEmpty {
 				TagFlowLayout {
@@ -59,7 +59,4 @@ struct GoalDetailHeaderSection: View {
 		return "Complete by \(targetDate.formatted(date: .long, time: .omitted))"
 	}
 
-	private func isPastTargetDate(_ targetDate: Date) -> Bool {
-		Calendar.current.startOfDay(for: targetDate) < Calendar.current.startOfDay(for: Date())
-	}
 }

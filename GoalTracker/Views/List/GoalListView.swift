@@ -19,6 +19,8 @@ struct GoalListView: View {
 
 	@State private var isPresentingGoalFormView = false
 
+	@State private var isPresentingDeleteConfirmation = false
+
 	@State private var saveFailure: GoalSaveFailure?
 
 	@State private var searchText = ""
@@ -81,7 +83,8 @@ struct GoalListView: View {
 					onAddGoal: {
 						isPresentingGoalFormView = true
 					},
-                    deleteSelectedGoals: deleteSelectedGoals
+					isPresentingDeleteConfirmation: $isPresentingDeleteConfirmation,
+					deleteSelectedGoals: deleteSelectedGoals
 				)
 				GoalListTopToolbar(
 					sortMode: $sortMode,
@@ -92,7 +95,7 @@ struct GoalListView: View {
 					selectGoals: {
 						editMode = .active
 					},
-                    finishSelectingGoals: finishSelectingGoals
+					finishSelectingGoals: finishSelectingGoals
 				)
 			}
 			.sheet(isPresented: $isPresentingGoalFormView) {

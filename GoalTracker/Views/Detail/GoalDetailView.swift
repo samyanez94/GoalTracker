@@ -17,6 +17,8 @@ struct GoalDetailView: View {
 
 	@State private var isPresentingEditForm = false
 
+	@State private var isPresentingDeleteConfirmation = false
+
 	@State private var isPresentingProgressUpdateSheet = false
 
 	@State private var saveFailure: GoalSaveFailure?
@@ -50,9 +52,15 @@ struct GoalDetailView: View {
 						},
 						toggleCompletion: toggleCompletion,
 						delete: {
-							deleteGoal(goal)
+							isPresentingDeleteConfirmation = true
 						},
 					)
+				}
+				.goalDeleteConfirmationDialog(
+					isPresented: $isPresentingDeleteConfirmation,
+					goalCount: 1,
+				) {
+					deleteGoal(goal)
 				}
 			}
 		}
