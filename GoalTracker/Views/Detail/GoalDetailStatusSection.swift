@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// MARK: - GoalDetailStatusSection
+
 struct GoalDetailStatusSection: View {
 	let goal: Goal
 
@@ -17,8 +19,8 @@ struct GoalDetailStatusSection: View {
 				.foregroundStyle(.secondary)
 			HStack {
 				Image(systemName: goal.status().iconSystemName)
-                    .imageScale(.large)
-                    .foregroundStyle(goal.isCompleted() ? AnyShapeStyle(.accent) : AnyShapeStyle(.tertiary))
+					.imageScale(.large)
+					.foregroundStyle(goal.isCompleted() ? AnyShapeStyle(.accent) : AnyShapeStyle(.tertiary))
 					.contentTransition(.symbolEffect(.replace))
 				Text("Status")
 				Spacer(minLength: 8)
@@ -35,6 +37,8 @@ struct GoalDetailStatusSection: View {
 		}
 	}
 }
+
+// MARK: - Previews
 
 #Preview("Pending") {
 	GoalDetailStatusSection(

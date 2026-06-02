@@ -8,10 +8,12 @@
 import Foundation
 import SwiftData
 
+// MARK: - GoalTrackerSchemaV1.Goal
+
 extension GoalTrackerSchemaV1 {
-    /// A model representing a goal the user is working toward.
-    ///
-    /// A goal combines user-editable details, scheduling metadata, tags, and progress state. For recurring goals, completion and progress are evaluated within the relevant recurrence period; otherwise, they are evaluated against the goal's overall progress history.
+	/// A model representing a goal the user is working toward.
+	///
+	/// A goal combines user-editable details, scheduling metadata, tags, and progress state. For recurring goals, completion and progress are evaluated within the relevant recurrence period; otherwise, they are evaluated against the goal's overall progress history.
 	@Model
 	final class Goal {
 		/// A stable app-level identifier for navigation and lookups.
@@ -33,7 +35,7 @@ extension GoalTrackerSchemaV1 {
 		/// Reusable tags associated with this goal.
 		var tags: [Tag] = []
 
-        /// Whether the goal is recurring.
+		/// Whether the goal is recurring.
 		var isRecurring: Bool { recurrence != nil }
 
 		func status(
@@ -48,16 +50,16 @@ extension GoalTrackerSchemaV1 {
 			}
 			return .pending
 		}
-        
-        func isCompleted(
-            at date: Date = Date(),
-            calendar: Calendar = .current,
-        ) -> Bool {
-            guard let period = recurrence?.period(containing: date, calendar: calendar) else {
-                return progress.isCompleted
-            }
-            return progress.isCompleted(in: period)
-        }
+
+		func isCompleted(
+			at date: Date = Date(),
+			calendar: Calendar = .current,
+		) -> Bool {
+			guard let period = recurrence?.period(containing: date, calendar: calendar) else {
+				return progress.isCompleted
+			}
+			return progress.isCompleted(in: period)
+		}
 
 		func currentProgressValue(
 			at date: Date = Date(),
@@ -91,12 +93,12 @@ extension GoalTrackerSchemaV1 {
 			var streak = 0
 			var period = recurrence.period(containing: date, calendar: calendar)
 			if let currentPeriod = period,
-                !progress.isCompleted(in: currentPeriod) {
-                period = recurrence.period(before: currentPeriod, calendar: calendar)
+				!progress.isCompleted(in: currentPeriod) {
+				period = recurrence.period(before: currentPeriod, calendar: calendar)
 			}
 			while let currentPeriod = period,
 				progress.isCompleted(in: currentPeriod) {
-                streak += 1
+				streak += 1
 				period = recurrence.period(before: currentPeriod, calendar: calendar)
 			}
 			return streak
@@ -199,5 +201,7 @@ extension GoalTrackerSchemaV1 {
 		}
 	}
 }
+
+// MARK: - Goal
 
 typealias Goal = GoalTrackerSchemaV1.Goal

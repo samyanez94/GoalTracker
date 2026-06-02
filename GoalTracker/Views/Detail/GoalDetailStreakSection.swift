@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// MARK: - GoalDetailStreakSection
+
 struct GoalDetailStreakSection: View {
 	let goal: Goal
 
@@ -18,7 +20,7 @@ struct GoalDetailStreakSection: View {
 					.foregroundStyle(.secondary)
 				HStack {
 					Image(systemName: streakDetails.iconSystemName)
-                        .imageScale(.large)
+						.imageScale(.large)
 						.foregroundStyle(streakDetails.iconForegroundStyle)
 						.contentTransition(.symbolEffect(.replace))
 					Text("Current Streak")
@@ -56,6 +58,8 @@ struct GoalDetailStreakSection: View {
 		var iconForegroundStyle: AnyShapeStyle
 	}
 }
+
+// MARK: - Previews
 
 #Preview("Recurring") {
 	GoalDetailStreakSection(

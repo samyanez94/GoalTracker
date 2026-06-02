@@ -8,6 +8,8 @@
 import SwiftData
 import SwiftUI
 
+// MARK: - GoalDetailBottomView
+
 struct GoalDetailBottomView: View {
 
 	let goal: Goal

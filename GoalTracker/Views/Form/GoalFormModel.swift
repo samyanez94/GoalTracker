@@ -8,6 +8,8 @@
 import Foundation
 import Observation
 
+// MARK: - GoalFormModel
+
 /// Keeps track of the editable state for the form.
 ///
 /// The view binds to this model while the model handles validation, save data, and dirty-state checks.
@@ -174,6 +176,8 @@ final class GoalFormModel {
 		return .outcome(OutcomeProgress())
 	}
 }
+
+// MARK: - GoalFormSnapshot
 
 /// A normalized representation of the form's save data.
 ///

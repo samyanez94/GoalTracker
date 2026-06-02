@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// MARK: - GoalDetailProgressSection
+
 struct GoalDetailProgressSection: View {
 	let goal: Goal
 
@@ -126,6 +128,8 @@ struct GoalDetailProgressSection: View {
 		}
 	}
 }
+
+// MARK: - Previews
 
 #Preview("In Progress") {
 	GoalDetailProgressSection(

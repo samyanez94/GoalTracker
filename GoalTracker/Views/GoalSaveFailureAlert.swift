@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// MARK: - GoalSaveFailure
+
 enum GoalSaveFailure: String, Identifiable {
 	case addGoal
 	case updateGoal
@@ -45,6 +47,8 @@ enum GoalSaveFailure: String, Identifiable {
 	}
 }
 
+// MARK: - GoalSaveFailureAlertModifier
+
 struct GoalSaveFailureAlertModifier: ViewModifier {
 	@Binding var failure: GoalSaveFailure?
 
@@ -58,6 +62,8 @@ struct GoalSaveFailureAlertModifier: ViewModifier {
 		}
 	}
 }
+
+// MARK: - View+GoalSaveFailureAlert
 
 extension View {
 	func goalSaveFailureAlert(

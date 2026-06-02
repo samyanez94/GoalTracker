@@ -8,6 +8,8 @@
 import SwiftData
 import SwiftUI
 
+// MARK: - TagSelectionView
+
 struct TagSelectionView: View {
 
 	@Environment(\.modelContext) private var modelContext
@@ -186,6 +188,8 @@ struct TagSelectionView: View {
 		newTagFieldIsFocused = true
 	}
 }
+
+// MARK: - Previews
 
 #Preview {
 	NavigationStack {

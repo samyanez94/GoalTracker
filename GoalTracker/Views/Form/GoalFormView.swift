@@ -8,8 +8,14 @@
 import SwiftData
 import SwiftUI
 
+// MARK: - GoalFormMode
+
+/// Describes whether the goal form should create a new goal or edit existing form data.
 enum GoalFormMode {
+	/// Creates an empty form for a new goal.
 	case create
+
+	/// Create a form with pre-filled values for editing.
 	case edit(GoalFormData)
 
 	var title: String {
@@ -31,10 +37,14 @@ enum GoalFormMode {
 	}
 }
 
+// MARK: - GoalFormDestination
+
 private enum GoalFormDestination: Hashable {
 	case tags
 	case progressUnit
 }
+
+// MARK: - GoalFormView
 
 struct GoalFormView: View {
 	@Environment(\.dismiss) private var dismiss
@@ -277,6 +287,8 @@ struct GoalFormView: View {
 		}
 	}
 }
+
+// MARK: - Previews
 
 #Preview("Create") {
 	NavigationStack {

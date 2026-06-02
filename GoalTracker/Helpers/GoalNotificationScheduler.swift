@@ -8,7 +8,7 @@
 import Foundation
 import UserNotifications
 
-// MARK: - GoalNotificationScheduler
+// MARK: - GoalNotificationCenterClient
 
 /// The small notification-center surface GoalTracker needs for reminder scheduling.
 ///
@@ -28,12 +28,16 @@ protocol GoalNotificationCenterClient {
 	func removePendingNotificationRequests(withIdentifiers identifiers: [String])
 }
 
+// MARK: - GoalNotificationAuthorizationStatus
+
 /// GoalTracker's simplified notification authorization states.
 enum GoalNotificationAuthorizationStatus {
 	case notDetermined
 	case denied
 	case authorized
 }
+
+// MARK: - GoalReminderScheduling
 
 /// The reminder scheduling behavior `GoalManager` needs when goal state changes.
 @MainActor
@@ -51,6 +55,8 @@ protocol GoalReminderScheduling {
 	func cancelReminders(for goalIds: [UUID])
 }
 
+// MARK: - UNUserNotificationCenter+GoalNotificationCenterClient
+
 extension UNUserNotificationCenter: GoalNotificationCenterClient {
 	func authorizationStatus() async -> GoalNotificationAuthorizationStatus {
 		switch await notificationSettings().authorizationStatus {
@@ -65,6 +71,8 @@ extension UNUserNotificationCenter: GoalNotificationCenterClient {
 		}
 	}
 }
+
+// MARK: - GoalNotificationScheduler
 
 /// Schedules and cancels local notification reminders for goals.
 ///
@@ -240,19 +248,19 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 
 /// Immutable goal reminder state safe to pass across asynchronous scheduling work.
 struct GoalReminderSyncState {
-    let goalId: UUID
-    let goalName: String
-    let targetDate: Date?
-    let reminder: GoalReminder?
-    let progress: GoalProgress
-    let recurrence: GoalRecurrence?
+	let goalId: UUID
+	let goalName: String
+	let targetDate: Date?
+	let reminder: GoalReminder?
+	let progress: GoalProgress
+	let recurrence: GoalRecurrence?
 
-    init(goal: Goal) {
-        goalId = goal.id
-        goalName = goal.name
-        targetDate = goal.targetDate
-        reminder = goal.reminder
-        progress = goal.progress
-        recurrence = goal.recurrence
-    }
+	init(goal: Goal) {
+		goalId = goal.id
+		goalName = goal.name
+		targetDate = goal.targetDate
+		reminder = goal.reminder
+		progress = goal.progress
+		recurrence = goal.recurrence
+	}
 }

@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// MARK: - TagFlowLayout
+
 /// A lightweight wrapping layout for tag chips that fills each row before continuing on the next line.
 struct TagFlowLayout: Layout {
 	var spacing: CGFloat = 8

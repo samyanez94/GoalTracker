@@ -15,10 +15,10 @@ nonisolated struct MeasurableProgress: Codable, Equatable {
 	let targetValue: Double
 	/// The amount used when stepping progress up or down.
 	let step: Double
-    
+
 	/// The optional unit used when displaying progress values.
 	var unit: GoalProgressUnit? { unitStorage.resolvedUnit() }
-    
+
 	private let unitStorage: GoalProgressUnitStorage
 
 	/// The user's current progress toward the target value.

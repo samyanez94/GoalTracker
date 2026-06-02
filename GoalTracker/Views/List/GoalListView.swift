@@ -49,7 +49,8 @@ struct GoalListView: View {
 				if goals.isEmpty {
 					emptyStateView("No goals")
 				} else if isSearching,
-                          visibleSearchResultsAreEmpty {
+					visibleSearchResultsAreEmpty
+				{
 					emptyStateView("No matching goals")
 				} else if pendingGoalsAreHiddenByCompletedFilter {
 					emptyStateView("No pending goals")

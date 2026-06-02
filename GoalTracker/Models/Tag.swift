@@ -8,6 +8,8 @@
 import Foundation
 import SwiftData
 
+// MARK: - GoalTrackerSchemaV1.Tag
+
 extension GoalTrackerSchemaV1 {
 	/// A reusable label that can be associated with one or more goals.
 	@Model
@@ -58,5 +60,7 @@ extension GoalTrackerSchemaV1 {
 		}
 	}
 }
+
+// MARK: - Tag
 
 typealias Tag = GoalTrackerSchemaV1.Tag

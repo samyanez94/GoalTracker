@@ -1,6 +1,8 @@
 import SwiftData
 import SwiftUI
 
+// MARK: - GoalRowView
+
 struct GoalRowView: View {
 	@Environment(\.editMode) private var editMode
 
@@ -106,6 +108,8 @@ struct GoalRowView: View {
 	}
 
 }
+
+// MARK: - Previews
 
 #Preview {
 	let goals = [

@@ -7,6 +7,8 @@
 
 import SwiftData
 
+// MARK: - GoalTrackerSchemaV1
+
 /// The first persisted SwiftData schema for GoalTracker.
 ///
 /// Add future schema versions instead of editing this baseline after the app has user data that must be migrated.
@@ -20,6 +22,8 @@ enum GoalTrackerSchemaV1: VersionedSchema {
 		]
 	}
 }
+
+// MARK: - GoalTrackerMigrationPlan
 
 /// Describes how GoalTracker's SwiftData schema evolves over time.
 ///
@@ -35,6 +39,8 @@ enum GoalTrackerMigrationPlan: SchemaMigrationPlan {
 		[]
 	}
 }
+
+// MARK: - GoalTrackerModelContainer
 
 /// Creates SwiftData containers using the app's versioned schema.
 enum GoalTrackerModelContainer {

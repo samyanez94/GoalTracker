@@ -120,6 +120,8 @@ struct GoalDetailCircularProgressView: View {
 	}
 }
 
+// MARK: - Previews
+
 #Preview("Goal Progress Ring") {
 	HStack(spacing: 24) {
 		GoalDetailCircularProgressView(progress: 0)

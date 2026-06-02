@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// MARK: - GoalDeleteConfirmationDialog
+
 struct GoalDeleteConfirmationDialog: ViewModifier {
 	@Binding var isPresented: Bool
 
@@ -33,6 +35,8 @@ struct GoalDeleteConfirmationDialog: ViewModifier {
 		goalCount == 1 ? "Delete Goal" : "Delete Goals"
 	}
 }
+
+// MARK: - View+GoalDeleteConfirmationDialog
 
 extension View {
 	func goalDeleteConfirmationDialog(

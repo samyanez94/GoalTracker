@@ -7,9 +7,13 @@
 
 import SwiftUI
 
+// MARK: - ProgressUnitSelectionDestination
+
 private enum ProgressUnitSelectionDestination: Hashable {
 	case customUnit
 }
+
+// MARK: - ProgressUnitSelectionView
 
 struct ProgressUnitSelectionView: View {
 	@Environment(\.dismiss) private var dismiss

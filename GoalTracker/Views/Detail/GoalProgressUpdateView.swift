@@ -8,6 +8,8 @@
 import SwiftData
 import SwiftUI
 
+// MARK: - GoalProgressUpdateView
+
 struct GoalProgressUpdateView: View {
 	@Environment(\.dismiss) private var dismiss
 
@@ -117,6 +119,8 @@ struct GoalProgressUpdateView: View {
 		}
 	}
 }
+
+// MARK: - Previews
 
 #Preview("Update Progress") {
 	NavigationStack {

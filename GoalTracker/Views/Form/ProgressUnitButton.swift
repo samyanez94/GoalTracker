@@ -23,7 +23,7 @@ struct ProgressUnitButton: View {
 				Spacer()
 				if selectedUnit == unit {
 					Image(systemName: "checkmark")
-                        .foregroundStyle(Color.accentColor)
+						.foregroundStyle(Color.accentColor)
 				}
 			}
 		}

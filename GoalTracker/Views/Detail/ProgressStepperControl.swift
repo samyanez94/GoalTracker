@@ -32,6 +32,8 @@ struct ProgressStepperControl: View {
 		}
 	}
 
+	// MARK: - StepperButton
+
 	struct StepperButton: View {
 		let systemName: String
 		let accessibilityLabel: String

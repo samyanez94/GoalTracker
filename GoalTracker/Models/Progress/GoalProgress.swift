@@ -13,10 +13,10 @@ import Foundation
 ///
 /// Each case owns only the state that applies to that goal type. Outcome goals are binary, while measurable goals advance toward a numeric target.
 nonisolated enum GoalProgress: Codable, Equatable {
-    
+
 	/// Binary progress for goals that are either incomplete or complete.
 	case outcome(OutcomeProgress = OutcomeProgress())
-    
+
 	/// Numeric progress for goals that advance toward a measurable target.
 	case measurable(MeasurableProgress)
 

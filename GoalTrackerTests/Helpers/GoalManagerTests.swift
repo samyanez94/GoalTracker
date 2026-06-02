@@ -56,11 +56,11 @@ struct GoalManagerTests {
 		let today = date(year: 2026, month: 5, day: 28, hour: 12)
 		let goal = makeGoal(
 			progress: .measurable(
-					MeasurableProgress(
-						events: [
-							GoalProgressEvent(delta: 10, timestamp: yesterday)
-						],
-						targetValue: 10,
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(delta: 10, timestamp: yesterday)
+					],
+					targetValue: 10,
 					step: 5,
 				)
 			),

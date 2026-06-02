@@ -84,8 +84,7 @@ struct GoalNotificationSchedulerTests {
 	}
 
 	@Test
-	func `Syncing target date without reminder cancels without requesting authorization`() async throws
-	{
+	func `Syncing target date without reminder cancels without requesting authorization`() async throws {
 		let notificationCenter = FakeNotificationCenter(status: .notDetermined)
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 		let goal = makeGoal(
@@ -399,6 +398,8 @@ private final class FakeNotificationCenter: GoalNotificationCenterClient {
 		removedIdentifiers.append(contentsOf: identifiers)
 	}
 }
+
+// MARK: - TestNotificationError
 
 private enum TestNotificationError: Error {
 	case failed
