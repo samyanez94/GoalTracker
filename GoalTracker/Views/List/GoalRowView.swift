@@ -22,6 +22,7 @@ struct GoalRowView: View {
 						.imageScale(.large)
 						.foregroundStyle(statusImageStyle)
 						.contentTransition(.symbolEffect(.replace))
+						.accessibilityLabel(goal.status().displayString)
 				}
 				VStack(alignment: .leading, spacing: 2) {
 					Text(goal.name)
@@ -81,14 +82,14 @@ struct GoalRowView: View {
 	}
 
 	private var statusImageStyle: AnyShapeStyle {
-        goal.isCompleted() ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.tertiary)
+		goal.isCompleted() ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.tertiary)
 	}
 
 	private func toggleCompletion() {
 		do {
-            _ = try withAnimation {
-                try goalManager.toggleCompletion(goal)
-            }
+			_ = try withAnimation {
+				try goalManager.toggleCompletion(goal)
+			}
 		} catch {
 			saveFailure = .updateProgress
 		}
@@ -96,9 +97,9 @@ struct GoalRowView: View {
 
 	private func deleteGoal() {
 		do {
-            _ = try withAnimation {
-                try goalManager.deleteGoal(goal)
-            }
+			_ = try withAnimation {
+				try goalManager.deleteGoal(goal)
+			}
 		} catch {
 			saveFailure = .deleteGoal
 		}

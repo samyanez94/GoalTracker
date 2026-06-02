@@ -51,6 +51,8 @@ struct GoalListView: View {
 				} else if isSearching,
                           visibleSearchResultsAreEmpty {
 					emptyStateView("No matching goals")
+				} else if pendingGoalsAreHiddenByCompletedFilter {
+					emptyStateView("No pending goals")
 				} else {
 					List(selection: $selectedGoalIds) {
 						if isShowingCompletedGoals {
@@ -156,6 +158,10 @@ struct GoalListView: View {
 		pendingGoals.isEmpty && (!isShowingCompletedGoals || completedGoals.isEmpty)
 	}
 
+	private var pendingGoalsAreHiddenByCompletedFilter: Bool {
+		!isShowingCompletedGoals && pendingGoals.isEmpty
+	}
+
 	private var pendingGoals: [Goal] {
 		sorter.sorted(
 			searchedGoals.filter { !$0.isCompleted() },
@@ -166,7 +172,7 @@ struct GoalListView: View {
 
 	private var completedGoals: [Goal] {
 		sorter.sorted(
-            searchedGoals.filter { $0.isCompleted() },
+			searchedGoals.filter { $0.isCompleted() },
 			by: sortMode,
 			direction: sortDirection,
 		)
