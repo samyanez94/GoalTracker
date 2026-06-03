@@ -5,7 +5,6 @@
 //  Created by Samuel Yanez on 5/3/26.
 //
 
-import SwiftData
 import SwiftUI
 
 // MARK: - GoalFormMode
@@ -48,8 +47,6 @@ private enum GoalFormDestination: Hashable {
 
 struct GoalFormView: View {
 	@Environment(\.dismiss) private var dismiss
-
-	@Environment(\.modelContext) private var modelContext
 
 	@State private var formState: GoalFormState
 
@@ -209,12 +206,20 @@ struct GoalFormView: View {
 		.navigationBarTitleDisplayMode(.inline)
 		.toolbar {
 			ToolbarItem(placement: .cancellationAction) {
-				Button("Cancel", systemImage: "xmark", action: cancel)
-					.confirmationDialog("Dismiss confirmation", isPresented: $isShowingConfirmation) {
-						Button("Discard Changes", role: .destructive, action: deleteUnusedTagsAndDismiss)
-					} message: {
-						Text(discardConfirmationMessage)
+				Button("Cancel", systemImage: "xmark") {
+					if formState.hasChanges {
+						isShowingConfirmation = true
+					} else {
+						dismiss()
 					}
+				}
+				.confirmationDialog("Dismiss confirmation", isPresented: $isShowingConfirmation) {
+					Button("Discard Changes", role: .destructive) {
+						dismiss()
+					}
+				} message: {
+					Text(discardConfirmationMessage)
+				}
 			}
 			ToolbarItem(placement: .confirmationAction) {
 				Button("Save", systemImage: "checkmark", action: save)
@@ -225,7 +230,7 @@ struct GoalFormView: View {
 				Button("Done", systemImage: "keyboard.chevron.compact.down") {
 					isTextInputFocused = false
 				}
-                Spacer()
+				Spacer()
 			}
 		}
 		.onChange(of: formState.hasTargetDate) { _, hasTargetDate in
@@ -249,20 +254,6 @@ struct GoalFormView: View {
 		.goalSaveFailureAlert(failure: $saveFailure)
 	}
 
-	private func cancel() {
-		if formState.hasChanges {
-			isShowingConfirmation = true
-		} else {
-			deleteUnusedTagsAndDismiss()
-		}
-	}
-
-	/// Removes draft-only tags created while editing this form, then dismisses the form.
-	private func deleteUnusedTagsAndDismiss() {
-		try? GoalManager(modelContext: modelContext).deleteUnusedTags()
-		dismiss()
-	}
-
 	private func save() {
 		guard !formState.isSaveDisabled else {
 			return
@@ -275,7 +266,7 @@ struct GoalFormView: View {
 		}
 	}
 
-	private func tagSelectionSummary(for tags: [Tag]) -> String {
+	private func tagSelectionSummary(for tags: [GoalFormTagSelection]) -> String {
 		"\(tags.count) Selected"
 	}
 

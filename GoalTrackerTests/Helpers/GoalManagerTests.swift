@@ -488,21 +488,6 @@ struct GoalManagerTests {
 	}
 
 	@Test
-	func `Deleting unused tags keeps protected form selections`() throws {
-		let container = try makeContainer()
-		let protectedTag = Tag(name: "Selected")
-		let unusedTag = Tag(name: "Unused")
-		container.mainContext.insert(protectedTag)
-		container.mainContext.insert(unusedTag)
-		try container.mainContext.save()
-		let manager = makeManager(in: container)
-
-		try manager.deleteUnusedTags(excluding: [protectedTag])
-
-		#expect(try fetchTags(in: container).map(\.name) == ["Selected"])
-	}
-
-	@Test
 	func `Deleting multiple goals removes them from the model context`() async throws {
 		let container = try makeContainer()
 		let firstGoal = makeGoal(
@@ -657,6 +642,171 @@ struct GoalManagerTests {
 		)
 		#expect(goal.reminder == reminder)
 		#expect(goal.targetDate == targetDate)
+	}
+
+	@Test
+	func `Adding a goal with draft form tags creates tags on save`() async throws {
+		let container = try makeContainer()
+		let manager = makeManager(in: container)
+
+		try manager.addGoal(
+			with: GoalFormData(
+				name: "Run",
+				details: "",
+				progress: .outcome(OutcomeProgress()),
+				tags: [
+					GoalFormTagSelection(name: "Health"),
+					GoalFormTagSelection(name: "Running"),
+				],
+			),
+		)
+
+		let goal = try #require(
+			fetchGoals(in: container).first { goal in
+				goal.name == "Run"
+			}
+		)
+		#expect(Set(goal.tags.map(\.name)) == ["Health", "Running"])
+		#expect(Set(try fetchTags(in: container).map(\.name)) == ["Health", "Running"])
+	}
+
+	@Test
+	func `Adding a goal with draft form tags reuses matching persisted tag`() async throws {
+		let container = try makeContainer()
+		let existingTag = Tag(name: "Health")
+		container.mainContext.insert(existingTag)
+		try container.mainContext.save()
+		let manager = makeManager(in: container)
+
+		try manager.addGoal(
+			with: GoalFormData(
+				name: "Run",
+				details: "",
+				progress: .outcome(OutcomeProgress()),
+				tags: [
+					GoalFormTagSelection(name: "health"),
+				],
+			),
+		)
+
+		let tags = try fetchTags(in: container)
+		let goal = try #require(
+			fetchGoals(in: container).first { goal in
+				goal.name == "Run"
+			}
+		)
+		#expect(tags.map(\.id) == [existingTag.id])
+		#expect(goal.tags.map(\.id) == [existingTag.id])
+	}
+
+	@Test
+	func `Adding a goal with draft form tags rolls back draft tags on save failure`() async throws {
+		let container = try makeContainer()
+		let manager = GoalManager(
+			modelContext: container.mainContext,
+			saveContext: {
+				throw TestSaveError.failed
+			},
+		)
+
+		#expect(throws: GoalManager.SaveError.self) {
+			try manager.addGoal(
+				with: GoalFormData(
+					name: "Run",
+					details: "",
+					progress: .outcome(OutcomeProgress()),
+					tags: [
+						GoalFormTagSelection(name: "Health"),
+					],
+				),
+			)
+		}
+
+		#expect(try fetchGoals(in: container).isEmpty)
+		#expect(try fetchTags(in: container).isEmpty)
+	}
+
+	@Test
+	func `Updating a goal with draft form tags creates new tags and deletes removed unused tags`() async throws {
+		let container = try makeContainer()
+		let oldTag = Tag(name: "Old")
+		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
+		goal.tags = [oldTag]
+		insert(goal, into: container)
+		let manager = makeManager(in: container)
+
+		try manager.updateGoal(
+			goal,
+			with: GoalFormData(
+				name: goal.name,
+				details: goal.details ?? "",
+				progress: goal.progress,
+				tags: [
+					GoalFormTagSelection(name: "New"),
+				],
+			),
+		)
+
+		#expect(goal.tags.map(\.name) == ["New"])
+		#expect(try fetchTags(in: container).map(\.name) == ["New"])
+	}
+
+	@Test
+	func `Updating a goal keeps retained selected tags when deleting removed unused tags`() async throws {
+		let container = try makeContainer()
+		let retainedTag = Tag(name: "Retained")
+		let removedTag = Tag(name: "Removed")
+		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
+		goal.tags = [retainedTag, removedTag]
+		insert(goal, into: container)
+		let manager = makeManager(in: container)
+
+		try manager.updateGoal(
+			goal,
+			with: GoalFormData(
+				name: goal.name,
+				details: goal.details ?? "",
+				progress: goal.progress,
+				tags: [
+					GoalFormTagSelection(name: "Retained"),
+				],
+			),
+		)
+
+		#expect(goal.tags.map(\.id) == [retainedTag.id])
+		#expect(try fetchTags(in: container).map(\.id) == [retainedTag.id])
+	}
+
+	@Test
+	func `Updating a goal with draft form tags rolls back draft tags on save failure`() async throws {
+		let container = try makeContainer()
+		let oldTag = Tag(name: "Old")
+		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
+		goal.tags = [oldTag]
+		insert(goal, into: container)
+		let manager = GoalManager(
+			modelContext: container.mainContext,
+			saveContext: {
+				throw TestSaveError.failed
+			},
+		)
+
+		#expect(throws: GoalManager.SaveError.self) {
+			try manager.updateGoal(
+				goal,
+				with: GoalFormData(
+					name: goal.name,
+					details: goal.details ?? "",
+					progress: goal.progress,
+					tags: [
+						GoalFormTagSelection(name: "New"),
+					],
+				),
+			)
+		}
+
+		#expect(goal.tags.map(\.id) == [oldTag.id])
+		#expect(try fetchTags(in: container).map(\.id) == [oldTag.id])
 	}
 
 	@Test

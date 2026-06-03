@@ -26,15 +26,16 @@ final class GoalFormState {
 	var targetValue: Double = 1
 	var step: Double = 1
 	var selectedProgressUnit: GoalProgressUnit?
+    var selectedTags: [GoalFormTagSelection]
 
 	var recurrence: GoalRecurrence? {
 		didSet {
 			clearTargetDateIfNeededForRecurrence()
 		}
 	}
-	var selectedTags: [Tag]
 
 	let mode: GoalFormMode
+    
 	private let initialOutcomeIsCompleted: Bool
 	private var initialSnapshot = GoalFormSnapshot.empty
 	private let now: () -> Date
@@ -153,7 +154,7 @@ final class GoalFormState {
 			targetValue: isProgressBased ? targetValue : nil,
 			step: isProgressBased ? step : nil,
 			progressUnitId: isProgressBased ? selectedProgressUnit?.id : nil,
-			tagIds: Set(selectedTags.map(\.id)),
+			tagNames: Set(selectedTags.map(\.normalizedName)),
 		)
 	}
 
@@ -197,7 +198,7 @@ private struct GoalFormSnapshot: Equatable {
 	var targetValue: Double?
 	var step: Double?
 	var progressUnitId: String?
-	var tagIds: Set<UUID>
+	var tagNames: Set<String>
 
 	static let empty = GoalFormSnapshot(
 		name: "",
@@ -209,6 +210,6 @@ private struct GoalFormSnapshot: Equatable {
 		targetValue: nil,
 		step: nil,
 		progressUnitId: nil,
-		tagIds: [],
+		tagNames: [],
 	)
 }

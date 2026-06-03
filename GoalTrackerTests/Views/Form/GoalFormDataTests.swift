@@ -32,4 +32,21 @@ struct GoalFormDataTests {
 	func `Empty form data has no reminder`() {
 		#expect(GoalFormData.empty.reminder == nil)
 	}
+
+	@Test
+	func `Form data maps goal tags to existing selections`() {
+		let tag = Tag(name: "Health")
+		let goal = Goal(
+			name: "Test Goal",
+			details: nil,
+			createdAt: Date(timeIntervalSinceReferenceDate: 0),
+			progress: .outcome(OutcomeProgress()),
+		)
+		goal.tags = [tag]
+
+		let data = GoalFormData(goal: goal)
+
+		#expect(data.tags.map(\.name) == ["Health"])
+		#expect(data.tags.map(\.normalizedName) == ["health"])
+	}
 }

@@ -57,6 +57,7 @@ struct GoalManager {
 	func addGoal(
 		with data: GoalFormData,
 	) throws {
+		let tags = try resolveTags(for: data.tags)
 		let goal = Goal(
 			name: data.name,
 			details: data.normalizedDetails,
@@ -66,7 +67,7 @@ struct GoalManager {
 			progress: data.progress,
 			recurrence: data.recurrence,
 		)
-		goal.tags = data.tags
+		goal.tags = tags
 		try addGoal(goal)
 	}
 
@@ -97,10 +98,14 @@ struct GoalManager {
 					goal.recurrence = recurrence
 				}
 				if let tags {
+					let removedTags = tagsRemoved(
+						from: previousTags,
+						afterSelecting: tags,
+					)
 					goal.tags = tags
-					try deleteUnusedTags(
-						from: previousTags + tags,
-						excluding: tags,
+					deleteUnusedTags(
+						from: removedTags,
+						ignoringGoalsWithIds: [goal.id],
 					)
 				}
 			},
@@ -116,6 +121,7 @@ struct GoalManager {
 		_ goal: Goal,
 		with data: GoalFormData,
 	) throws {
+		let tags = try resolveTags(for: data.tags)
 		try updateGoal(
 			goal,
 			name: data.name,
@@ -125,7 +131,7 @@ struct GoalManager {
 			progress: data.progress,
 			updatesRecurrence: true,
 			recurrence: data.recurrence,
-			tags: data.tags,
+			tags: tags,
 		)
 	}
 
@@ -228,24 +234,12 @@ struct GoalManager {
 			modelContext.delete(goal)
 		}
 		try saveChanges {
-			try deleteUnusedTags(
+			deleteUnusedTags(
 				from: candidateTags,
 				ignoringGoalsWithIds: deletedGoalIds,
 			)
 		}
 		notificationScheduler.cancelReminders(for: Array(deletedGoalIds))
-	}
-
-	/// Deletes tags that are not attached to any goal.
-	///
-	/// Pass `protectedTags` to keep tags that should survive this cleanup, such as tags currently selected in a goal form that has not been saved yet.
-	func deleteUnusedTags(excluding protectedTags: [Tag] = []) throws {
-		try saveChanges {
-			try deleteUnusedTags(
-				from: fetchTags(),
-				excluding: protectedTags,
-			)
-		}
 	}
 
 	private func saveChanges(
@@ -293,40 +287,52 @@ struct GoalManager {
 
 	private func deleteUnusedTags(
 		from candidateTags: [Tag],
-		excluding protectedTags: [Tag] = [],
 		ignoringGoalsWithIds ignoredGoalIds: Set<UUID> = [],
-	) throws {
-		let protectedTagIds = Set(protectedTags.map(\.id))
-		let usedTagIds = try usedTagIds(ignoringGoalsWithIds: ignoredGoalIds)
+	) {
 		var checkedTagIds: Set<UUID> = []
-		for tag in candidateTags where !protectedTagIds.contains(tag.id) {
-			guard !checkedTagIds.contains(tag.id) else {
+		for tag in candidateTags {
+			guard checkedTagIds.insert(tag.id).inserted else {
 				continue
 			}
-			checkedTagIds.insert(tag.id)
-			guard !usedTagIds.contains(tag.id) else {
+			guard tag.goals.allSatisfy({ goal in ignoredGoalIds.contains(goal.id) }) else {
 				continue
 			}
 			modelContext.delete(tag)
 		}
 	}
 
-	private func usedTagIds(
-		ignoringGoalsWithIds ignoredGoalIds: Set<UUID>,
-	) throws -> Set<UUID> {
-		let goals = try fetchGoals()
-		return Set(
-			goals.lazy
-				.filter { goal in
-					!ignoredGoalIds.contains(goal.id)
-				}
-				.flatMap(\.tags)
-				.map(\.id)
-		)
+	private func tagsRemoved(
+		from previousTags: [Tag],
+		afterSelecting selectedTags: [Tag],
+	) -> [Tag] {
+		let selectedTagIds = Set(selectedTags.map(\.id))
+		return previousTags.filter { tag in
+			!selectedTagIds.contains(tag.id)
+		}
 	}
 
-	private func fetchGoals() throws -> [Goal] {
-		try modelContext.fetch(FetchDescriptor<Goal>())
+	private func resolveTags(for selections: [GoalFormTagSelection]) throws -> [Tag] {
+		let existingTags = try fetchTags()
+		var resolvedTagNames: Set<String> = []
+		return selections.compactMap { selection in
+			guard !selection.normalizedName.isEmpty,
+				resolvedTagNames.insert(selection.normalizedName).inserted
+			else {
+				return nil
+			}
+			if let existingTag = existingTags.first(where: { tag in
+				tag.normalizedName == selection.normalizedName
+			}) {
+				return existingTag
+			}
+			return newTag(from: selection)
+		}
+	}
+
+	private func newTag(from selection: GoalFormTagSelection) -> Tag {
+		let tag = Tag(name: selection.name)
+		modelContext.insert(tag)
+		return tag
 	}
 
 	private func fetchTags() throws -> [Tag] {
