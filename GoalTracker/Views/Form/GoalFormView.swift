@@ -59,8 +59,6 @@ struct GoalFormView: View {
 
 	@State private var saveFailure: GoalSaveFailure?
 
-	@State private var didSave = false
-
 	private let mode: GoalFormMode
 
 	private let onSave: (GoalFormData) throws -> Void
@@ -210,20 +208,12 @@ struct GoalFormView: View {
 		.navigationBarTitleDisplayMode(.inline)
 		.toolbar {
 			ToolbarItem(placement: .cancellationAction) {
-				Button("Cancel", systemImage: "xmark") {
-					if formState.hasChanges {
-						isShowingConfirmation = true
-					} else {
-						dismiss()
+				Button("Cancel", systemImage: "xmark", action: cancel)
+					.confirmationDialog("Dismiss confirmation", isPresented: $isShowingConfirmation) {
+						Button("Discard Changes", role: .destructive, action: deleteUnusedTagsAndDismiss)
+					} message: {
+						Text(discardConfirmationMessage)
 					}
-				}
-				.confirmationDialog("Dismiss confirmation", isPresented: $isShowingConfirmation) {
-					Button("Discard Changes", role: .destructive) {
-						dismiss()
-					}
-				} message: {
-					Text(discardConfirmationMessage)
-				}
 			}
 			ToolbarItem(placement: .confirmationAction) {
 				Button("Save", systemImage: "checkmark", action: save)
@@ -248,10 +238,22 @@ struct GoalFormView: View {
 				ProgressUnitSelectionView(selectedUnit: $formState.selectedProgressUnit)
 			}
 		}
-		.onDisappear {
-			deleteUnusedTags()
-		}
+		.interactiveDismissDisabled(formState.hasChanges)
 		.goalSaveFailureAlert(failure: $saveFailure)
+	}
+
+	private func cancel() {
+		if formState.hasChanges {
+			isShowingConfirmation = true
+		} else {
+			deleteUnusedTagsAndDismiss()
+		}
+	}
+
+	/// Removes draft-only tags created while editing this form, then dismisses the form.
+	private func deleteUnusedTagsAndDismiss() {
+		try? GoalManager(modelContext: modelContext).deleteUnusedTags()
+		dismiss()
 	}
 
 	private func save() {
@@ -260,18 +262,10 @@ struct GoalFormView: View {
 		}
 		do {
 			try onSave(formState.makeFormData())
-			didSave = true
 			dismiss()
 		} catch {
 			saveFailure = formState.saveFailureKind
 		}
-	}
-
-	private func deleteUnusedTags() {
-		guard !didSave else {
-			return
-		}
-		try? GoalManager(modelContext: modelContext).deleteUnusedTags()
 	}
 
 	private func tagSelectionSummary(for tags: [Tag]) -> String {
