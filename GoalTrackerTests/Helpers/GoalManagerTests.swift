@@ -172,6 +172,32 @@ struct GoalManagerTests {
 	}
 
 	@Test
+	func `Updating goal with form data saves reminder`() async throws {
+		let container = try makeContainer()
+		let targetDate = Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30)
+		let reminder = GoalReminder()
+		let goal = makeGoal(
+			targetDate: targetDate,
+			progress: .outcome(OutcomeProgress()),
+		)
+		insert(goal, into: container)
+		let manager = makeManager(in: container)
+
+		try manager.updateGoal(
+			goal,
+			with: GoalFormData(
+				name: goal.name,
+				details: goal.details ?? "",
+				targetDate: targetDate,
+				reminder: reminder,
+				progress: goal.progress,
+			),
+		)
+
+		#expect(goal.reminder == reminder)
+	}
+
+	@Test
 	func `Updating goal with form data clears recurrence`() async throws {
 		let container = try makeContainer()
 		let goal = makeGoal(
@@ -605,6 +631,32 @@ struct GoalManagerTests {
 		#expect(scheduler.syncedGoalIds == [goal.id])
 		#expect(scheduler.syncRequestsAuthorizationFlags == [true])
 		#expect(scheduler.canceledGoalIds.isEmpty)
+	}
+
+	@Test
+	func `Adding a goal with form data saves reminder`() async throws {
+		let container = try makeContainer()
+		let targetDate = Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30)
+		let reminder = GoalReminder()
+		let manager = makeManager(in: container)
+
+		try manager.addGoal(
+			with: GoalFormData(
+				name: "Read",
+				details: "",
+				targetDate: targetDate,
+				reminder: reminder,
+				progress: .outcome(OutcomeProgress()),
+			),
+		)
+
+		let goal = try #require(
+			fetchGoals(in: container).first { goal in
+				goal.name == "Read"
+			}
+		)
+		#expect(goal.reminder == reminder)
+		#expect(goal.targetDate == targetDate)
 	}
 
 	@Test

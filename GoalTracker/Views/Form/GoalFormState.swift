@@ -148,7 +148,7 @@ final class GoalFormState {
 			targetValue: isProgressBased ? targetValue : nil,
 			step: isProgressBased ? step : nil,
 			progressUnitId: isProgressBased ? selectedProgressUnit?.id : nil,
-			tagIds: selectedTags.map(\.id.uuidString).sorted(),
+			tagIds: Set(selectedTags.map(\.id)),
 		)
 	}
 
@@ -192,7 +192,7 @@ private struct GoalFormSnapshot: Equatable {
 	var targetValue: Double?
 	var step: Double?
 	var progressUnitId: String?
-	var tagIds: [String]
+	var tagIds: Set<UUID>
 
 	static let empty = GoalFormSnapshot(
 		name: "",

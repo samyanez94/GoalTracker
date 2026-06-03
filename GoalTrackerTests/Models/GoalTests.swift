@@ -374,6 +374,30 @@ struct GoalTests {
 	}
 
 	@Test
+	func `Goal reminder persists with SwiftData`() throws {
+		let container = try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
+		let reminder = GoalReminder()
+		let goal = Goal(
+			name: "Read",
+			details: nil,
+			reminder: reminder,
+			createdAt: ModelTestSupport.date(year: 2026, month: 5, day: 28),
+			progress: .outcome(OutcomeProgress()),
+		)
+		container.mainContext.insert(goal)
+		try container.mainContext.save()
+
+		let fetchedGoals = try container.mainContext.fetch(FetchDescriptor<Goal>())
+		let fetchedGoal = try #require(
+			fetchedGoals.first { fetchedGoal in
+				fetchedGoal.id == goal.id
+			}
+		)
+
+		#expect(fetchedGoal.reminder == reminder)
+	}
+
+	@Test
 	func `Measurable goal progress persists with SwiftData`() throws {
 		let container = try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
 		let timestamp = ModelTestSupport.date(year: 2026, month: 5, day: 28)

@@ -9,17 +9,23 @@ import Foundation
 
 /// A reminder configured to fire at the app's default reminder time.
 nonisolated struct GoalReminder: Codable, Hashable {
+    
 	/// The local hour used as the reminder-time anchor for goals without a custom reminder time.
 	static let defaultSettingHour = 9
 
-	init() {}
+	/// The local hour when the reminder should fire.
+	let settingHour: Int
+
+	init(settingHour: Int = Self.defaultSettingHour) {
+		self.settingHour = settingHour
+	}
 
 	func fireDate(
 		on date: Date,
 		calendar: Calendar = .current,
 	) -> Date? {
 		calendar.date(
-			bySettingHour: Self.defaultSettingHour,
+			bySettingHour: settingHour,
 			minute: 0,
 			second: 0,
 			of: date,
