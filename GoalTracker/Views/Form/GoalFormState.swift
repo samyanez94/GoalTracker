@@ -1,5 +1,5 @@
 //
-//  GoalFormModel.swift
+//  GoalFormState.swift
 //  GoalTracker
 //
 //  Created by Samuel Yanez on 5/15/26.
@@ -8,14 +8,14 @@
 import Foundation
 import Observation
 
-// MARK: - GoalFormModel
+// MARK: - GoalFormState
 
-/// Keeps track of the editable state for the form.
+/// Keeps track of draft values and form behavior state.
 ///
-/// The view binds to this model while the model handles validation, save data, and dirty-state checks.
+/// The view binds to this state while it handles validation, save data, and dirty-state checks. Presentation-only state, such as confirmation dialogs and focus, stays in the view.
 @MainActor
 @Observable
-final class GoalFormModel {
+final class GoalFormState {
 	var name: String
 	var details: String
 	var hasTargetDate: Bool

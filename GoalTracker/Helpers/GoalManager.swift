@@ -53,6 +53,23 @@ struct GoalManager {
 		syncReminder(for: goal, requestsAuthorization: true)
 	}
 
+	/// Inserts a new goal into the model context using values collected by the goal form.
+	func addGoal(
+		with data: GoalFormData,
+	) throws {
+		let goal = Goal(
+			name: data.name,
+			details: data.normalizedDetails,
+			targetDate: data.targetDate,
+			reminder: data.reminder,
+			createdAt: now(),
+			progress: data.progress,
+			recurrence: data.recurrence,
+		)
+		goal.tags = data.tags
+		try addGoal(goal)
+	}
+
 	/// Updates a goal's editable fields, cleans up unused tags, and saves the change.
 	///
 	/// When `tags` is provided, the goal's tag relationship is replaced and any tags that are no longer attached to a goal are deleted.

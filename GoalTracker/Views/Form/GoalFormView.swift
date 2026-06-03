@@ -51,11 +51,11 @@ struct GoalFormView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
-	@State private var model: GoalFormModel
+	@State private var formState: GoalFormState
 
 	@FocusState private var isTextInputFocused: Bool
 
-	@State private var showingConfirmation = false
+	@State private var isShowingConfirmation = false
 
 	@State private var saveFailure: GoalSaveFailure?
 
@@ -71,20 +71,20 @@ struct GoalFormView: View {
 	) {
 		self.mode = mode
 		self.onSave = onSave
-		_model = State(initialValue: GoalFormModel(mode: mode))
+		_formState = State(initialValue: GoalFormState(mode: mode))
 	}
 
 	var body: some View {
-		// The view owns the form model with @State; @Bindable exposes bindings to its fields.
-		@Bindable var model = model
+		// The view owns the form state with @State; @Bindable exposes bindings to its fields.
+		@Bindable var formState = formState
 
 		Form {
 			Section("Details") {
-				TextField("Goal name", text: $model.name)
+				TextField("Goal name", text: $formState.name)
 					.focused($isTextInputFocused)
 				TextField(
 					"Description",
-					text: $model.details,
+					text: $formState.details,
 					axis: .vertical,
 				)
 				.focused($isTextInputFocused)
@@ -100,8 +100,8 @@ struct GoalFormView: View {
 								.foregroundStyle(.secondary)
 						}
 						Spacer()
-						if model.selectedTags.isEmpty == false {
-							Text(tagSelectionSummary(for: model.selectedTags))
+						if formState.selectedTags.isEmpty == false {
+							Text(tagSelectionSummary(for: formState.selectedTags))
 								.foregroundStyle(.secondary)
 						}
 					}
@@ -114,9 +114,9 @@ struct GoalFormView: View {
 					.foregroundStyle(.secondary)
 			}
 			Section {
-				GoalRecurrencePickerRow(recurrence: $model.recurrence)
-				if model.recurrence != nil {
-					GoalReminderToggleRow(reminder: $model.reminder)
+				GoalRecurrencePickerRow(recurrence: $formState.recurrence)
+				if formState.recurrence != nil {
+					GoalReminderToggleRow(reminder: $formState.reminder)
 				}
 			} header: {
 				Text("Recurrence")
@@ -127,34 +127,34 @@ struct GoalFormView: View {
 				.font(.footnote)
 				.foregroundStyle(.secondary)
 			}
-			if model.allowsTargetDate {
+			if formState.allowsTargetDate {
 				Section {
 					HStack {
 						TargetDateSummaryButton(
-							hasTargetDate: model.hasTargetDate,
-							targetDate: model.targetDate,
+							hasTargetDate: formState.hasTargetDate,
+							targetDate: formState.targetDate,
 							action: {
 								withAnimation {
-									model.toggleTargetDatePicker()
+									formState.toggleTargetDatePicker()
 								}
 							},
 						)
 						Toggle(
 							"Target Date",
-							isOn: $model.hasTargetDate,
+							isOn: $formState.hasTargetDate,
 						)
 						.labelsHidden()
 					}
-					if model.hasTargetDate, model.isTargetDatePickerExpanded {
+					if formState.hasTargetDate, formState.isTargetDatePickerExpanded {
 						DatePicker(
 							"Select target date",
-							selection: $model.targetDate,
+							selection: $formState.targetDate,
 							displayedComponents: .date,
 						)
 						.datePickerStyle(.graphical)
 					}
-					if model.hasTargetDate {
-						GoalReminderToggleRow(reminder: $model.reminder)
+					if formState.hasTargetDate {
+						GoalReminderToggleRow(reminder: $formState.reminder)
 					}
 				} header: {
 					Text("Date")
@@ -167,7 +167,7 @@ struct GoalFormView: View {
 				}
 			}
 			Section {
-				Toggle(isOn: $model.isProgressBased) {
+				Toggle(isOn: $formState.isProgressBased) {
 					Label {
 						Text("Track progress")
 					} icon: {
@@ -175,17 +175,17 @@ struct GoalFormView: View {
 							.foregroundStyle(.secondary)
 					}
 				}
-				if model.isProgressBased {
+				if formState.isProgressBased {
 					ProgressTextFieldRow(
 						label: "Target Value",
 						placeholder: "1",
-						value: $model.targetValue,
+						value: $formState.targetValue,
 						focus: $isTextInputFocused,
 					)
 					ProgressTextFieldRow(
 						label: "Step",
 						placeholder: "1",
-						value: $model.step,
+						value: $formState.step,
 						focus: $isTextInputFocused,
 					)
 					NavigationLink(value: GoalFormDestination.progressUnit) {
@@ -193,7 +193,7 @@ struct GoalFormView: View {
 							Text("Unit")
 								.foregroundStyle(.primary)
 							Spacer()
-							Text(model.selectedProgressUnit?.title ?? "None")
+							Text(formState.selectedProgressUnit?.title ?? "None")
 								.foregroundStyle(.secondary)
 						}
 					}
@@ -211,13 +211,13 @@ struct GoalFormView: View {
 		.toolbar {
 			ToolbarItem(placement: .cancellationAction) {
 				Button("Cancel", systemImage: "xmark") {
-					if model.hasChanges {
-						showingConfirmation = true
+					if formState.hasChanges {
+						isShowingConfirmation = true
 					} else {
 						dismiss()
 					}
 				}
-				.confirmationDialog("Dismiss confirmation", isPresented: $showingConfirmation) {
+				.confirmationDialog("Dismiss confirmation", isPresented: $isShowingConfirmation) {
 					Button("Discard Changes", role: .destructive) {
 						dismiss()
 					}
@@ -228,24 +228,24 @@ struct GoalFormView: View {
 			ToolbarItem(placement: .confirmationAction) {
 				Button("Save", systemImage: "checkmark", action: save)
 					.buttonStyle(.glassProminent)
-					.disabled(model.isSaveDisabled)
+					.disabled(formState.isSaveDisabled)
 			}
 		}
-		.onChange(of: model.hasTargetDate) { _, hasTargetDate in
+		.onChange(of: formState.hasTargetDate) { _, hasTargetDate in
 			isTextInputFocused = false
 			withAnimation {
-				model.setTargetDateEnabled(hasTargetDate)
+				formState.setTargetDateEnabled(hasTargetDate)
 			}
 		}
-		.onChange(of: model.isProgressBased) {
+		.onChange(of: formState.isProgressBased) {
 			isTextInputFocused = false
 		}
 		.navigationDestination(for: GoalFormDestination.self) { destination in
 			switch destination {
 			case .tags:
-				TagSelectionView(selectedTags: $model.selectedTags)
+				TagSelectionView(selectedTags: $formState.selectedTags)
 			case .progressUnit:
-				ProgressUnitSelectionView(selectedUnit: $model.selectedProgressUnit)
+				ProgressUnitSelectionView(selectedUnit: $formState.selectedProgressUnit)
 			}
 		}
 		.onDisappear {
@@ -255,15 +255,15 @@ struct GoalFormView: View {
 	}
 
 	private func save() {
-		guard !model.isSaveDisabled else {
+		guard !formState.isSaveDisabled else {
 			return
 		}
 		do {
-			try onSave(model.makeFormData())
+			try onSave(formState.makeFormData())
 			didSave = true
 			dismiss()
 		} catch {
-			saveFailure = model.saveFailureKind
+			saveFailure = formState.saveFailureKind
 		}
 	}
 

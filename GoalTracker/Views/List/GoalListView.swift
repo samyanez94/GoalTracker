@@ -104,17 +104,7 @@ struct GoalListView: View {
 			.sheet(isPresented: $isPresentingGoalFormView) {
 				NavigationStack {
 					GoalFormView(mode: .create) { data in
-						let goal = Goal(
-							name: data.name,
-							details: data.normalizedDetails,
-							targetDate: data.targetDate,
-							reminder: data.reminder,
-							createdAt: Date(),
-							progress: data.progress,
-							recurrence: data.recurrence,
-						)
-						goal.tags = data.tags
-						try goalManager.addGoal(goal)
+						try goalManager.addGoal(with: data)
 					}
 				}
 			}
