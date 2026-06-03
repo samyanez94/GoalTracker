@@ -137,10 +137,15 @@ final class GoalFormState {
 		name.trimmingCharacters(in: .whitespacesAndNewlines)
 	}
 
+	private var normalizedDetails: String? {
+		let trimmedDetails = details.trimmingCharacters(in: .whitespacesAndNewlines)
+		return trimmedDetails.isEmpty ? nil : trimmedDetails
+	}
+
 	private var currentSnapshot: GoalFormSnapshot {
 		GoalFormSnapshot(
 			name: trimmedName,
-			details: details,
+			details: normalizedDetails,
 			targetDate: allowsTargetDate && hasTargetDate ? targetDate : nil,
 			reminder: recurrence != nil || hasTargetDate ? reminder : nil,
 			recurrence: recurrence,
@@ -184,7 +189,7 @@ final class GoalFormState {
 /// This snapshot is used to detect unsaved changes in the form.
 private struct GoalFormSnapshot: Equatable {
 	var name: String
-	var details: String
+	var details: String?
 	var targetDate: Date?
 	var reminder: GoalReminder?
 	var recurrence: GoalRecurrence?
@@ -196,7 +201,7 @@ private struct GoalFormSnapshot: Equatable {
 
 	static let empty = GoalFormSnapshot(
 		name: "",
-		details: "",
+		details: nil,
 		targetDate: nil,
 		reminder: nil,
 		recurrence: nil,

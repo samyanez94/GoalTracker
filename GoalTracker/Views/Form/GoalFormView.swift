@@ -204,6 +204,7 @@ struct GoalFormView: View {
 					.foregroundStyle(.secondary)
 			}
 		}
+		.scrollDismissesKeyboard(.interactively)
 		.navigationTitle(mode.title)
 		.navigationBarTitleDisplayMode(.inline)
 		.toolbar {
@@ -219,6 +220,12 @@ struct GoalFormView: View {
 				Button("Save", systemImage: "checkmark", action: save)
 					.buttonStyle(.glassProminent)
 					.disabled(formState.isSaveDisabled)
+			}
+			ToolbarItemGroup(placement: .keyboard) {
+				Button("Done", systemImage: "keyboard.chevron.compact.down") {
+					isTextInputFocused = false
+				}
+                Spacer()
 			}
 		}
 		.onChange(of: formState.hasTargetDate) { _, hasTargetDate in
