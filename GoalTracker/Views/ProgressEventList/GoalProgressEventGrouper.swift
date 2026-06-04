@@ -1,0 +1,145 @@
+//
+//  GoalProgressEventGrouper.swift
+//  GoalTracker
+//
+//  Created by Samuel Yanez on 6/4/26.
+//
+
+import Foundation
+
+// MARK: - GoalProgressEventGrouper
+
+enum GoalProgressEventGrouper {
+	static func sections(
+		for events: [GoalProgressEvent],
+		now: Date = Date(),
+		calendar: Calendar = .current,
+	) -> [GoalProgressEventSection] {
+		let sortedEvents = events.sorted(by: newestFirst)
+		let eventsByBucket = Dictionary(grouping: sortedEvents) { event in
+			EventBucket(
+				for: event.timestamp,
+				now: now,
+				calendar: calendar,
+			)
+		}
+		return eventsByBucket.keys.sorted().map { bucket in
+			GoalProgressEventSection(
+				id: bucket.id,
+				title: bucket.title,
+				events: eventsByBucket[bucket] ?? [],
+			)
+		}
+	}
+    
+    // MARK: - EventBucket
+
+	private enum EventBucket: Hashable, Comparable {
+		case today
+		case thisWeek
+		case thisMonth
+		case thisYear
+		case year(Int)
+
+		init(
+			for date: Date,
+			now: Date,
+			calendar: Calendar,
+		) {
+			if calendar.isDate(date, inSameDayAs: now) {
+				self = .today
+			} else if date.isInside(calendar.dateInterval(of: .weekOfYear, for: now)) {
+				self = .thisWeek
+			} else if date.isInside(calendar.dateInterval(of: .month, for: now)) {
+				self = .thisMonth
+			} else if date.isInside(calendar.dateInterval(of: .year, for: now)) {
+				self = .thisYear
+			} else {
+				self = .year(calendar.component(.year, from: date))
+			}
+		}
+
+		var id: String {
+			switch self {
+			case .today:
+				"today"
+			case .thisWeek:
+				"thisWeek"
+			case .thisMonth:
+				"thisMonth"
+			case .thisYear:
+				"thisYear"
+			case .year(let year):
+				"year.\(year)"
+			}
+		}
+
+		var title: String {
+			switch self {
+			case .today:
+				"Today"
+			case .thisWeek:
+				"This Week"
+			case .thisMonth:
+				"This Month"
+			case .thisYear:
+				"This Year"
+			case .year(let year):
+				year.formatted(.number.grouping(.never))
+			}
+		}
+
+		static func < (lhs: EventBucket, rhs: EventBucket) -> Bool {
+			switch (lhs.relativeSortValue, rhs.relativeSortValue) {
+			case (.some(let lhsValue), .some(let rhsValue)):
+				lhsValue < rhsValue
+			case (.some, .none):
+				true
+			case (.none, .some):
+				false
+			case (.none, .none):
+				lhs.yearValue > rhs.yearValue
+			}
+		}
+
+		private var relativeSortValue: Int? {
+			switch self {
+			case .today:
+				0
+			case .thisWeek:
+				1
+			case .thisMonth:
+				2
+			case .thisYear:
+				3
+			case .year:
+				nil
+			}
+		}
+
+		private var yearValue: Int {
+			guard case .year(let year) = self else {
+				return 0
+			}
+			return year
+		}
+	}
+
+	private static func newestFirst(
+		_ lhs: GoalProgressEvent,
+		_ rhs: GoalProgressEvent,
+	) -> Bool {
+		lhs.timestamp > rhs.timestamp
+	}
+}
+
+// MARK: - Date+Helpers
+
+private extension Date {
+	func isInside(_ interval: DateInterval?) -> Bool {
+		guard let interval else {
+			return false
+		}
+		return interval.contains(self)
+	}
+}

@@ -14,9 +14,21 @@ struct GoalDetailProgressSection: View {
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
-			Text("Progress")
-				.font(.headline)
-				.foregroundStyle(.secondary)
+			NavigationLink(value: GoalDetailDestination.progressEvents) {
+				HStack(alignment: .firstTextBaseline, spacing: 4) {
+					Text("Progress")
+						.font(.headline)
+					Image(systemName: "chevron.right")
+						.font(.headline.weight(.semibold))
+                        .imageScale(.small)
+						.accessibilityHidden(true)
+					Spacer()
+				}
+				.frame(maxWidth: .infinity, alignment: .leading)
+				.contentShape(.rect)
+			}
+			.buttonStyle(.plain)
+			.foregroundStyle(.secondary)
 			HStack {
 				VStack(alignment: .leading, spacing: 4) {
 					Text(progressTitle)
