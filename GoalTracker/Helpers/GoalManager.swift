@@ -213,6 +213,25 @@ struct GoalManager {
 		}
 	}
 
+	/// Deletes one measurable progress event by ID and saves the change.
+	///
+	/// - Returns: `true` when the event was removed, or `false` when the goal is not measurable or deleting the event would leave invalid progress history.
+	@discardableResult
+	func deleteProgressEvent(
+		id: GoalProgressEvent.ID,
+		from goal: Goal,
+	) throws -> Bool {
+		try updateProgress(goal) { goal in
+			guard case .measurable(let progress) = goal.progress,
+				let updatedProgress = progress.deletingEvent(id: id)
+			else {
+				return false
+			}
+			goal.progress = .measurable(updatedProgress)
+			return true
+		}
+	}
+
 	/// Deletes a single goal and removes any of its tags that are no longer used.
 	func deleteGoal(_ goal: Goal) throws {
 		try deleteGoals([goal])

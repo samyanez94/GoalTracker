@@ -206,6 +206,60 @@ struct MeasurableProgressTests {
 		#expect(incrementAtTargetChanged == false)
 	}
 
+	@Test
+	func `Deleting a valid event removes only that event`() throws {
+		let deletedEventID = UUID()
+		let progress = measurableProgress(
+			events: [
+				GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+				GoalProgressEvent(id: deletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+				GoalProgressEvent(delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+			],
+			targetValue: 10,
+		)
+
+		let updatedProgress = try #require(progress.deletingEvent(id: deletedEventID))
+
+		#expect(updatedProgress.events.map(\.delta) == [4, 3])
+		#expect(updatedProgress.events.map(\.timestamp) == [
+			Date(timeIntervalSinceReferenceDate: 1),
+			Date(timeIntervalSinceReferenceDate: 3),
+		])
+		#expect(updatedProgress.currentValue == 7)
+	}
+
+	@Test
+	func `Deleting an out of range event returns nil`() {
+		let progress = makeProgress(currentValue: 4, targetValue: 10)
+
+		#expect(progress.deletingEvent(id: UUID()) == nil)
+	}
+
+	@Test
+	func `Deleting an event that leaves negative progress returns nil`() {
+		let deletedEventID = UUID()
+		let progress = measurableProgress(
+			events: [
+				GoalProgressEvent(id: deletedEventID, delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+				GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+			],
+			targetValue: 10,
+		)
+
+		#expect(progress.deletingEvent(id: deletedEventID) == nil)
+	}
+
+	@Test
+	func `Deleting the only positive event returns empty valid history`() throws {
+		let progress = makeProgress(currentValue: 4, targetValue: 10)
+		let event = try #require(progress.events.first)
+
+		let updatedProgress = try #require(progress.deletingEvent(id: event.id))
+
+		#expect(updatedProgress.events.isEmpty)
+		#expect(updatedProgress.currentValue == 0)
+	}
+
 	// MARK: - Derived State
 
 	@Test

@@ -5,14 +5,19 @@
 //  Created by Samuel Yanez on 6/3/26.
 //
 
+import SwiftData
 import SwiftUI
 
 // MARK: - GoalProgressEventListView
 
 struct GoalProgressEventListView: View {
+	@Environment(\.modelContext) private var modelContext
+
 	let goal: Goal
 
 	@State private var sortOrder = GoalProgressEventSortOrder.newestFirst
+
+	@State private var deletionFailure: GoalProgressEventDeletionFailure?
 
 	var body: some View {
 		Group {
@@ -25,11 +30,18 @@ struct GoalProgressEventListView: View {
 			} else {
 				List(eventSections) { section in
 					Section(section.title) {
-						ForEach(section.events.enumerated(), id: \.offset) { _, event in
+						ForEach(section.events) { event in
 							GoalProgressEventRowView(
 								event: event,
 								unit: progress?.unit,
 							)
+							.swipeActions {
+								Button(role: .destructive) {
+									deleteEvent(id: event.id)
+								} label: {
+									Label("Delete", systemImage: "trash")
+								}
+							}
 						}
 					}
 				}
@@ -52,6 +64,13 @@ struct GoalProgressEventListView: View {
 				.disabled(events.isEmpty)
 			}
 		}
+		.alert(item: $deletionFailure) { failure in
+			Alert(
+				title: Text(failure.title),
+				message: Text(failure.message),
+				dismissButton: .default(Text("OK")),
+			)
+		}
 	}
 
 	private var progress: MeasurableProgress? {
@@ -70,6 +89,23 @@ struct GoalProgressEventListView: View {
 			for: events,
 			sortOrder: sortOrder,
 		)
+	}
+
+	private var goalManager: GoalManager {
+		GoalManager(modelContext: modelContext)
+	}
+
+	private func deleteEvent(id: GoalProgressEvent.ID) {
+		do {
+			let didDelete = try withAnimation {
+				try goalManager.deleteProgressEvent(id: id, from: goal)
+			}
+			if !didDelete {
+				deletionFailure = .blocked
+			}
+		} catch {
+			deletionFailure = .saveFailed
+		}
 	}
 }
 

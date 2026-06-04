@@ -98,6 +98,88 @@ struct GoalManagerTests {
 	}
 
 	@Test
+	func `Deleting a progress event saves and updates measurable events`() async throws {
+		let container = try makeContainer()
+		let deletedEventID = UUID()
+		let goal = makeGoal(
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+						GoalProgressEvent(id: deletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+						GoalProgressEvent(delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+					],
+					targetValue: 10,
+					step: 2,
+				)
+			),
+		)
+		insert(goal, into: container)
+		let manager = makeManager(in: container)
+
+		let didDelete = try manager.deleteProgressEvent(id: deletedEventID, from: goal)
+
+		#expect(didDelete)
+		#expect(goal.progress.events.map(\.delta) == [4, 3])
+		#expect(goal.progress.currentValue == 7)
+	}
+
+	@Test
+	func `Blocked progress event delete leaves events unchanged`() async throws {
+		let container = try makeContainer()
+		let deletedEventID = UUID()
+		let goal = makeGoal(
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(id: deletedEventID, delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+						GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+					],
+					targetValue: 10,
+				)
+			),
+		)
+		insert(goal, into: container)
+		let manager = makeManager(in: container)
+
+		let didDelete = try manager.deleteProgressEvent(id: deletedEventID, from: goal)
+
+		#expect(didDelete == false)
+		#expect(goal.progress.events.map(\.delta) == [10, -3])
+		#expect(goal.progress.currentValue == 7)
+	}
+
+	@Test
+	func `Progress event delete save failure rolls back events and throws`() async throws {
+		let container = try makeContainer()
+		let deletedEventID = UUID()
+		let goal = makeGoal(
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+						GoalProgressEvent(id: deletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+					],
+					targetValue: 10,
+				)
+			),
+		)
+		insert(goal, into: container)
+		let manager = GoalManager(
+			modelContext: container.mainContext,
+			saveContext: {
+				throw TestSaveError.failed
+			},
+		)
+
+		#expect(throws: GoalManager.SaveError.self) {
+			try manager.deleteProgressEvent(id: deletedEventID, from: goal)
+		}
+		#expect(goal.progress.events.map(\.delta) == [4, 2])
+		#expect(goal.progress.currentValue == 6)
+	}
+
+	@Test
 	func `Recurring custom progress update applies to current cadence period only`() async throws {
 		let container = try makeContainer()
 		let yesterday = date(year: 2026, month: 5, day: 27, hour: 12)

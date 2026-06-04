@@ -88,6 +88,30 @@ struct GoalProgressEventGrouperTests {
 		#expect(todaySection?.events.map(\.delta) == [1, 3, 2])
 	}
 
+	@Test
+	func `Grouped events preserve event ids after sorting`() {
+		let events = [
+			event(delta: 1, year: 2026, month: 6, day: 4, hour: 8),
+			event(delta: 2, year: 2026, month: 6, day: 4, hour: 14),
+			event(delta: 3, year: 2026, month: 6, day: 4, hour: 10),
+		]
+
+		let sections = GoalProgressEventGrouper.sections(
+			for: events,
+			now: date(year: 2026, month: 6, day: 4, hour: 16),
+			calendar: calendar,
+		)
+
+		let todaySection = sections.first
+
+		#expect(todaySection?.events.map(\.delta) == [2, 3, 1])
+		#expect(todaySection?.events.map(\.id) == [
+			events[1].id,
+			events[2].id,
+			events[0].id,
+		])
+	}
+
 	private var calendar: Calendar {
 		var calendar = Calendar(identifier: .gregorian)
 		calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
