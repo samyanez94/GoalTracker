@@ -13,7 +13,7 @@ import Testing
 @MainActor
 struct GoalProgressEventGrouperTests {
 	@Test
-	func `Groups events by relative date bucket`() {
+	func `Default newest first groups events by relative date bucket`() {
 		let sections = GoalProgressEventGrouper.sections(
 			for: [
 				event(delta: 1, year: 2025, month: 8, day: 1),
@@ -32,6 +32,26 @@ struct GoalProgressEventGrouperTests {
 	}
 
 	@Test
+	func `Oldest first reverses the timeline section order`() {
+		let sections = GoalProgressEventGrouper.sections(
+			for: [
+				event(delta: 1, year: 2025, month: 8, day: 1),
+				event(delta: 2, year: 2026, month: 6, day: 18),
+				event(delta: 3, year: 2026, month: 6, day: 20, hour: 9),
+				event(delta: 4, year: 2026, month: 6, day: 5),
+				event(delta: 5, year: 2024, month: 12, day: 31),
+				event(delta: 6, year: 2026, month: 1, day: 10),
+			],
+			sortOrder: .oldestFirst,
+			now: date(year: 2026, month: 6, day: 20, hour: 12),
+			calendar: calendar,
+		)
+
+		#expect(sections.map(\.title) == ["2024", "2025", "This Year", "This Month", "This Week", "Today"])
+		#expect(sections.map { $0.events.map(\.delta) } == [[5], [1], [6], [4], [2], [3]])
+	}
+
+	@Test
 	func `Events stay newest first within each section`() {
 		let sections = GoalProgressEventGrouper.sections(
 			for: [
@@ -47,6 +67,25 @@ struct GoalProgressEventGrouperTests {
 
 		#expect(todaySection?.title == "Today")
 		#expect(todaySection?.events.map(\.delta) == [2, 3, 1])
+	}
+
+	@Test
+	func `Oldest first sorts events within each section by oldest timestamp`() {
+		let sections = GoalProgressEventGrouper.sections(
+			for: [
+				event(delta: 1, year: 2026, month: 6, day: 4, hour: 8),
+				event(delta: 2, year: 2026, month: 6, day: 4, hour: 14),
+				event(delta: 3, year: 2026, month: 6, day: 4, hour: 10),
+			],
+			sortOrder: .oldestFirst,
+			now: date(year: 2026, month: 6, day: 4, hour: 16),
+			calendar: calendar,
+		)
+
+		let todaySection = sections.first
+
+		#expect(todaySection?.title == "Today")
+		#expect(todaySection?.events.map(\.delta) == [1, 3, 2])
 	}
 
 	private var calendar: Calendar {

@@ -12,6 +12,8 @@ import SwiftUI
 struct GoalProgressEventListView: View {
 	let goal: Goal
 
+	@State private var sortOrder = GoalProgressEventSortOrder.newestFirst
+
 	var body: some View {
 		Group {
 			if events.isEmpty {
@@ -35,6 +37,21 @@ struct GoalProgressEventListView: View {
 		}
 		.navigationTitle("Progress")
 		.navigationBarTitleDisplayMode(.large)
+		.toolbar {
+			ToolbarItem(placement: .topBarTrailing) {
+				Menu {
+					Picker("Sort", selection: $sortOrder) {
+						ForEach(GoalProgressEventSortOrder.allCases) { sortOrder in
+							Text(sortOrder.title)
+								.tag(sortOrder)
+						}
+					}
+				} label: {
+					Label("Sort", systemImage: "arrow.up.arrow.down")
+				}
+				.disabled(events.isEmpty)
+			}
+		}
 	}
 
 	private var progress: MeasurableProgress? {
@@ -45,11 +62,14 @@ struct GoalProgressEventListView: View {
 	}
 
 	private var events: [GoalProgressEvent] {
-		progress?.events.sorted { $0.timestamp > $1.timestamp } ?? []
+		progress?.events ?? []
 	}
 
 	private var eventSections: [GoalProgressEventSection] {
-		GoalProgressEventGrouper.sections(for: events)
+		GoalProgressEventGrouper.sections(
+			for: events,
+			sortOrder: sortOrder,
+		)
 	}
 }
 

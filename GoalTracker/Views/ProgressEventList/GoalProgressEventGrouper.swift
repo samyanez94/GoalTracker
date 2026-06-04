@@ -12,29 +12,33 @@ import Foundation
 enum GoalProgressEventGrouper {
 	static func sections(
 		for events: [GoalProgressEvent],
+		sortOrder: GoalProgressEventSortOrder = .newestFirst,
 		now: Date = Date(),
 		calendar: Calendar = .current,
 	) -> [GoalProgressEventSection] {
-		let sortedEvents = events.sorted(by: newestFirst)
-		let eventsByBucket = Dictionary(grouping: sortedEvents) { event in
+		let eventsByBucket = Dictionary(grouping: events) { event in
 			EventBucket(
 				for: event.timestamp,
 				now: now,
 				calendar: calendar,
 			)
 		}
-		return eventsByBucket.keys.sorted().map { bucket in
-			GoalProgressEventSection(
-				id: bucket.id,
-				title: bucket.title,
-				events: eventsByBucket[bucket] ?? [],
-			)
-		}
+		return eventsByBucket.keys
+			.sorted { lhs, rhs in
+				lhs.isOrdered(before: rhs, sortOrder: sortOrder)
+			}
+			.map { bucket in
+				GoalProgressEventSection(
+					id: bucket.id,
+					title: bucket.title,
+					events: sortOrder.sorted(eventsByBucket[bucket] ?? []),
+				)
+			}
 	}
-    
-    // MARK: - EventBucket
 
-	private enum EventBucket: Hashable, Comparable {
+	// MARK: - EventBucket
+
+	private enum EventBucket: Hashable {
 		case today
 		case thisWeek
 		case thisMonth
@@ -89,16 +93,28 @@ enum GoalProgressEventGrouper {
 			}
 		}
 
-		static func < (lhs: EventBucket, rhs: EventBucket) -> Bool {
-			switch (lhs.relativeSortValue, rhs.relativeSortValue) {
-			case (.some(let lhsValue), .some(let rhsValue)):
-				lhsValue < rhsValue
+		func isOrdered(
+			before otherBucket: EventBucket,
+			sortOrder: GoalProgressEventSortOrder,
+		) -> Bool {
+			switch sortOrder {
+			case .newestFirst:
+				isNewestFirstOrdered(before: otherBucket)
+			case .oldestFirst:
+				otherBucket.isNewestFirstOrdered(before: self)
+			}
+		}
+
+		private func isNewestFirstOrdered(before otherBucket: EventBucket) -> Bool {
+			switch (relativeSortValue, otherBucket.relativeSortValue) {
+			case (.some(let value), .some(let otherValue)):
+				value < otherValue
 			case (.some, .none):
 				true
 			case (.none, .some):
 				false
 			case (.none, .none):
-				lhs.yearValue > rhs.yearValue
+				yearValue > otherBucket.yearValue
 			}
 		}
 
@@ -124,12 +140,18 @@ enum GoalProgressEventGrouper {
 			return year
 		}
 	}
+}
 
-	private static func newestFirst(
-		_ lhs: GoalProgressEvent,
-		_ rhs: GoalProgressEvent,
-	) -> Bool {
-		lhs.timestamp > rhs.timestamp
+private extension GoalProgressEventSortOrder {
+	func sorted(_ events: [GoalProgressEvent]) -> [GoalProgressEvent] {
+		events.sorted { lhs, rhs in
+			switch self {
+			case .newestFirst:
+				lhs.timestamp > rhs.timestamp
+			case .oldestFirst:
+				lhs.timestamp < rhs.timestamp
+			}
+		}
 	}
 }
 
