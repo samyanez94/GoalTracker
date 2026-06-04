@@ -38,7 +38,7 @@ struct GoalProgressUpdateView: View {
 					.foregroundStyle(.secondary)
 			}
 		}
-		.frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
 		.padding()
 		.navigationTitle(progressAmountTitle)
 		.navigationBarTitleDisplayMode(.inline)
@@ -55,15 +55,8 @@ struct GoalProgressUpdateView: View {
 				.buttonStyle(.glassProminent)
 				.disabled(isSaveDisabled)
 			}
-			ToolbarItemGroup(placement: .keyboard) {
-				Button(
-					"Toggle Sign",
-					systemImage: "plus.forwardslash.minus",
-					action: toggleSign
-				)
-				Spacer()
-			}
 		}
+		.progressKeyboardAccessory(action: toggleSign)
 		.onAppear {
 			isProgressFieldFocused = true
 		}
@@ -118,6 +111,30 @@ struct GoalProgressUpdateView: View {
 			dismiss()
 		} catch {
 			saveFailure = .updateProgress
+		}
+	}
+}
+
+private extension View {
+    
+	/// Attaches a leading keyboard accessory button for toggling the progress entry sign.
+	///
+	/// Uses `safeAreaInset` as a workaround for the iOS 26 keyboard toolbar padding
+	/// issue, pending [FB22938104](https://feedbackassistant.apple.com/feedback/22938104).
+	@ViewBuilder
+	func progressKeyboardAccessory(
+		action: @escaping () -> Void
+	) -> some View {
+		safeAreaInset(edge: .bottom, alignment: .leading) {
+			Button(action: action) {
+				Image(systemName: "plus.forwardslash.minus")
+					.font(.title2)
+					.padding(6)
+			}
+			.padding(.horizontal, 16)
+			.padding(.vertical, 8)
+			.buttonBorderShape(.circle)
+			.buttonStyle(.glass)
 		}
 	}
 }

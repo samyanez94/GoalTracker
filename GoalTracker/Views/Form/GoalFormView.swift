@@ -228,12 +228,6 @@ struct GoalFormView: View {
 					.buttonStyle(.glassProminent)
 					.disabled(formState.isSaveDisabled)
 			}
-			ToolbarItemGroup(placement: .keyboard) {
-				Button("Done", systemImage: "keyboard.chevron.compact.down") {
-					isTextInputFocused = false
-				}
-				Spacer()
-			}
 		}
 		.onChange(of: formState.schedule.hasTargetDate) {
 			isTextInputFocused = false
