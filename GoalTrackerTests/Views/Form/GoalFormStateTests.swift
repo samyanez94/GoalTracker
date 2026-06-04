@@ -18,14 +18,14 @@ struct GoalFormStateTests {
 
 		#expect(state.name == "")
 		#expect(state.details == "")
-		#expect(state.hasTargetDate == false)
-		#expect(state.reminder == nil)
-		#expect(state.isTargetDatePickerExpanded == false)
-		#expect(state.isProgressBased == false)
-		#expect(state.targetValue == 1)
-		#expect(state.step == 1)
-		#expect(state.selectedProgressUnit == nil)
-		#expect(state.recurrence == nil)
+		#expect(state.schedule.hasTargetDate == false)
+		#expect(state.schedule.reminder == nil)
+		#expect(state.schedule.isTargetDatePickerExpanded == false)
+		#expect(state.progress.isProgressBased == false)
+		#expect(state.progress.targetValue == 1)
+		#expect(state.progress.step == 1)
+		#expect(state.progress.selectedUnit == nil)
+		#expect(state.schedule.recurrence == nil)
 		#expect(state.selectedTags.isEmpty)
 		#expect(state.saveFailureKind == .addGoal)
 		#expect(state.isSaveDisabled)
@@ -55,8 +55,8 @@ struct GoalFormStateTests {
 	func `Hidden progress values do not mark outcome goal as changed`() {
 		let state = GoalFormState(mode: .create)
 
-		state.targetValue = 10
-		state.step = 2
+		state.progress.targetValue = 10
+		state.progress.step = 2
 
 		#expect(state.hasChanges == false)
 	}
@@ -65,7 +65,7 @@ struct GoalFormStateTests {
 	func `Enabling progress tracking marks state as changed`() {
 		let state = GoalFormState(mode: .create)
 
-		state.isProgressBased = true
+		state.progress.isProgressBased = true
 
 		#expect(state.hasChanges)
 	}
@@ -96,13 +96,13 @@ struct GoalFormStateTests {
 
 		#expect(state.name == "Run 10 miles")
 		#expect(state.details == "Weekly long run")
-		#expect(state.hasTargetDate)
-		#expect(state.targetDate == targetDate)
-		#expect(state.isProgressBased)
-		#expect(state.targetValue == 10)
-		#expect(state.step == 2)
-		#expect(state.selectedProgressUnit == .miles)
-		#expect(state.recurrence == nil)
+		#expect(state.schedule.hasTargetDate)
+		#expect(state.schedule.draftTargetDate == targetDate)
+		#expect(state.progress.isProgressBased)
+		#expect(state.progress.targetValue == 10)
+		#expect(state.progress.step == 2)
+		#expect(state.progress.selectedUnit == .miles)
+		#expect(state.schedule.recurrence == nil)
 		#expect(state.selectedTags.map(\.name) == ["Health", "Running"])
 		#expect(state.saveFailureKind == .updateGoal)
 	}
@@ -122,9 +122,9 @@ struct GoalFormStateTests {
 			),
 		)
 
-		#expect(state.recurrence == GoalRecurrence(cadence: .weekly))
-		#expect(state.reminder == reminder)
-		#expect(state.allowsTargetDate == false)
+		#expect(state.schedule.recurrence == GoalRecurrence(cadence: .weekly))
+		#expect(state.schedule.reminder == reminder)
+		#expect(state.schedule.allowsTargetDate == false)
 	}
 
 	@Test
@@ -140,9 +140,9 @@ struct GoalFormStateTests {
 	func `Invalid measurable values disable saving`() {
 		let state = GoalFormState(mode: .create)
 		state.name = "Read books"
-		state.isProgressBased = true
-		state.targetValue = 0
-		state.step = 1
+		state.progress.isProgressBased = true
+		state.progress.targetValue = 0
+		state.progress.step = 1
 
 		#expect(state.isSaveDisabled)
 	}
@@ -151,10 +151,10 @@ struct GoalFormStateTests {
 	func `Default measurable values allow saving`() {
 		let state = GoalFormState(mode: .create)
 		state.name = "Read books"
-		state.isProgressBased = true
+		state.progress.isProgressBased = true
 
-		#expect(state.targetValue == 1)
-		#expect(state.step == 1)
+		#expect(state.progress.targetValue == 1)
+		#expect(state.progress.step == 1)
 		#expect(state.isSaveDisabled == false)
 	}
 
@@ -179,14 +179,14 @@ struct GoalFormStateTests {
 		let reminder = GoalReminder()
 		let state = GoalFormState(mode: .create)
 		state.name = "File taxes"
-		state.hasTargetDate = true
-		state.targetDate = targetDate
-		state.reminder = reminder
+		state.schedule.hasTargetDate = true
+		state.schedule.draftTargetDate = targetDate
+		state.schedule.reminder = reminder
 
 		#expect(state.makeFormData().targetDate == targetDate)
 		#expect(state.makeFormData().reminder == reminder)
 
-		state.hasTargetDate = false
+		state.schedule.hasTargetDate = false
 
 		#expect(state.makeFormData().targetDate == nil)
 		#expect(state.makeFormData().reminder == nil)
@@ -198,16 +198,16 @@ struct GoalFormStateTests {
 		let reminder = GoalReminder()
 		let state = GoalFormState(mode: .create)
 		state.name = "Run"
-		state.hasTargetDate = true
-		state.targetDate = targetDate
-		state.reminder = reminder
+		state.schedule.hasTargetDate = true
+		state.schedule.draftTargetDate = targetDate
+		state.schedule.reminder = reminder
 
-		state.recurrence = GoalRecurrence(cadence: .daily)
+		state.schedule.recurrence = GoalRecurrence(cadence: .daily)
 
 		let data = state.makeFormData()
-		#expect(state.hasTargetDate == false)
-		#expect(state.reminder == reminder)
-		#expect(state.allowsTargetDate == false)
+		#expect(state.schedule.hasTargetDate == false)
+		#expect(state.schedule.reminder == reminder)
+		#expect(state.schedule.allowsTargetDate == false)
 		#expect(data.targetDate == nil)
 		#expect(data.reminder == reminder)
 		#expect(data.recurrence == GoalRecurrence(cadence: .daily))
@@ -230,9 +230,9 @@ struct GoalFormStateTests {
 		)
 
 		let data = state.makeFormData()
-		#expect(state.hasTargetDate == false)
-		#expect(state.reminder == reminder)
-		#expect(state.allowsTargetDate == false)
+		#expect(state.schedule.hasTargetDate == false)
+		#expect(state.schedule.reminder == reminder)
+		#expect(state.schedule.allowsTargetDate == false)
 		#expect(data.targetDate == nil)
 		#expect(data.reminder == reminder)
 		#expect(data.recurrence == GoalRecurrence(cadence: .weekly))
@@ -242,34 +242,30 @@ struct GoalFormStateTests {
 	func `Enabling target date does not default reminder`() {
 		let state = GoalFormState(mode: .create)
 
-		state.hasTargetDate = true
-		state.setTargetDateEnabled(true)
+		state.schedule.hasTargetDate = true
 
-		#expect(state.reminder == nil)
+		#expect(state.schedule.reminder == nil)
 	}
 
 	@Test
 	func `Enabling target date preserves existing reminder`() {
 		let reminder = GoalReminder()
 		let state = GoalFormState(mode: .create)
-		state.reminder = reminder
+		state.schedule.reminder = reminder
 
-		state.hasTargetDate = true
-		state.setTargetDateEnabled(true)
+		state.schedule.hasTargetDate = true
 
-		#expect(state.reminder == reminder)
+		#expect(state.schedule.reminder == reminder)
 	}
 
 	@Test
 	func `Disabling target date clears reminder`() {
 		let state = GoalFormState(mode: .create)
-		state.hasTargetDate = true
-		state.setTargetDateEnabled(true)
+		state.schedule.hasTargetDate = true
 
-		state.hasTargetDate = false
-		state.setTargetDateEnabled(false)
+		state.schedule.hasTargetDate = false
 
-		#expect(state.reminder == nil)
+		#expect(state.schedule.reminder == nil)
 	}
 
 	@Test
@@ -329,8 +325,8 @@ struct GoalFormStateTests {
 	func `Form data preserves selected recurrence`() {
 		let state = GoalFormState(mode: .create)
 		state.name = "Read"
-		state.recurrence = GoalRecurrence(cadence: .daily)
-		state.reminder = GoalReminder()
+		state.schedule.recurrence = GoalRecurrence(cadence: .daily)
+		state.schedule.reminder = GoalReminder()
 
 		let data = state.makeFormData()
 
@@ -350,7 +346,7 @@ struct GoalFormStateTests {
 				),
 			),
 		)
-		state.recurrence = nil
+		state.schedule.recurrence = nil
 
 		let data = state.makeFormData()
 
@@ -379,14 +375,13 @@ struct GoalFormStateTests {
 	func `Target date expansion follows target date enablement`() {
 		let state = GoalFormState(mode: .create)
 
-		state.toggleTargetDatePicker()
-		#expect(state.isTargetDatePickerExpanded == false)
+		state.schedule.toggleTargetDatePicker()
+		#expect(state.schedule.isTargetDatePickerExpanded == false)
 
-		state.hasTargetDate = true
-		state.setTargetDateEnabled(true)
-		#expect(state.isTargetDatePickerExpanded)
+		state.schedule.hasTargetDate = true
+		#expect(state.schedule.isTargetDatePickerExpanded)
 
-		state.toggleTargetDatePicker()
-		#expect(state.isTargetDatePickerExpanded == false)
+		state.schedule.toggleTargetDatePicker()
+		#expect(state.schedule.isTargetDatePickerExpanded == false)
 	}
 }

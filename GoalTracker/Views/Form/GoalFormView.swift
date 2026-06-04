@@ -109,9 +109,9 @@ struct GoalFormView: View {
 					.foregroundStyle(.secondary)
 			}
 			Section {
-				GoalRecurrencePickerRow(recurrence: $formState.recurrence)
-				if formState.recurrence != nil {
-					GoalReminderToggleRow(reminder: $formState.reminder)
+				GoalRecurrencePickerRow(recurrence: $formState.schedule.recurrence)
+				if formState.schedule.recurrence != nil {
+					GoalReminderToggleRow(reminder: $formState.schedule.reminder)
 				}
 			} header: {
 				Text("Recurrence")
@@ -122,34 +122,36 @@ struct GoalFormView: View {
 				.font(.footnote)
 				.foregroundStyle(.secondary)
 			}
-			if formState.allowsTargetDate {
+			if formState.schedule.allowsTargetDate {
 				Section {
 					HStack {
 						TargetDateSummaryButton(
-							hasTargetDate: formState.hasTargetDate,
-							targetDate: formState.targetDate,
+							hasTargetDate: formState.schedule.hasTargetDate,
+							targetDate: formState.schedule.draftTargetDate,
 							action: {
 								withAnimation {
-									formState.toggleTargetDatePicker()
+									formState.schedule.toggleTargetDatePicker()
 								}
 							},
 						)
 						Toggle(
 							"Target Date",
-							isOn: $formState.hasTargetDate,
+							isOn: $formState.schedule.hasTargetDate,
 						)
 						.labelsHidden()
 					}
-					if formState.hasTargetDate, formState.isTargetDatePickerExpanded {
+					if formState.schedule.hasTargetDate,
+						formState.schedule.isTargetDatePickerExpanded
+					{
 						DatePicker(
 							"Select target date",
-							selection: $formState.targetDate,
+							selection: $formState.schedule.draftTargetDate,
 							displayedComponents: .date,
 						)
 						.datePickerStyle(.graphical)
 					}
-					if formState.hasTargetDate {
-						GoalReminderToggleRow(reminder: $formState.reminder)
+					if formState.schedule.hasTargetDate {
+						GoalReminderToggleRow(reminder: $formState.schedule.reminder)
 					}
 				} header: {
 					Text("Date")
@@ -162,7 +164,7 @@ struct GoalFormView: View {
 				}
 			}
 			Section {
-				Toggle(isOn: $formState.isProgressBased) {
+				Toggle(isOn: $formState.progress.isProgressBased) {
 					Label {
 						Text("Track progress")
 					} icon: {
@@ -170,17 +172,17 @@ struct GoalFormView: View {
 							.foregroundStyle(.secondary)
 					}
 				}
-				if formState.isProgressBased {
+				if formState.progress.isProgressBased {
 					ProgressTextFieldRow(
 						label: "Target Value",
 						placeholder: "1",
-						value: $formState.targetValue,
+						value: $formState.progress.targetValue,
 						focus: $isTextInputFocused,
 					)
 					ProgressTextFieldRow(
 						label: "Step",
 						placeholder: "1",
-						value: $formState.step,
+						value: $formState.progress.step,
 						focus: $isTextInputFocused,
 					)
 					NavigationLink(value: GoalFormDestination.progressUnit) {
@@ -188,7 +190,7 @@ struct GoalFormView: View {
 							Text("Unit")
 								.foregroundStyle(.primary)
 							Spacer()
-							Text(formState.selectedProgressUnit?.title ?? "None")
+							Text(formState.progress.selectedUnit?.title ?? "None")
 								.foregroundStyle(.secondary)
 						}
 					}
@@ -233,13 +235,10 @@ struct GoalFormView: View {
 				Spacer()
 			}
 		}
-		.onChange(of: formState.hasTargetDate) { _, hasTargetDate in
+		.onChange(of: formState.schedule.hasTargetDate) {
 			isTextInputFocused = false
-			withAnimation {
-				formState.setTargetDateEnabled(hasTargetDate)
-			}
 		}
-		.onChange(of: formState.isProgressBased) {
+		.onChange(of: formState.progress.isProgressBased) {
 			isTextInputFocused = false
 		}
 		.navigationDestination(for: GoalFormDestination.self) { destination in
@@ -247,10 +246,9 @@ struct GoalFormView: View {
 			case .tags:
 				TagSelectionView(selectedTags: $formState.selectedTags)
 			case .progressUnit:
-				ProgressUnitSelectionView(selectedUnit: $formState.selectedProgressUnit)
+				ProgressUnitSelectionView(selectedUnit: $formState.progress.selectedUnit)
 			}
 		}
-		.interactiveDismissDisabled(formState.hasChanges)
 		.goalSaveFailureAlert(failure: $saveFailure)
 	}
 

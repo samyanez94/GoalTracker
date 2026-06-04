@@ -18,25 +18,12 @@ import Observation
 final class GoalFormState {
 	var name: String
 	var details: String
-	var hasTargetDate: Bool
-	var targetDate: Date
-	var reminder: GoalReminder?
-	var isTargetDatePickerExpanded = false
-	var isProgressBased: Bool
-	var targetValue: Double = 1
-	var step: Double = 1
-	var selectedProgressUnit: GoalProgressUnit?
-    var selectedTags: [GoalFormTagSelection]
-
-	var recurrence: GoalRecurrence? {
-		didSet {
-			clearTargetDateIfNeededForRecurrence()
-		}
-	}
+	var schedule: GoalFormScheduleState
+	var progress: GoalFormProgressState
+	var selectedTags: [GoalFormTagSelection]
 
 	let mode: GoalFormMode
-    
-	private let initialOutcomeIsCompleted: Bool
+
 	private var initialSnapshot = GoalFormSnapshot.empty
 	private let now: () -> Date
 
@@ -49,23 +36,14 @@ final class GoalFormState {
 		let data = mode.initialData
 		name = data.name
 		details = data.details
-		hasTargetDate = data.targetDate != nil && data.recurrence == nil
-		targetDate = data.targetDate ?? Date()
-		reminder = data.reminder
-		recurrence = data.recurrence
+		schedule = GoalFormScheduleState(
+			targetDate: data.targetDate,
+			reminder: data.reminder,
+			recurrence: data.recurrence,
+			defaultTargetDate: now(),
+		)
+		progress = GoalFormProgressState(progress: data.progress)
 		selectedTags = data.tags
-		initialOutcomeIsCompleted = data.progress.isCompleted
-
-		switch data.progress {
-		case .measurable(let progress):
-			isProgressBased = true
-			targetValue = progress.targetValue
-			step = progress.step
-			selectedProgressUnit = progress.unit
-		case .outcome:
-			isProgressBased = false
-			selectedProgressUnit = nil
-		}
 
 		initialSnapshot = currentSnapshot
 	}
@@ -74,10 +52,7 @@ final class GoalFormState {
 		guard !trimmedName.isEmpty else {
 			return true
 		}
-		guard isProgressBased else {
-			return false
-		}
-		guard hasValidProgressValues else {
+		guard progress.isSaveValid else {
 			return true
 		}
 		return false
@@ -96,42 +71,16 @@ final class GoalFormState {
 		currentSnapshot != initialSnapshot
 	}
 
-	var allowsTargetDate: Bool {
-		recurrence == nil
-	}
-
-	func toggleTargetDatePicker() {
-		guard hasTargetDate else {
-			return
-		}
-		isTargetDatePickerExpanded.toggle()
-	}
-
-	func setTargetDateEnabled(_ isEnabled: Bool) {
-		isTargetDatePickerExpanded = isEnabled
-		if !isEnabled, recurrence == nil {
-			reminder = nil
-		}
-	}
-
 	func makeFormData() -> GoalFormData {
 		GoalFormData(
 			name: trimmedName,
 			details: details,
-			targetDate: allowsTargetDate && hasTargetDate ? targetDate : nil,
-			reminder: recurrence != nil || hasTargetDate ? reminder : nil,
-			progress: progress,
-			recurrence: recurrence,
+			targetDate: schedule.formTargetDate,
+			reminder: schedule.formReminder,
+			progress: progress.makeProgress(timestamp: now()),
+			recurrence: schedule.recurrence,
 			tags: selectedTags,
 		)
-	}
-
-	private func clearTargetDateIfNeededForRecurrence() {
-		guard recurrence != nil else {
-			return
-		}
-		hasTargetDate = false
-		isTargetDatePickerExpanded = false
 	}
 
 	private var trimmedName: String {
@@ -147,39 +96,10 @@ final class GoalFormState {
 		GoalFormSnapshot(
 			name: trimmedName,
 			details: normalizedDetails,
-			targetDate: allowsTargetDate && hasTargetDate ? targetDate : nil,
-			reminder: recurrence != nil || hasTargetDate ? reminder : nil,
-			recurrence: recurrence,
-			isProgressBased: isProgressBased,
-			targetValue: isProgressBased ? targetValue : nil,
-			step: isProgressBased ? step : nil,
-			progressUnitId: isProgressBased ? selectedProgressUnit?.id : nil,
+			schedule: schedule.snapshot,
+			progress: progress.snapshot,
 			tagNames: Set(selectedTags.map(\.normalizedName)),
 		)
-	}
-
-	private var hasValidProgressValues: Bool {
-		return MeasurableProgress.isValid(
-			currentValue: .zero,
-			targetValue: targetValue,
-			step: step,
-		)
-	}
-
-	private var progress: GoalProgress {
-		if isProgressBased {
-			return .measurable(
-				currentValue: .zero,
-				targetValue: targetValue,
-				step: step,
-				unit: selectedProgressUnit,
-				timestamp: now(),
-			)
-		}
-		if initialOutcomeIsCompleted {
-			return .outcome(OutcomeProgress.completed(timestamp: now()))
-		}
-		return .outcome(OutcomeProgress())
 	}
 }
 
@@ -191,25 +111,24 @@ final class GoalFormState {
 private struct GoalFormSnapshot: Equatable {
 	var name: String
 	var details: String?
-	var targetDate: Date?
-	var reminder: GoalReminder?
-	var recurrence: GoalRecurrence?
-	var isProgressBased: Bool
-	var targetValue: Double?
-	var step: Double?
-	var progressUnitId: String?
+	var schedule: GoalFormScheduleState.Snapshot
+	var progress: GoalFormProgressState.Snapshot
 	var tagNames: Set<String>
 
 	static let empty = GoalFormSnapshot(
 		name: "",
 		details: nil,
-		targetDate: nil,
-		reminder: nil,
-		recurrence: nil,
-		isProgressBased: false,
-		targetValue: nil,
-		step: nil,
-		progressUnitId: nil,
+		schedule: GoalFormScheduleState.Snapshot(
+			targetDate: nil,
+			reminder: nil,
+			recurrence: nil,
+		),
+		progress: GoalFormProgressState.Snapshot(
+			isProgressBased: false,
+			targetValue: nil,
+			step: nil,
+			progressUnitId: nil,
+		),
 		tagNames: [],
 	)
 }
