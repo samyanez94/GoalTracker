@@ -8,10 +8,13 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import UserNotifications
 
 @main
 struct GoalTrackerApp: App {
 	private let modelContainer: ModelContainer
+
+	@State private var notificationRouter: GoalNotificationRouter
 
 	init() {
 		do {
@@ -21,11 +24,14 @@ struct GoalTrackerApp: App {
 		} catch {
 			fatalError("Failed to create model container: \(error)")
 		}
+		let notificationRouter = GoalNotificationRouter()
+		UNUserNotificationCenter.current().delegate = notificationRouter
+		_notificationRouter = State(initialValue: notificationRouter)
 	}
 
 	var body: some Scene {
 		WindowGroup {
-			GoalListView()
+			GoalListView(notificationRouter: notificationRouter)
 		}
 		.modelContainer(modelContainer)
 	}

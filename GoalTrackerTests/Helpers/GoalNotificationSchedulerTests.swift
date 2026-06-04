@@ -189,6 +189,10 @@ struct GoalNotificationSchedulerTests {
 		#expect(request.content.title == "File taxes")
 		#expect(request.content.body == "Don't forget to complete today")
 		#expect(request.content.sound == .default)
+		#expect(
+			request.content.userInfo[GoalNotificationPayload.goalIdUserInfoKey] as? String
+				== goalID.uuidString
+		)
 		#expect(trigger.dateComponents.year == 2026)
 		#expect(trigger.dateComponents.month == 5)
 		#expect(trigger.dateComponents.day == 21)

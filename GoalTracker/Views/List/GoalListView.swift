@@ -15,6 +15,8 @@ struct GoalListView: View {
 
 	@Query private var goals: [Goal]
 
+	@State private var navigationPath: [Goal] = []
+
 	@State private var editMode = EditMode.inactive
 
 	@State private var isPresentingGoalFormView = false
@@ -43,8 +45,14 @@ struct GoalListView: View {
 
 	private let searchFilter = GoalSearchFilter()
 
+	private let notificationRouter: GoalNotificationRouter
+
+	init(notificationRouter: GoalNotificationRouter = GoalNotificationRouter()) {
+		self.notificationRouter = notificationRouter
+	}
+
 	var body: some View {
-		NavigationStack {
+		NavigationStack(path: $navigationPath) {
 			Group {
 				if goals.isEmpty {
 					emptyStateView("No goals")
@@ -114,6 +122,15 @@ struct GoalListView: View {
 			.goalSaveFailureAlert(failure: $saveFailure)
 			.onChange(of: visibleGoalIds) { _, _ in
 				pruneSelectedGoalIds()
+			}
+			.onChange(of: notificationRouter.pendingGoalId) { _, goalId in
+				navigateToGoalIfPossible(goalId)
+			}
+			.onChange(of: goals.map(\.id)) { _, _ in
+				navigateToGoalIfPossible(notificationRouter.pendingGoalId)
+			}
+			.onAppear {
+				navigateToGoalIfPossible(notificationRouter.pendingGoalId)
 			}
 		}
 	}
@@ -210,6 +227,19 @@ struct GoalListView: View {
 
 	private func pruneSelectedGoalIds() {
 		selectedGoalIds.formIntersection(visibleGoalIds)
+	}
+
+	private func navigateToGoalIfPossible(_ goalId: UUID?) {
+		guard let goalId,
+			let goal = goals.first(where: { $0.id == goalId })
+		else {
+			return
+		}
+		finishSelectingGoals()
+		isPresentingGoalFormView = false
+		isPresentingDeleteConfirmation = false
+		navigationPath = [goal]
+		notificationRouter.pendingGoalId = nil
 	}
 }
 

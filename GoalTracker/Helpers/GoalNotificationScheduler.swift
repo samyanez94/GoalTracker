@@ -206,6 +206,9 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 		content.title = schedule.goalName
 		content.body = notificationBody(for: schedule)
 		content.sound = .default
+		content.userInfo = [
+			GoalNotificationPayload.goalIdUserInfoKey: schedule.goalId.uuidString
+		]
 		return content
 	}
 
