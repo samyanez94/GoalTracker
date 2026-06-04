@@ -14,6 +14,7 @@ struct GoalDetailCircularProgressView: View {
 
 	let progress: Double
 	let color: Color = .accentColor
+	let size: CGFloat = 96
 	let lineWidth: CGFloat = 15
 
 	private var clampedProgress: Double {
@@ -32,58 +33,57 @@ struct GoalDetailCircularProgressView: View {
 		color.opacity(0.15)
 	}
 
+	private var ringSide: CGFloat {
+		max(size - lineWidth, 0)
+	}
+
+	private var capOffset: CGFloat {
+		-ringSide / 2
+	}
+
 	var body: some View {
-		GeometryReader { geometry in
-			let side = min(geometry.size.width, geometry.size.height)
-			let ringSide = max(side - lineWidth, 0)
-			let capOffset = -ringSide / 2
+		ZStack {
 			ZStack {
-				ZStack {
-					Circle()
-						.stroke(backgroundColor, lineWidth: lineWidth)
-					Circle()
-						.trim(from: 0, to: displayedProgress)
-						.stroke(
-							AngularGradient(
-								gradient: Gradient(colors: [color, endColor]),
-								center: .center,
-								startAngle: .degrees(0),
-								endAngle: .degrees(360),
-							),
-							style: StrokeStyle(
-								lineWidth: lineWidth,
-								lineCap: .round,
-							),
-						)
-						.rotationEffect(.degrees(-90))
-					Circle()
-						.frame(width: lineWidth, height: lineWidth)
-						.foregroundStyle(color)
-						.offset(y: capOffset)
-					CompletionCap(
-						progress: displayedProgress,
-						color: endColor,
-						diameter: lineWidth,
-						verticalOffset: capOffset,
+				Circle()
+					.stroke(backgroundColor, lineWidth: lineWidth)
+				Circle()
+					.trim(from: 0, to: displayedProgress)
+					.stroke(
+						AngularGradient(
+							gradient: Gradient(colors: [color, endColor]),
+							center: .center,
+							startAngle: .degrees(0),
+							endAngle: .degrees(360),
+						),
+						style: StrokeStyle(
+							lineWidth: lineWidth,
+							lineCap: .round,
+						),
 					)
-				}
-				.frame(width: ringSide, height: ringSide, alignment: .center)
-				Text(percentageText)
-					.bold()
-					.lineLimit(1)
-					.minimumScaleFactor(0.75)
-					.monospacedDigit()
-					.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+					.rotationEffect(.degrees(-90))
+				Circle()
+					.frame(width: lineWidth, height: lineWidth)
+					.foregroundStyle(color)
+					.offset(y: capOffset)
+				CompletionCap(
+					progress: displayedProgress,
+					color: endColor,
+					diameter: lineWidth,
+					verticalOffset: capOffset,
+				)
 			}
-			.frame(
-				width: geometry.size.width,
-				height: geometry.size.height,
-				alignment: .center,
-			)
-			.animation(.spring(.smooth, blendDuration: 0.5), value: displayedProgress)
-			.task(id: clampedProgress) {
-				displayedProgress = clampedProgress
-			}
+			.frame(width: ringSide, height: ringSide, alignment: .center)
+			Text(percentageText)
+				.bold()
+				.lineLimit(1)
+				.minimumScaleFactor(0.75)
+				.monospacedDigit()
+				.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+		}
+		.frame(width: size, height: size, alignment: .center)
+		.animation(.spring(.smooth, blendDuration: 0.5), value: displayedProgress)
+		.task(id: clampedProgress) {
+			displayedProgress = clampedProgress
 		}
 	}
 

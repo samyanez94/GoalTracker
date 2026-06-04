@@ -76,7 +76,7 @@ struct GoalProgressUpdateView: View {
 		else {
 			return nil
 		}
-		return unit.title.capitalized
+		return unit.title
 	}
 
 	private var isSaveDisabled: Bool {
@@ -112,7 +112,9 @@ struct GoalProgressUpdateView: View {
 			return
 		}
 		do {
-			try goalManager.updateProgress(goal, by: progressAmount)
+			guard try goalManager.updateProgress(goal, by: progressAmount) else {
+				return
+			}
 			dismiss()
 		} catch {
 			saveFailure = .updateProgress

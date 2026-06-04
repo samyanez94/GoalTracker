@@ -22,6 +22,7 @@ struct GoalDetailStatusSection: View {
 					.imageScale(.large)
 					.foregroundStyle(goal.isCompleted() ? AnyShapeStyle(.accent) : AnyShapeStyle(.tertiary))
 					.contentTransition(.symbolEffect(.replace))
+					.accessibilityHidden(true)
 				Text("Status")
 				Spacer(minLength: 8)
 				Text(goal.status().displayString)

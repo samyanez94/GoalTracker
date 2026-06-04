@@ -1,5 +1,5 @@
 //
-//  GoalDetailBottomActionView.swift
+//  GoalDetailBottomView.swift
 //  GoalTracker
 //
 //  Created by Samuel Yanez on 5/13/26.

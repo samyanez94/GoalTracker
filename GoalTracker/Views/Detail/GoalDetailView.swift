@@ -95,8 +95,10 @@ struct GoalDetailView: View {
 
 	private func toggleCompletion() {
 		do {
-			guard try goalManager.toggleCompletion(goal) else {
-				return
+			_ = try withAnimation {
+				guard try goalManager.toggleCompletion(goal) else {
+					return
+				}
 			}
 		} catch {
 			saveFailure = .updateProgress

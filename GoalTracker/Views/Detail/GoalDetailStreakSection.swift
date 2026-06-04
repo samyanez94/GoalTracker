@@ -23,6 +23,7 @@ struct GoalDetailStreakSection: View {
 						.imageScale(.large)
 						.foregroundStyle(streakDetails.iconForegroundStyle)
 						.contentTransition(.symbolEffect(.replace))
+						.accessibilityHidden(true)
 					Text("Current Streak")
 					Spacer(minLength: 8)
 					Text(streakDetails.title)

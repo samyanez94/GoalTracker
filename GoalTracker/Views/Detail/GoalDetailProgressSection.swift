@@ -31,7 +31,6 @@ struct GoalDetailProgressSection: View {
 				GoalDetailCircularProgressView(
 					progress: fractionCompleted
 				)
-				.frame(width: 96, height: 96)
 			}
 			.padding(.all, 16)
 			.frame(maxWidth: .infinity, alignment: .leading)
@@ -84,7 +83,10 @@ struct GoalDetailProgressSection: View {
 			remainingValue,
 			for: progress
 		)
-		return "\(remainingText) more to go"
+		guard !unitText.isEmpty else {
+			return "\(remainingText) more to go"
+		}
+		return "\(remainingText) \(unitText) more to go"
 	}
 
 	private func formattedNumber(_ value: Double, for progress: MeasurableProgress) -> String {
