@@ -9,6 +9,7 @@
 
 enum GoalProgressEventDeletionFailure: Identifiable {
 	case blocked
+	case blockedBatch
 	case saveFailed
 
 	var id: Self {
@@ -19,6 +20,8 @@ enum GoalProgressEventDeletionFailure: Identifiable {
 		switch self {
 		case .blocked:
 			"Progress Event Not Deleted"
+		case .blockedBatch:
+			"Progress Events Not Deleted"
 		case .saveFailed:
 			"Couldn't Delete Progress"
 		}
@@ -28,6 +31,8 @@ enum GoalProgressEventDeletionFailure: Identifiable {
 		switch self {
 		case .blocked:
 			"Deleting this event would make the remaining progress history invalid."
+		case .blockedBatch:
+			"Deleting these events would make the remaining progress history invalid."
 		case .saveFailed:
 			"Your progress change wasn't saved. Please try again."
 		}

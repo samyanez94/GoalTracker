@@ -288,6 +288,19 @@ nonisolated struct MeasurableProgress: Codable, Equatable {
 		return replacingEventsIfValid(with: updatedEvents)
 	}
 
+	func deletingEvents(ids: Set<GoalProgressEvent.ID>) -> MeasurableProgress? {
+		guard !ids.isEmpty else {
+			return nil
+		}
+		let updatedEvents = events.filter { event in
+			!ids.contains(event.id)
+		}
+		guard updatedEvents.count != events.count else {
+			return nil
+		}
+		return replacingEventsIfValid(with: updatedEvents)
+	}
+
 	private func replacingEventsIfValid(with events: [GoalProgressEvent]) -> MeasurableProgress? {
 		guard Self.isValid(
 			events: events,

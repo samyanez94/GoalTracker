@@ -15,7 +15,13 @@ struct GoalProgressEventListView: View {
 
 	let goal: Goal
 
+	@State private var editMode = EditMode.inactive
+
 	@State private var sortOrder = GoalProgressEventSortOrder.newestFirst
+
+	@State private var selectedEventIds = Set<GoalProgressEvent.ID>()
+
+	@State private var isPresentingDeleteConfirmation = false
 
 	@State private var deletionFailure: GoalProgressEventDeletionFailure?
 
@@ -28,18 +34,21 @@ struct GoalProgressEventListView: View {
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
 					.background(Color(.systemGroupedBackground))
 			} else {
-				List(eventSections) { section in
-					Section(section.title) {
-						ForEach(section.events) { event in
-							GoalProgressEventRowView(
-								event: event,
-								unit: progress?.unit,
-							)
-							.swipeActions {
-								Button(role: .destructive) {
-									deleteEvent(id: event.id)
-								} label: {
-									Label("Delete", systemImage: "trash")
+				List(selection: $selectedEventIds) {
+					ForEach(eventSections) { section in
+						Section(section.title) {
+							ForEach(section.events) { event in
+								GoalProgressEventRowView(
+									event: event,
+									unit: progress?.unit,
+								)
+								.tag(event.id)
+								.swipeActions {
+									Button(role: .destructive) {
+										deleteEvent(id: event.id)
+									} label: {
+										Label("Delete", systemImage: "trash")
+									}
 								}
 							}
 						}
@@ -47,21 +56,55 @@ struct GoalProgressEventListView: View {
 				}
 			}
 		}
-		.navigationTitle("Progress")
+		.navigationTitle("History")
 		.navigationBarTitleDisplayMode(.large)
+		.environment(\.editMode, $editMode)
 		.toolbar {
-			ToolbarItem(placement: .topBarTrailing) {
-				Menu {
-					Picker("Sort", selection: $sortOrder) {
-						ForEach(GoalProgressEventSortOrder.allCases) { sortOrder in
-							Text(sortOrder.title)
-								.tag(sortOrder)
-						}
-					}
-				} label: {
-					Label("Sort", systemImage: "arrow.up.arrow.down")
+			if isSelectingEvents {
+				ToolbarItem(placement: .topBarLeading) {
+					Button(selectAllButtonTitle, action: toggleSelectAllEvents)
+						.disabled(visibleEventIds.isEmpty)
 				}
-				.disabled(events.isEmpty)
+				ToolbarItem(placement: .topBarTrailing) {
+					Button("Done", systemImage: "checkmark", action: finishSelectingEvents)
+				}
+				ToolbarItem(placement: .bottomBar) {
+					Button(
+						selectedEventCount == 1 ? "Delete Event" : "Delete Events",
+						systemImage: "trash",
+						role: .destructive,
+						action: {
+							isPresentingDeleteConfirmation = true
+						},
+					)
+					.disabled(selectedEventCount == 0)
+					.goalProgressEventDeleteConfirmationDialog(
+						isPresented: $isPresentingDeleteConfirmation,
+						eventCount: selectedEventCount,
+						onDelete: deleteSelectedEvents,
+					)
+				}
+			} else {
+				ToolbarItem(placement: .topBarTrailing) {
+					Menu {
+						Button(action: selectEvents) {
+							Label("Select Events", systemImage: "checkmark.circle")
+						}
+						.disabled(events.isEmpty)
+						Menu {
+							Picker("Sort", selection: $sortOrder) {
+								ForEach(GoalProgressEventSortOrder.allCases) { sortOrder in
+									Text(sortOrder.title)
+										.tag(sortOrder)
+								}
+							}
+						} label: {
+							Label("Sort By", systemImage: "arrow.up.arrow.down")
+						}
+					} label: {
+						Label("List Options", systemImage: "ellipsis")
+					}
+				}
 			}
 		}
 		.alert(item: $deletionFailure) { failure in
@@ -70,6 +113,9 @@ struct GoalProgressEventListView: View {
 				message: Text(failure.message),
 				dismissButton: .default(Text("OK")),
 			)
+		}
+		.onChange(of: visibleEventIds) { _, _ in
+			pruneSelectedEventIds()
 		}
 	}
 
@@ -91,8 +137,46 @@ struct GoalProgressEventListView: View {
 		)
 	}
 
+	private var isSelectingEvents: Bool {
+		editMode.isEditing
+	}
+
+	private var visibleEventIds: Set<GoalProgressEvent.ID> {
+		Set(events.map(\.id))
+	}
+
+	private var selectedEventCount: Int {
+		selectedEventIds.intersection(visibleEventIds).count
+	}
+
+	private var allVisibleEventsAreSelected: Bool {
+		!visibleEventIds.isEmpty && selectedEventCount == visibleEventIds.count
+	}
+
+	private var selectAllButtonTitle: String {
+		allVisibleEventsAreSelected ? "Deselect All" : "Select All"
+	}
+
 	private var goalManager: GoalManager {
 		GoalManager(modelContext: modelContext)
+	}
+
+	private func selectEvents() {
+		editMode = .active
+	}
+
+	private func finishSelectingEvents() {
+		selectedEventIds.removeAll()
+		isPresentingDeleteConfirmation = false
+		editMode = .inactive
+	}
+
+	private func toggleSelectAllEvents() {
+		if allVisibleEventsAreSelected {
+			selectedEventIds.removeAll()
+		} else {
+			selectedEventIds = visibleEventIds
+		}
 	}
 
 	private func deleteEvent(id: GoalProgressEvent.ID) {
@@ -106,6 +190,29 @@ struct GoalProgressEventListView: View {
 		} catch {
 			deletionFailure = .saveFailed
 		}
+	}
+
+	private func deleteSelectedEvents() {
+		pruneSelectedEventIds()
+		guard !selectedEventIds.isEmpty else {
+			return
+		}
+		do {
+			let didDelete = try withAnimation {
+				try goalManager.deleteProgressEvents(ids: selectedEventIds, from: goal)
+			}
+			if didDelete {
+				finishSelectingEvents()
+			} else {
+				deletionFailure = .blockedBatch
+			}
+		} catch {
+			deletionFailure = .saveFailed
+		}
+	}
+
+	private func pruneSelectedEventIds() {
+		selectedEventIds.formIntersection(visibleEventIds)
 	}
 }
 

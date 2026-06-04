@@ -180,6 +180,102 @@ struct GoalManagerTests {
 	}
 
 	@Test
+	func `Deleting progress events saves and updates measurable events`() async throws {
+		let container = try makeContainer()
+		let firstDeletedEventID = UUID()
+		let secondDeletedEventID = UUID()
+		let goal = makeGoal(
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+						GoalProgressEvent(id: firstDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+						GoalProgressEvent(id: secondDeletedEventID, delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+					],
+					targetValue: 10,
+					step: 2,
+				)
+			),
+		)
+		insert(goal, into: container)
+		let manager = makeManager(in: container)
+
+		let didDelete = try manager.deleteProgressEvents(
+			ids: [firstDeletedEventID, secondDeletedEventID],
+			from: goal,
+		)
+
+		#expect(didDelete)
+		#expect(goal.progress.events.map(\.delta) == [4])
+		#expect(goal.progress.currentValue == 4)
+	}
+
+	@Test
+	func `Blocked progress event batch delete leaves events unchanged`() async throws {
+		let container = try makeContainer()
+		let firstDeletedEventID = UUID()
+		let secondDeletedEventID = UUID()
+		let goal = makeGoal(
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(id: firstDeletedEventID, delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+						GoalProgressEvent(id: secondDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+						GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+					],
+					targetValue: 10,
+				)
+			),
+		)
+		insert(goal, into: container)
+		let manager = makeManager(in: container)
+
+		let didDelete = try manager.deleteProgressEvents(
+			ids: [firstDeletedEventID, secondDeletedEventID],
+			from: goal,
+		)
+
+		#expect(didDelete == false)
+		#expect(goal.progress.events.map(\.delta) == [10, 2, -3])
+		#expect(goal.progress.currentValue == 9)
+	}
+
+	@Test
+	func `Progress event batch delete save failure rolls back events and throws`() async throws {
+		let container = try makeContainer()
+		let firstDeletedEventID = UUID()
+		let secondDeletedEventID = UUID()
+		let goal = makeGoal(
+			progress: .measurable(
+				MeasurableProgress(
+					events: [
+						GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+						GoalProgressEvent(id: firstDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+						GoalProgressEvent(id: secondDeletedEventID, delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+					],
+					targetValue: 10,
+				)
+			),
+		)
+		insert(goal, into: container)
+		let manager = GoalManager(
+			modelContext: container.mainContext,
+			saveContext: {
+				throw TestSaveError.failed
+			},
+		)
+
+		#expect(throws: GoalManager.SaveError.self) {
+			try manager.deleteProgressEvents(
+				ids: [firstDeletedEventID, secondDeletedEventID],
+				from: goal,
+			)
+		}
+		#expect(goal.progress.events.map(\.delta) == [4, 2, 3])
+		#expect(goal.progress.currentValue == 9)
+	}
+
+	@Test
 	func `Recurring custom progress update applies to current cadence period only`() async throws {
 		let container = try makeContainer()
 		let yesterday = date(year: 2026, month: 5, day: 27, hour: 12)

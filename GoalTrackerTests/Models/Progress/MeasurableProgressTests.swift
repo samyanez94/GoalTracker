@@ -260,6 +260,80 @@ struct MeasurableProgressTests {
 		#expect(updatedProgress.currentValue == 0)
 	}
 
+	@Test
+	func `Deleting multiple valid events removes only those events`() throws {
+		let firstDeletedEventID = UUID()
+		let secondDeletedEventID = UUID()
+		let progress = measurableProgress(
+			events: [
+				GoalProgressEvent(id: firstDeletedEventID, delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+				GoalProgressEvent(delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+				GoalProgressEvent(id: secondDeletedEventID, delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+			],
+			targetValue: 10,
+		)
+
+		let updatedProgress = try #require(
+			progress.deletingEvents(ids: [firstDeletedEventID, secondDeletedEventID])
+		)
+
+		#expect(updatedProgress.events.map(\.delta) == [2])
+		#expect(updatedProgress.events.map(\.timestamp) == [
+			Date(timeIntervalSinceReferenceDate: 2)
+		])
+		#expect(updatedProgress.currentValue == 2)
+	}
+
+	@Test
+	func `Deleting events with an empty id set returns nil`() {
+		let progress = makeProgress(currentValue: 4, targetValue: 10)
+
+		#expect(progress.deletingEvents(ids: []) == nil)
+	}
+
+	@Test
+	func `Deleting events with no matching ids returns nil`() {
+		let progress = makeProgress(currentValue: 4, targetValue: 10)
+
+		#expect(progress.deletingEvents(ids: [UUID()]) == nil)
+	}
+
+	@Test
+	func `Deleting multiple events that leave negative progress returns nil`() {
+		let firstDeletedEventID = UUID()
+		let secondDeletedEventID = UUID()
+		let progress = measurableProgress(
+			events: [
+				GoalProgressEvent(id: firstDeletedEventID, delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+				GoalProgressEvent(id: secondDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+				GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+			],
+			targetValue: 10,
+		)
+
+		#expect(progress.deletingEvents(ids: [firstDeletedEventID, secondDeletedEventID]) == nil)
+	}
+
+	@Test
+	func `Deleting all positive events returns empty valid history`() throws {
+		let firstDeletedEventID = UUID()
+		let secondDeletedEventID = UUID()
+		let progress = measurableProgress(
+			events: [
+				GoalProgressEvent(id: firstDeletedEventID, delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
+				GoalProgressEvent(id: secondDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+			],
+			targetValue: 10,
+		)
+
+		let updatedProgress = try #require(
+			progress.deletingEvents(ids: [firstDeletedEventID, secondDeletedEventID])
+		)
+
+		#expect(updatedProgress.events.isEmpty)
+		#expect(updatedProgress.currentValue == 0)
+	}
+
 	// MARK: - Derived State
 
 	@Test
@@ -398,6 +472,7 @@ struct MeasurableProgressTests {
 				{
 				    "events": [
 				        {
+				            "id": "00000000-0000-0000-0000-000000000001",
 				            "delta": -1,
 				            "timestamp": 0
 				        }
@@ -415,15 +490,17 @@ struct MeasurableProgressTests {
 		let progress = try decodeMeasurableProgress(
 			"""
 			{
-			    "events": [
-			        {
-			            "delta": 10,
-			            "timestamp": 0
-			        },
-			        {
-			            "delta": 10,
-			            "timestamp": 100
-			        }
+				    "events": [
+				        {
+				            "id": "00000000-0000-0000-0000-000000000001",
+				            "delta": 10,
+				            "timestamp": 0
+				        },
+				        {
+				            "id": "00000000-0000-0000-0000-000000000002",
+				            "delta": 10,
+				            "timestamp": 100
+				        }
 			    ],
 			    "targetValue": 10,
 			    "step": 1
@@ -440,11 +517,12 @@ struct MeasurableProgressTests {
 		let progress = try decodeMeasurableProgress(
 			"""
 			{
-			    "events": [
-			        {
-			            "delta": 4,
-			            "timestamp": 0
-			        }
+				    "events": [
+				        {
+				            "id": "00000000-0000-0000-0000-000000000001",
+				            "delta": 4,
+				            "timestamp": 0
+				        }
 			    ],
 			    "targetValue": 10
 			}
@@ -478,8 +556,7 @@ struct MeasurableProgressTests {
 		let data = try JSONEncoder().encode(progress)
 		let json = try #require(String(data: data, encoding: .utf8))
 
-		#expect(json.contains(#""unitStorage":{"#))
-		#expect(!json.contains(#""id":"#))
+		#expect(json.contains(#""unitStorage":{}"#))
 	}
 
 	@Test
@@ -487,11 +564,12 @@ struct MeasurableProgressTests {
 		let progress = try decodeMeasurableProgress(
 			"""
 			{
-			    "events": [
-			        {
-			            "delta": 1,
-			            "timestamp": 0
-			        }
+				    "events": [
+				        {
+				            "id": "00000000-0000-0000-0000-000000000001",
+				            "delta": 1,
+				            "timestamp": 0
+				        }
 			    ],
 			    "targetValue": 5,
 			    "step": 1,
@@ -510,11 +588,12 @@ struct MeasurableProgressTests {
 		let progress = try decodeMeasurableProgress(
 			"""
 			{
-			    "events": [
-			        {
-			            "delta": 1,
-			            "timestamp": 0
-			        }
+				    "events": [
+				        {
+				            "id": "00000000-0000-0000-0000-000000000001",
+				            "delta": 1,
+				            "timestamp": 0
+				        }
 			    ],
 			    "targetValue": 5,
 			    "step": 1,
@@ -539,11 +618,12 @@ struct MeasurableProgressTests {
 		let progress = try decodeMeasurableProgress(
 			"""
 			{
-			    "events": [
-			        {
-			            "delta": 1,
-			            "timestamp": 0
-			        }
+				    "events": [
+				        {
+				            "id": "00000000-0000-0000-0000-000000000001",
+				            "delta": 1,
+				            "timestamp": 0
+				        }
 			    ],
 			    "targetValue": 5,
 			    "step": 1,

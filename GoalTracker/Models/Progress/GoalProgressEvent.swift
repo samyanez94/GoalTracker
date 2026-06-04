@@ -25,17 +25,4 @@ nonisolated struct GoalProgressEvent: Codable, Equatable, Identifiable {
 		self.delta = delta
 		self.timestamp = timestamp
 	}
-
-	init(from decoder: Decoder) throws {
-		let container = try decoder.container(keyedBy: CodingKeys.self)
-		id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-		delta = try container.decode(Double.self, forKey: .delta)
-		timestamp = try container.decode(Date.self, forKey: .timestamp)
-	}
-
-	private enum CodingKeys: String, CodingKey {
-		case id
-		case delta
-		case timestamp
-	}
 }
