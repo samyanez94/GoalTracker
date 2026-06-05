@@ -35,8 +35,12 @@ struct GoalDetailView: View {
 				switch goal.progress {
 				case .outcome:
 					GoalDetailStatusSection(goal: goal)
-				case .measurable:
-					GoalDetailProgressSection(goal: goal)
+				case .measurable(let progress):
+					GoalDetailProgressSection(
+						goalId: goal.id,
+						recurrence: goal.recurrence,
+						progress: progress,
+					)
 				}
 			}
 		}

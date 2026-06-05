@@ -10,11 +10,16 @@ import SwiftUI
 // MARK: - GoalDetailProgressSection
 
 struct GoalDetailProgressSection: View {
-	let goal: Goal
+    
+	let goalId: UUID
+
+	let recurrence: GoalRecurrence?
+
+	let progress: MeasurableProgress
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
-			NavigationLink(value: GoalNavigationDestination.progressEvents(goal.id)) {
+			NavigationLink(value: GoalNavigationDestination.progressEvents(goalId)) {
 				HStack(alignment: .firstTextBaseline, spacing: 4) {
 					Text("Progress")
 						.font(.headline)
@@ -51,13 +56,6 @@ struct GoalDetailProgressSection: View {
 				in: .rect(cornerRadius: 24, style: .continuous),
 			)
 		}
-	}
-
-	private var progress: MeasurableProgress {
-		guard case .measurable(let progress) = goal.progress else {
-			preconditionFailure("GoalDetailProgressSection requires measurable progress.")
-		}
-		return progress
 	}
 
 	private var fractionCompleted: Double {
@@ -123,7 +121,7 @@ struct GoalDetailProgressSection: View {
 	}
 
 	private var currentPeriod: DateInterval? {
-		goal.recurrence?.period(containing: Date())
+		recurrence?.period(containing: Date())
 	}
 
 	private var currentProgressValue: Double {
@@ -147,17 +145,14 @@ struct GoalDetailProgressSection: View {
 
 #Preview("In Progress") {
 	GoalDetailProgressSection(
-		goal: Goal(
-			name: "Run 10 marathons",
-			details: "Build endurance across the year.",
-			createdAt: Date(),
-			progress: .measurable(
-				currentValue: 8,
-				targetValue: 10,
-				unit: .custom(
-					title: "Marathons",
-					abbreviatedTitle: "marathons",
-				),
+		goalId: UUID(),
+		recurrence: nil,
+		progress: .init(
+			currentValue: 8,
+			targetValue: 10,
+			unit: .custom(
+				title: "Marathons",
+				abbreviatedTitle: "marathons",
 			),
 		)
 	)
@@ -167,15 +162,12 @@ struct GoalDetailProgressSection: View {
 
 #Preview("Completed") {
 	GoalDetailProgressSection(
-		goal: Goal(
-			name: "Save for a trip",
-			details: "Set aside money for travel.",
-			createdAt: Date(),
-			progress: .measurable(
-				currentValue: 2_500,
-				targetValue: 2_500,
-				unit: .dollars,
-			),
+		goalId: UUID(),
+		recurrence: nil,
+		progress: .init(
+			currentValue: 2_500,
+			targetValue: 2_500,
+			unit: .dollars,
 		)
 	)
 	.padding()
@@ -184,15 +176,12 @@ struct GoalDetailProgressSection: View {
 
 #Preview("Decimal Progress") {
 	GoalDetailProgressSection(
-		goal: Goal(
-			name: "Run a 5K",
-			details: "Build up distance each week.",
-			createdAt: Date(),
-			progress: .measurable(
-				currentValue: 2.5,
-				targetValue: 5,
-				unit: .kilometers,
-			),
+		goalId: UUID(),
+		recurrence: nil,
+		progress: .init(
+			currentValue: 2.5,
+			targetValue: 5,
+			unit: .kilometers,
 		)
 	)
 	.padding()
