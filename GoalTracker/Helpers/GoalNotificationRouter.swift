@@ -28,16 +28,18 @@ extension GoalNotificationRouter: UNUserNotificationCenterDelegate {
 	nonisolated func userNotificationCenter(
 		_ center: UNUserNotificationCenter,
 		didReceive response: UNNotificationResponse,
-		withCompletionHandler completionHandler: @escaping () -> Void
+		withCompletionHandler completionHandler: @escaping @Sendable () -> Void
 	) {
 		let goalId = GoalNotificationPayload.goalId(
 			from: response.notification.request.content.userInfo
 		)
 		if let goalId {
 			Task { @MainActor in
-				self.navigate(to: goalId)
+                self.navigate(to: goalId)
+                completionHandler()
 			}
+		} else {
+			completionHandler()
 		}
-		completionHandler()
 	}
 }
