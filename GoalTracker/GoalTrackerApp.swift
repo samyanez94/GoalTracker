@@ -12,18 +12,14 @@ import UserNotifications
 
 @main
 struct GoalTrackerApp: App {
-	private let modelContainer: ModelContainer
+	@State private var persistence: GoalTrackerPersistence
 
 	@State private var notificationRouter: GoalNotificationRouter
 
 	init() {
-		do {
-			modelContainer = try GoalTrackerModelContainer.make(
-				isStoredInMemoryOnly: Self.isRunningTests
-			)
-		} catch {
-			fatalError("Failed to create model container: \(error)")
-		}
+		_persistence = State(
+			initialValue: GoalTrackerPersistence(isStoredInMemoryOnly: Self.isRunningTests)
+		)
 		let notificationRouter = GoalNotificationRouter()
 		UNUserNotificationCenter.current().delegate = notificationRouter
 		_notificationRouter = State(initialValue: notificationRouter)
@@ -31,9 +27,17 @@ struct GoalTrackerApp: App {
 
 	var body: some Scene {
 		WindowGroup {
-			GoalListView(notificationRouter: notificationRouter)
+			switch persistence.state {
+			case .ready(let modelContainer):
+				GoalListView(notificationRouter: notificationRouter)
+					.modelContainer(modelContainer)
+			case .failed(let failure):
+				GoalPersistenceRecoveryView(
+					failure: failure,
+					retry: persistence.retry,
+				)
+			}
 		}
-		.modelContainer(modelContainer)
 	}
 
 	private static var isRunningTests: Bool {
