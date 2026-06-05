@@ -126,15 +126,13 @@ private extension View {
 		action: @escaping () -> Void
 	) -> some View {
 		safeAreaInset(edge: .bottom, alignment: .leading) {
-			Button(action: action) {
-				Image(systemName: "plus.forwardslash.minus")
-					.font(.title2)
-					.padding(6)
-			}
-			.padding(.horizontal, 16)
-			.padding(.vertical, 8)
-			.buttonBorderShape(.circle)
-			.buttonStyle(.glass)
+            Button("Toggle sign", systemImage: "plus.forwardslash.minus", action: action)
+                .fontWeight(.semibold)
+                .labelStyle(.iconOnly)
+                .controlSize(.large)
+                .padding(8)
+                .buttonBorderShape(.circle)
+                .buttonStyle(.glass)
 		}
 	}
 }
