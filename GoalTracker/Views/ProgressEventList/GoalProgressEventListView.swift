@@ -34,7 +34,7 @@ struct GoalProgressEventListView: View {
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
 					.background(Color(.systemGroupedBackground))
 			} else {
-				List(selection: $selectedEventIds) {
+				List(selection: eventSelection) {
 					ForEach(eventSections) { section in
 						Section(section.title) {
 							ForEach(section.events) { event in
@@ -140,6 +140,10 @@ struct GoalProgressEventListView: View {
 
 	private var eventIds: Set<GoalProgressEvent.ID> {
 		Set(events.map(\.id))
+	}
+
+	private var eventSelection: Binding<Set<GoalProgressEvent.ID>>? {
+		editMode.isEditing ? $selectedEventIds : nil
 	}
     
 	private var allEventsAreSelected: Bool {
