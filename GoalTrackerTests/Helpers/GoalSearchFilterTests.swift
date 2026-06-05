@@ -92,7 +92,7 @@ struct GoalSearchFilterTests {
 	}
 
 	@Test
-	func `Search does not match details`() {
+	func `Search matches goal descriptions`() {
 		let goals = [
 			goal(
 				named: "Move daily",
@@ -106,7 +106,7 @@ struct GoalSearchFilterTests {
 			searchText: "run",
 		)
 
-		#expect(filteredGoals.isEmpty)
+		#expect(filteredGoals.map(\.name) == ["Move daily"])
 	}
 
 	@Test
