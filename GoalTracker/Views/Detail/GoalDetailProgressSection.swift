@@ -14,13 +14,13 @@ struct GoalDetailProgressSection: View {
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
-			NavigationLink(value: GoalDetailDestination.progressEvents) {
+			NavigationLink(value: GoalNavigationDestination.progressEvents(goal.id)) {
 				HStack(alignment: .firstTextBaseline, spacing: 4) {
 					Text("Progress")
 						.font(.headline)
 					Image(systemName: "chevron.right")
 						.font(.headline.weight(.semibold))
-                        .imageScale(.small)
+						.imageScale(.small)
 						.accessibilityHidden(true)
 					Spacer()
 				}

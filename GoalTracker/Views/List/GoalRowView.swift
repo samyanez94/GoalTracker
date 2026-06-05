@@ -17,7 +17,7 @@ struct GoalRowView: View {
 	let goal: Goal
 
 	var body: some View {
-		NavigationLink(value: goal) {
+		NavigationLink(value: GoalNavigationDestination.goal(goal.id)) {
 			HStack(spacing: 12) {
 				if editMode?.wrappedValue.isEditing != true {
 					Image(systemName: goal.status().iconSystemName)

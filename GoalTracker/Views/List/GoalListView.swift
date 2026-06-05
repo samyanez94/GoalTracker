@@ -15,7 +15,7 @@ struct GoalListView: View {
 
 	@Query private var goals: [Goal]
 
-	@State private var navigationPath: [Goal] = []
+	@State private var navigationPath: [GoalNavigationDestination] = []
 
 	@State private var editMode = EditMode.inactive
 
@@ -116,8 +116,8 @@ struct GoalListView: View {
 					}
 				}
 			}
-			.navigationDestination(for: Goal.self) { goal in
-				GoalDetailView(goal: goal)
+			.navigationDestination(for: GoalNavigationDestination.self) { destination in
+				destinationView(for: destination)
 			}
 			.goalSaveFailureAlert(failure: $saveFailure)
 			.onChange(of: visibleGoalIds) { _, _ in
@@ -229,17 +229,41 @@ struct GoalListView: View {
 		selectedGoalIds.formIntersection(visibleGoalIds)
 	}
 
+	@ViewBuilder
+	private func destinationView(for destination: GoalNavigationDestination) -> some View {
+		switch destination {
+		case .goal(let goalId):
+			if let goal = goal(with: goalId) {
+				GoalDetailView(goal: goal)
+			} else {
+				EmptyView()
+			}
+		case .progressEvents(let goalId):
+			if let goal = goal(with: goalId) {
+				GoalProgressEventListView(goal: goal)
+			} else {
+				EmptyView()
+			}
+		}
+	}
+
 	private func navigateToGoalIfPossible(_ goalId: UUID?) {
 		guard let goalId,
-			let goal = goals.first(where: { $0.id == goalId })
+			goal(with: goalId) != nil
 		else {
 			return
 		}
 		finishSelectingGoals()
 		isPresentingGoalFormView = false
 		isPresentingDeleteConfirmation = false
-		navigationPath = [goal]
+		navigationPath = [.goal(goalId)]
 		notificationRouter.pendingGoalId = nil
+	}
+
+	private func goal(with id: UUID) -> Goal? {
+		goals.first { goal in
+			goal.id == id
+		}
 	}
 }
 

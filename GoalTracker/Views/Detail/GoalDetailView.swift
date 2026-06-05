@@ -78,12 +78,6 @@ struct GoalDetailView: View {
 				GoalProgressUpdateView(goal: goal)
 			}
 		}
-		.navigationDestination(for: GoalDetailDestination.self) { destination in
-			switch destination {
-			case .progressEvents:
-				GoalProgressEventListView(goal: goal)
-			}
-		}
 		.safeAreaInset(edge: .bottom) {
 			GoalDetailBottomView(
 				goal: goal,
