@@ -8,16 +8,20 @@
 import Foundation
 
 enum GoalTargetDateFormatter {
-	static func string(from date: Date) -> String {
-		formatter.string(from: date)
+	static func string(
+		from date: Date,
+		locale: Locale = .current,
+		calendar: Calendar = .current,
+	) -> String {
+		date.formatted(
+			Date.RelativeFormatStyle(
+				allowedFields: [.day, .week, .month, .year],
+				presentation: .named,
+				unitsStyle: .wide,
+				locale: locale,
+				calendar: calendar,
+				capitalizationContext: .beginningOfSentence,
+			)
+		)
 	}
-
-	private static let formatter: DateFormatter = {
-		let formatter = DateFormatter()
-		formatter.dateStyle = .medium
-		formatter.timeStyle = .none
-		// Keep DateFormatter because FormatStyle does not offer the same localized relative date behavior.
-		formatter.doesRelativeDateFormatting = true
-		return formatter
-	}()
 }
