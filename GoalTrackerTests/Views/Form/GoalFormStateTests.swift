@@ -22,8 +22,8 @@ struct GoalFormStateTests {
 		#expect(state.schedule.reminder == nil)
 		#expect(state.schedule.isTargetDatePickerExpanded == false)
 		#expect(state.progress.isProgressBased == false)
-		#expect(state.progress.targetValue == 1)
-		#expect(state.progress.step == 1)
+		#expect(state.progress.targetValue == nil)
+		#expect(state.progress.step == nil)
 		#expect(state.progress.selectedUnit == nil)
 		#expect(state.schedule.recurrence == nil)
 		#expect(state.selectedTags.isEmpty)
@@ -153,9 +153,21 @@ struct GoalFormStateTests {
 		state.name = "Read books"
 		state.progress.isProgressBased = true
 
-		#expect(state.progress.targetValue == 1)
-		#expect(state.progress.step == 1)
+		#expect(state.progress.targetValue == nil)
+		#expect(state.progress.step == nil)
 		#expect(state.isSaveDisabled == false)
+	}
+
+	@Test
+	func `Blank measurable values default to one in form data`() throws {
+		let state = GoalFormState(mode: .create)
+		state.name = "Read books"
+		state.progress.isProgressBased = true
+
+		let progress = try #require(state.makeFormData().progress.measurableProgress)
+
+		#expect(progress.targetValue == 1)
+		#expect(progress.step == 1)
 	}
 
 	@Test

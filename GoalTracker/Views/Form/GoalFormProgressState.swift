@@ -10,8 +10,8 @@ import Foundation
 /// Keeps track of progress draft state for the goal form.
 struct GoalFormProgressState {
 	var kind: Kind
-	var targetValue: Double
-	var step: Double
+	var targetValue: Double?
+	var step: Double?
 	var selectedUnit: GoalProgressUnit?
 
 	private let initialOutcomeIsCompleted: Bool
@@ -26,8 +26,8 @@ struct GoalFormProgressState {
 			selectedUnit = progress.unit
 		case .outcome:
 			kind = .outcome
-			targetValue = 1
-			step = 1
+			targetValue = nil
+			step = nil
 			selectedUnit = nil
 		}
 	}
@@ -47,8 +47,8 @@ struct GoalFormProgressState {
 		}
 		return MeasurableProgress.isValid(
 			currentValue: .zero,
-			targetValue: targetValue,
-			step: step,
+			targetValue: targetValue ?? 1,
+			step: step ?? 1,
 		)
 	}
 
@@ -65,8 +65,8 @@ struct GoalFormProgressState {
 		if isProgressBased {
 			return .measurable(
 				currentValue: .zero,
-				targetValue: targetValue,
-				step: step,
+				targetValue: targetValue ?? 1,
+				step: step ?? 1,
 				unit: selectedUnit,
 				timestamp: timestamp,
 			)
