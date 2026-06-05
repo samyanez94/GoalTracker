@@ -12,21 +12,21 @@ struct GoalListTopToolbar: ToolbarContent {
 	@Binding var sortDirection: GoalSortDirection
 	@Binding var isShowingCompletedGoals: Bool
 
-	let isSelectingGoals: Bool
-	let canSelectGoals: Bool
-	let selectGoals: () -> Void
-	let finishSelectingGoals: () -> Void
+	let isEditing: Bool
+	let isEditModeEnabled: Bool
+	let enterEditMode: () -> Void
+	let exitEditMode: () -> Void
 
 	var body: some ToolbarContent {
 		ToolbarItem(placement: .topBarTrailing) {
-			if isSelectingGoals {
-				Button("Done", systemImage: "checkmark", action: finishSelectingGoals)
+			if isEditing {
+				Button("Done", systemImage: "checkmark", action: exitEditMode)
 			} else {
 				Menu {
-					Button(action: selectGoals) {
+					Button(action: enterEditMode) {
 						Label("Select Goals", systemImage: "checkmark.circle")
 					}
-					.disabled(!canSelectGoals)
+					.disabled(!isEditModeEnabled)
 					Menu {
 						Picker("Sort", selection: $sortMode) {
 							ForEach(GoalSortMode.allCases) { sortMode in

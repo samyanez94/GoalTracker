@@ -60,34 +60,38 @@ struct GoalProgressEventListView: View {
 		.navigationBarTitleDisplayMode(.large)
 		.environment(\.editMode, $editMode)
 		.toolbar {
-			if isSelectingEvents {
+			if editMode.isEditing {
 				ToolbarItem(placement: .topBarLeading) {
 					Button(selectAllButtonTitle, action: toggleSelectAllEvents)
-						.disabled(visibleEventIds.isEmpty)
+						.disabled(eventIds.isEmpty)
 				}
 				ToolbarItem(placement: .topBarTrailing) {
-					Button("Done", systemImage: "checkmark", action: finishSelectingEvents)
+					Button("Done", systemImage: "checkmark", action: exitEditMode)
 				}
 				ToolbarItem(placement: .bottomBar) {
 					Button(
-						selectedEventCount == 1 ? "Delete Event" : "Delete Events",
+                        selectedEventIds.count == 1 ? "Delete Event" : "Delete Events",
 						systemImage: "trash",
 						role: .destructive,
 						action: {
 							isPresentingDeleteConfirmation = true
 						},
 					)
-					.disabled(selectedEventCount == 0)
+                    .disabled(selectedEventIds.count == 0)
 					.goalProgressEventDeleteConfirmationDialog(
 						isPresented: $isPresentingDeleteConfirmation,
-						eventCount: selectedEventCount,
+						eventCount: selectedEventIds.count,
 						onDelete: deleteSelectedEvents,
 					)
 				}
 			} else {
 				ToolbarItem(placement: .topBarTrailing) {
 					Menu {
-						Button(action: selectEvents) {
+                        Button {
+                            withAnimation {
+                                editMode = .active
+                            }
+                        } label: {
 							Label("Select Events", systemImage: "checkmark.circle")
 						}
 						.disabled(events.isEmpty)
@@ -114,9 +118,6 @@ struct GoalProgressEventListView: View {
 				dismissButton: .default(Text("OK")),
 			)
 		}
-		.onChange(of: visibleEventIds) { _, _ in
-			pruneSelectedEventIds()
-		}
 	}
 
 	private var progress: MeasurableProgress? {
@@ -137,45 +138,35 @@ struct GoalProgressEventListView: View {
 		)
 	}
 
-	private var isSelectingEvents: Bool {
-		editMode.isEditing
-	}
-
-	private var visibleEventIds: Set<GoalProgressEvent.ID> {
+	private var eventIds: Set<GoalProgressEvent.ID> {
 		Set(events.map(\.id))
 	}
-
-	private var selectedEventCount: Int {
-		selectedEventIds.intersection(visibleEventIds).count
-	}
-
-	private var allVisibleEventsAreSelected: Bool {
-		!visibleEventIds.isEmpty && selectedEventCount == visibleEventIds.count
+    
+	private var allEventsAreSelected: Bool {
+        !eventIds.isEmpty && selectedEventIds.count == eventIds.count
 	}
 
 	private var selectAllButtonTitle: String {
-		allVisibleEventsAreSelected ? "Deselect All" : "Select All"
+        allEventsAreSelected ? "Deselect All" : "Select All"
 	}
 
 	private var goalManager: GoalManager {
 		GoalManager(modelContext: modelContext)
 	}
 
-	private func selectEvents() {
-		editMode = .active
-	}
-
-	private func finishSelectingEvents() {
+	private func exitEditMode() {
 		selectedEventIds.removeAll()
 		isPresentingDeleteConfirmation = false
-		editMode = .inactive
+        withAnimation {
+            editMode = .inactive
+        }
 	}
 
 	private func toggleSelectAllEvents() {
-		if allVisibleEventsAreSelected {
+		if allEventsAreSelected {
 			selectedEventIds.removeAll()
 		} else {
-			selectedEventIds = visibleEventIds
+			selectedEventIds = eventIds
 		}
 	}
 
@@ -193,7 +184,6 @@ struct GoalProgressEventListView: View {
 	}
 
 	private func deleteSelectedEvents() {
-		pruneSelectedEventIds()
 		guard !selectedEventIds.isEmpty else {
 			return
 		}
@@ -202,17 +192,13 @@ struct GoalProgressEventListView: View {
 				try goalManager.deleteProgressEvents(ids: selectedEventIds, from: goal)
 			}
 			if didDelete {
-				finishSelectingEvents()
+				exitEditMode()
 			} else {
 				deletionFailure = .blockedBatch
 			}
 		} catch {
 			deletionFailure = .saveFailed
 		}
-	}
-
-	private func pruneSelectedEventIds() {
-		selectedEventIds.formIntersection(visibleEventIds)
 	}
 }
 

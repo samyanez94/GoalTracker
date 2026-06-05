@@ -89,7 +89,7 @@ struct GoalListView: View {
 			.searchable(text: $searchText, prompt: "Search goals")
 			.toolbar {
 				GoalListBottomToolbar(
-					isSelectingGoals: isSelectingGoals,
+					isSelectingGoals: editMode.isEditing,
 					selectedGoalCount: selectedGoals.count,
 					onAddGoal: {
 						isPresentingGoalFormView = true
@@ -101,12 +101,10 @@ struct GoalListView: View {
 					sortMode: $sortMode,
 					sortDirection: $sortDirection,
 					isShowingCompletedGoals: $isShowingCompletedGoals,
-					isSelectingGoals: isSelectingGoals,
-					canSelectGoals: !visibleSelectableGoals.isEmpty,
-					selectGoals: {
-						editMode = .active
-					},
-					finishSelectingGoals: finishSelectingGoals
+                    isEditing: editMode.isEditing,
+                    isEditModeEnabled: !goals.isEmpty,
+                    enterEditMode: enterEditMode,
+                    exitEditMode: exitEditMode
 				)
 			}
 			.sheet(isPresented: $isPresentingGoalFormView) {
@@ -119,10 +117,6 @@ struct GoalListView: View {
 			.navigationDestination(for: GoalNavigationDestination.self) { destination in
 				destinationView(for: destination)
 			}
-			.goalSaveFailureAlert(failure: $saveFailure)
-			.onChange(of: visibleGoalIds) { _, _ in
-				pruneSelectedGoalIds()
-			}
 			.onChange(of: notificationRouter.pendingGoalId) { _, goalId in
 				navigateToGoalIfPossible(goalId)
 			}
@@ -132,6 +126,7 @@ struct GoalListView: View {
 			.onAppear {
 				navigateToGoalIfPossible(notificationRouter.pendingGoalId)
 			}
+            .goalSaveFailureAlert(failure: $saveFailure)
 		}
 	}
 
@@ -149,10 +144,6 @@ struct GoalListView: View {
 
 	private var isSearching: Bool {
 		!searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-	}
-
-	private var isSelectingGoals: Bool {
-		editMode.isEditing
 	}
 
 	private var searchedGoals: [Goal] {
@@ -186,47 +177,32 @@ struct GoalListView: View {
 		)
 	}
 
-	private var visibleSelectableGoals: [Goal] {
-		if isShowingCompletedGoals {
-			let visiblePendingGoals = isPendingSectionExpanded ? pendingGoals : []
-			let visibleCompletedGoals = isCompletedSectionExpanded ? completedGoals : []
-			return visiblePendingGoals + visibleCompletedGoals
-		} else {
-			return pendingGoals
-		}
-	}
-
-	private var visibleGoalIds: Set<UUID> {
-		Set(visibleSelectableGoals.map(\.id))
-	}
-
 	private var selectedGoals: [Goal] {
-		visibleSelectableGoals.filter { goal in
+		goals.filter { goal in
 			selectedGoalIds.contains(goal.id)
 		}
 	}
+    
+    private func enterEditMode() {
+        selectedGoalIds.removeAll()
+        editMode = .active
+    }
 
-	private func finishSelectingGoals() {
+	private func exitEditMode() {
 		selectedGoalIds.removeAll()
 		editMode = .inactive
 	}
 
 	private func deleteSelectedGoals() {
-		pruneSelectedGoalIds()
-		let goalsToDelete = selectedGoals
-		guard !goalsToDelete.isEmpty else {
+		guard !selectedGoals.isEmpty else {
 			return
 		}
 		do {
-			try goalManager.deleteGoals(goalsToDelete)
-			finishSelectingGoals()
+			try goalManager.deleteGoals(selectedGoals)
+            exitEditMode()
 		} catch {
 			saveFailure = .deleteGoal
 		}
-	}
-
-	private func pruneSelectedGoalIds() {
-		selectedGoalIds.formIntersection(visibleGoalIds)
 	}
 
 	@ViewBuilder
@@ -249,11 +225,10 @@ struct GoalListView: View {
 
 	private func navigateToGoalIfPossible(_ goalId: UUID?) {
 		guard let goalId,
-			goal(with: goalId) != nil
-		else {
+              goal(with: goalId) != nil else {
 			return
 		}
-		finishSelectingGoals()
+        exitEditMode()
 		isPresentingGoalFormView = false
 		isPresentingDeleteConfirmation = false
 		navigationPath = [.goal(goalId)]
