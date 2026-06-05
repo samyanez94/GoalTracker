@@ -55,13 +55,12 @@ struct GoalListView: View {
 		NavigationStack(path: $navigationPath) {
 			Group {
 				if goals.isEmpty {
-					emptyStateView("No goals")
+					GoalUnavailableView.emptyGoals()
 				} else if isSearching,
-					visibleSearchResultsAreEmpty
-				{
-					emptyStateView("No matching goals")
+					visibleSearchResultsAreEmpty {
+					GoalUnavailableView.emptySearch()
 				} else if pendingGoalsAreHiddenByCompletedFilter {
-					emptyStateView("No pending goals")
+					GoalUnavailableView.emptyPendingGoals()
 				} else {
 					List(selection: goalSelection) {
 						if isShowingCompletedGoals {
@@ -132,14 +131,6 @@ struct GoalListView: View {
 
 	private var goalManager: GoalManager {
 		GoalManager(modelContext: modelContext)
-	}
-
-	private func emptyStateView(_ title: String) -> some View {
-		Text(title)
-			.font(.body)
-			.foregroundStyle(.secondary)
-			.frame(maxWidth: .infinity, maxHeight: .infinity)
-			.background(Color(.systemGroupedBackground))
 	}
 
 	private var isSearching: Bool {
@@ -216,13 +207,13 @@ struct GoalListView: View {
 			if let goal = goal(with: goalId) {
 				GoalDetailView(goal: goal)
 			} else {
-				EmptyView()
+				GoalUnavailableView.goalNotFound()
 			}
 		case .progressEvents(let goalId):
 			if let goal = goal(with: goalId) {
 				GoalProgressEventListView(goal: goal)
 			} else {
-				EmptyView()
+				GoalUnavailableView.goalNotFound()
 			}
 		}
 	}
