@@ -575,7 +575,7 @@ struct GoalManagerTests {
 			tags: [healthTag, runningTag],
 		)
 
-		#expect(Set(goal.tags.map(\.name)) == ["Health", "Running"])
+		#expect(Set((goal.tags ?? []).map(\.name)) == ["Health", "Running"])
 	}
 
 	@Test
@@ -662,7 +662,7 @@ struct GoalManagerTests {
 
 		let fetchedGoal = try #require(try fetchGoals(in: container).first)
 		#expect(try fetchTags(in: container).isEmpty)
-		#expect(fetchedGoal.tags.isEmpty)
+		#expect(fetchedGoal.tags?.isEmpty != false)
 	}
 
 	@Test
@@ -753,7 +753,7 @@ struct GoalManagerTests {
 
 		#expect(goal.name == "Original Goal")
 		#expect(goal.reminder == nil)
-		#expect(goal.tags.map(\.name) == ["Old"])
+		#expect((goal.tags ?? []).map(\.name) == ["Old"])
 		#expect(Set(try fetchTags(in: container).map(\.name)) == ["Old", "New"])
 	}
 
@@ -844,7 +844,7 @@ struct GoalManagerTests {
 				goal.name == "Run"
 			}
 		)
-		#expect(Set(goal.tags.map(\.name)) == ["Health", "Running"])
+		#expect(Set((goal.tags ?? []).map(\.name)) == ["Health", "Running"])
 		#expect(Set(try fetchTags(in: container).map(\.name)) == ["Health", "Running"])
 	}
 
@@ -874,7 +874,7 @@ struct GoalManagerTests {
 			}
 		)
 		#expect(tags.map(\.id) == [existingTag.id])
-		#expect(goal.tags.map(\.id) == [existingTag.id])
+		#expect((goal.tags ?? []).map(\.id) == [existingTag.id])
 	}
 
 	@Test
@@ -925,7 +925,7 @@ struct GoalManagerTests {
 			),
 		)
 
-		#expect(goal.tags.map(\.name) == ["New"])
+		#expect((goal.tags ?? []).map(\.name) == ["New"])
 		#expect(try fetchTags(in: container).map(\.name) == ["New"])
 	}
 
@@ -951,7 +951,7 @@ struct GoalManagerTests {
 			),
 		)
 
-		#expect(goal.tags.map(\.id) == [retainedTag.id])
+		#expect((goal.tags ?? []).map(\.id) == [retainedTag.id])
 		#expect(try fetchTags(in: container).map(\.id) == [retainedTag.id])
 	}
 
@@ -983,7 +983,7 @@ struct GoalManagerTests {
 			)
 		}
 
-		#expect(goal.tags.map(\.id) == [oldTag.id])
+		#expect((goal.tags ?? []).map(\.id) == [oldTag.id])
 		#expect(try fetchTags(in: container).map(\.id) == [oldTag.id])
 	}
 

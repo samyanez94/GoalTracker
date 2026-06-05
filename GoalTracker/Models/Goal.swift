@@ -30,10 +30,10 @@ extension GoalTrackerSchemaV1 {
 		var reminder: GoalReminder? = nil
 		/// The current progress summary for this goal.
 		var progress: GoalProgress = GoalProgress.outcome(OutcomeProgress())
-		/// Optional recurrence rules for goals that reset completion each cadence period.
-		var recurrence: GoalRecurrence?
-		/// Reusable tags associated with this goal.
-		var tags: [Tag] = []
+        /// Optional recurrence rules for goals that reset completion each cadence period.
+        var recurrence: GoalRecurrence?
+        /// Reusable tags associated with this goal.
+        var tags: [Tag]? = []
 
 		/// Whether the goal is recurring.
 		var isRecurring: Bool { recurrence != nil }

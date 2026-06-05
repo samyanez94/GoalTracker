@@ -20,7 +20,7 @@ struct GoalSearchFilter {
 		return goals.filter { goal in
 			goal.name.localizedStandardContains(trimmedSearchText)
 				|| goal.details?.localizedStandardContains(trimmedSearchText) == true
-				|| goal.tags.contains { tag in
+					|| (goal.tags ?? []).contains { tag in
 					tagMatchesSearchText(tag, searchText: trimmedSearchText)
 				}
 		}

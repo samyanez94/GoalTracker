@@ -32,7 +32,7 @@ struct GoalDetailHeaderSection: View {
 					.font(.body.bold())
 					.foregroundStyle(goal.isPastTargetDate() ? .red : .secondary)
 			}
-			if !goal.tags.isEmpty {
+			if goal.tags?.isEmpty == false {
 				TagFlowLayout {
 					ForEach(sortedTags, id: \.id) { tag in
 						GoalDetailTagChip(tag: tag)
@@ -44,7 +44,7 @@ struct GoalDetailHeaderSection: View {
 	}
 
 	private var sortedTags: [Tag] {
-		goal.tags.sorted { lhs, rhs in
+		(goal.tags ?? []).sorted { lhs, rhs in
 			lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
 		}
 	}

@@ -86,7 +86,7 @@ struct GoalManager {
 		tags: [Tag]? = nil,
 	) throws {
 		let snapshot = GoalSnapshot(goal: goal)
-		let previousTags = goal.tags
+		let previousTags = goal.tags ?? []
 		try saveChanges(
 			performing: {
 				goal.name = name
@@ -267,7 +267,7 @@ struct GoalManager {
 	/// Deletes multiple goals and removes any tags that are no longer used.
 	func deleteGoals(_ goals: [Goal]) throws {
 		let deletedGoalIds = Set(goals.map(\.id))
-		let candidateTags = goals.flatMap(\.tags)
+		let candidateTags = goals.flatMap { $0.tags ?? [] }
 		for goal in goals {
 			modelContext.delete(goal)
 		}
@@ -332,7 +332,7 @@ struct GoalManager {
 			guard checkedTagIds.insert(tag.id).inserted else {
 				continue
 			}
-			guard tag.goals.allSatisfy({ goal in ignoredGoalIds.contains(goal.id) }) else {
+			guard (tag.goals ?? []).allSatisfy({ goal in ignoredGoalIds.contains(goal.id) }) else {
 				continue
 			}
 			modelContext.delete(tag)
@@ -398,7 +398,7 @@ struct GoalManager {
 			reminder = goal.reminder
 			progress = goal.progress
 			recurrence = goal.recurrence
-			tags = goal.tags
+			tags = goal.tags ?? []
 		}
 
 		func restore(_ goal: Goal) {

@@ -50,6 +50,9 @@ enum GoalTrackerModelContainer {
 		let configuration = ModelConfiguration(
 			schema: schema,
 			isStoredInMemoryOnly: isStoredInMemoryOnly,
+			cloudKitDatabase: isStoredInMemoryOnly
+				? .none
+				: .private("iCloud.com.samuel.Moku"),
 		)
 		return try ModelContainer(
 			for: schema,

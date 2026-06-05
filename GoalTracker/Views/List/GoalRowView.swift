@@ -39,7 +39,7 @@ struct GoalRowView: View {
 							.font(.subheadline)
 							.foregroundStyle(.secondary)
 					}
-					GoalTagSummaryText(tags: goal.tags)
+					GoalTagSummaryText(tags: goal.tags ?? [])
 				}
 			}
 		}

@@ -56,11 +56,11 @@ struct TagTests {
 		let fetchedGoal = try #require(
 			try container.mainContext.fetch(FetchDescriptor<Goal>()).first,
 		)
-		let fetchedTag = try #require(fetchedGoal.tags.first)
+		let fetchedTag = try #require(fetchedGoal.tags?.first)
 
 		#expect(fetchedTag.name == "Health")
 		#expect(fetchedTag.normalizedName == "health")
-		#expect(fetchedTag.goals.map(\.id) == [goal.id])
+		#expect((fetchedTag.goals ?? []).map(\.id) == [goal.id])
 	}
 
 	@Test
