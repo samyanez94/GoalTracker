@@ -33,7 +33,7 @@ struct GoalUnavailableView: View {
 			if let systemImage {
 				Label(title, systemImage: systemImage)
 			} else {
-				Text(title)
+                Text(title).bold()
 			}
 		} description: {
 			if let description {
