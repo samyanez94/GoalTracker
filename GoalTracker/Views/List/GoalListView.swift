@@ -63,7 +63,7 @@ struct GoalListView: View {
 				} else if pendingGoalsAreHiddenByCompletedFilter {
 					emptyStateView("No pending goals")
 				} else {
-					List(selection: $selectedGoalIds) {
+					List(selection: goalSelection) {
 						if isShowingCompletedGoals {
 							GoalSectionView(
 								title: "Pending",
@@ -181,6 +181,10 @@ struct GoalListView: View {
 		goals.filter { goal in
 			selectedGoalIds.contains(goal.id)
 		}
+	}
+
+	private var goalSelection: Binding<Set<UUID>>? {
+		editMode.isEditing ? $selectedGoalIds : nil
 	}
     
     private func enterEditMode() {
