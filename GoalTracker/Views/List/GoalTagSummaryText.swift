@@ -15,13 +15,23 @@ struct GoalTagSummaryText: View {
 			Text(summary)
 				.font(.subheadline).bold()
 				.foregroundStyle(.secondary)
+				.accessibilityLabel(accessibilitySummary)
 		}
 	}
 
 	private var summary: String {
-		sortedTags
-			.map { tag in "#\(tag.name)" }
+		sortedTagNames
+			.map { tagName in "#\(tagName)" }
 			.joined(separator: " ")
+	}
+
+	private var accessibilitySummary: String {
+		let tagNames = sortedTagNames.joined(separator: ", ")
+		return sortedTagNames.count == 1 ? "Tag: \(tagNames)" : "Tags: \(tagNames)"
+	}
+
+	private var sortedTagNames: [String] {
+		sortedTags.map(\.name)
 	}
 
 	private var sortedTags: [Tag] {
