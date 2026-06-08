@@ -30,5 +30,7 @@ struct CollapsibleSectionHeader: View {
 		.buttonStyle(.plain)
 		.accessibilityLabel(title)
 		.accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
+		.accessibilityHint("Expands or collapses this section.")
+		.accessibilityAddTraits(.isHeader)
 	}
 }

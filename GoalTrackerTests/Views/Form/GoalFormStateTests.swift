@@ -20,7 +20,6 @@ struct GoalFormStateTests {
 		#expect(state.details == "")
 		#expect(state.schedule.hasTargetDate == false)
 		#expect(state.schedule.reminder == nil)
-		#expect(state.schedule.isTargetDatePickerExpanded == false)
 		#expect(state.progress.isProgressBased == false)
 		#expect(state.progress.targetValue == nil)
 		#expect(state.progress.step == nil)
@@ -384,16 +383,16 @@ struct GoalFormStateTests {
 	}
 
 	@Test
-	func `Target date expansion follows target date enablement`() {
+	func `Target date enablement stores and clears draft target date`() {
+		let targetDate = Date(timeIntervalSinceReferenceDate: 789)
 		let state = GoalFormState(mode: .create)
 
-		state.schedule.toggleTargetDatePicker()
-		#expect(state.schedule.isTargetDatePickerExpanded == false)
+		state.schedule.draftTargetDate = targetDate
 
 		state.schedule.hasTargetDate = true
-		#expect(state.schedule.isTargetDatePickerExpanded)
+		#expect(state.schedule.targetDate == targetDate)
 
-		state.schedule.toggleTargetDatePicker()
-		#expect(state.schedule.isTargetDatePickerExpanded == false)
+		state.schedule.hasTargetDate = false
+		#expect(state.schedule.targetDate == nil)
 	}
 }

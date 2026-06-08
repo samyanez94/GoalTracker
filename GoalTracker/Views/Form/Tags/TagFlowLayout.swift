@@ -55,14 +55,13 @@ struct TagFlowLayout: Layout {
 		for subviews: Subviews,
 		availableWidth: CGFloat,
 	) -> [Row] {
-		let items = subviews.indices.map { index in
-			MeasuredItem(
-				index: index,
-				size: subviews[index].sizeThatFits(.unspecified),
-			)
-		}
-
 		guard availableWidth > 0 else {
+			let items = subviews.indices.map { index in
+				MeasuredItem(
+					index: index,
+					size: subviews[index].sizeThatFits(.unspecified),
+				)
+			}
 			return [
 				Row(
 					items: items,
@@ -76,6 +75,18 @@ struct TagFlowLayout: Layout {
 						.max() ?? 0,
 				)
 			]
+		}
+
+		let itemProposal = ProposedViewSize(width: availableWidth, height: nil)
+		let items = subviews.indices.map { index in
+			let size = subviews[index].sizeThatFits(itemProposal)
+			return MeasuredItem(
+				index: index,
+				size: CGSize(
+					width: min(size.width, availableWidth),
+					height: size.height,
+				),
+			)
 		}
 
 		var rows: [Row] = []

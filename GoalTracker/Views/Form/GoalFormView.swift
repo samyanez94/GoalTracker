@@ -124,34 +124,29 @@ struct GoalFormView: View {
 			}
 			if formState.schedule.allowsTargetDate {
 				Section {
-					HStack {
-						TargetDateSummaryButton(
-							hasTargetDate: formState.schedule.hasTargetDate,
-							targetDate: formState.schedule.draftTargetDate,
-							action: {
-								withAnimation {
-									formState.schedule.toggleTargetDatePicker()
+					Toggle(isOn: $formState.schedule.hasTargetDate) {
+						Label {
+							VStack(alignment: .leading, spacing: 2) {
+								Text("Target Date")
+								if formState.schedule.hasTargetDate {
+									Text(GoalTargetDateFormatter.string(from: formState.schedule.draftTargetDate))
+										.font(.subheadline)
+										.foregroundStyle(.secondary)
 								}
-							},
-						)
-						Toggle(
-							"Target Date",
-							isOn: $formState.schedule.hasTargetDate,
-						)
-						.labelsHidden()
+							}
+						} icon: {
+							Image(systemName: "calendar")
+								.foregroundStyle(.secondary)
+						}
 					}
-					if formState.schedule.hasTargetDate,
-						formState.schedule.isTargetDatePickerExpanded
-					{
+					if formState.schedule.hasTargetDate {
 						DatePicker(
 							"Select target date",
 							selection: $formState.schedule.draftTargetDate,
 							displayedComponents: .date,
 						)
 						.datePickerStyle(.graphical)
-					}
-					if formState.schedule.hasTargetDate {
-						GoalReminderToggleRow(reminder: $formState.schedule.reminder)
+                        GoalReminderToggleRow(reminder: $formState.schedule.reminder)
 					}
 				} header: {
 					Text("Date")

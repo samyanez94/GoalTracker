@@ -14,12 +14,16 @@ struct ProgressTextFieldRow: View {
 	let focus: FocusState<Bool>.Binding
 
 	var body: some View {
-		HStack {
-			Text(label)
-			TextField(placeholder, value: $value, format: .number)
-				.focused(focus)
-				.keyboardType(.decimalPad)
-				.multilineTextAlignment(.trailing)
+		LabeledContent(label) {
+			TextField(
+				label,
+				value: $value,
+				format: .number,
+				prompt: Text(placeholder),
+			)
+			.focused(focus)
+			.keyboardType(.decimalPad)
+			.multilineTextAlignment(.trailing)
 		}
 	}
 }
