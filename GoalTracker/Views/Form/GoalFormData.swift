@@ -60,7 +60,9 @@ struct GoalFormData {
 			reminder: reminder,
 			progress: progress,
 			recurrence: recurrence,
-			tags: tags.map(GoalFormTagSelection.init),
+			tags: tags.map { tag in
+				GoalFormTagSelection(tag: tag)
+			},
 		)
 	}
 
@@ -71,7 +73,10 @@ struct GoalFormData {
 		reminder = goal.reminder
 		progress = goal.progress
 		recurrence = goal.recurrence
-		tags = (goal.tags ?? []).map(GoalFormTagSelection.init)
+		tags = (goal.tags ?? [])
+			.map { tag in
+				GoalFormTagSelection(tag: tag)
+			}
 	}
 
 	var normalizedDetails: String? {

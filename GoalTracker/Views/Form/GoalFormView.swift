@@ -95,8 +95,8 @@ struct GoalFormView: View {
 								.foregroundStyle(.secondary)
 						}
 						Spacer()
-						if formState.selectedTags.isEmpty == false {
-							Text(tagSelectionSummary(for: formState.selectedTags))
+						if hasSelectedTags(in: formState.tagSelections) {
+							Text(tagSelectionSummary(for: formState.tagSelections))
 								.foregroundStyle(.secondary)
 						}
 					}
@@ -229,7 +229,7 @@ struct GoalFormView: View {
 		.navigationDestination(for: GoalFormDestination.self) { destination in
 			switch destination {
 			case .tags:
-				TagSelectionView(selectedTags: $formState.selectedTags)
+				TagSelectionView(tagSelections: $formState.tagSelections)
 			case .progressUnit:
 				ProgressUnitSelectionView(selectedUnit: $formState.progress.selectedUnit)
 			}
@@ -249,8 +249,19 @@ struct GoalFormView: View {
 		}
 	}
 
-	private func tagSelectionSummary(for tags: [GoalFormTagSelection]) -> String {
-		"\(tags.count) Selected"
+	private func hasSelectedTags(in tagSelections: [GoalFormTagSelection]) -> Bool {
+		tagSelections.contains { tagSelection in
+			tagSelection.isSelected
+		}
+	}
+
+	private func tagSelectionSummary(for tagSelections: [GoalFormTagSelection]) -> String {
+		let selectedTagCount =
+			tagSelections.filter { tagSelection in
+				tagSelection.isSelected
+			}
+			.count
+		return "\(selectedTagCount) Selected"
 	}
 
 	private var discardConfirmationMessage: String {

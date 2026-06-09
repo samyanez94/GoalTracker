@@ -25,7 +25,7 @@ struct GoalFormStateTests {
 		#expect(state.progress.step == nil)
 		#expect(state.progress.selectedUnit == nil)
 		#expect(state.schedule.recurrence == nil)
-		#expect(state.selectedTags.isEmpty)
+		#expect(state.tagSelections.isEmpty)
 		#expect(state.saveFailureKind == .addGoal)
 		#expect(state.isSaveDisabled)
 		#expect(state.hasChanges == false)
@@ -102,7 +102,12 @@ struct GoalFormStateTests {
 		#expect(state.progress.step == 2)
 		#expect(state.progress.selectedUnit == .miles)
 		#expect(state.schedule.recurrence == nil)
-		#expect(state.selectedTags.map(\.name) == ["Health", "Running"])
+		#expect(state.tagSelections.map(\.name) == ["Health", "Running"])
+		#expect(
+			state.tagSelections.allSatisfy { tagSelection in
+				tagSelection.isSelected
+			}
+		)
 		#expect(state.saveFailureKind == .updateGoal)
 	}
 
@@ -330,6 +335,30 @@ struct GoalFormStateTests {
 		let data = state.makeFormData()
 
 		#expect(data.tags.map(\.name) == ["Health", "Running"])
+	}
+
+	@Test
+	func `Form data ignores unselected tag selections`() {
+		let state = GoalFormState(mode: .create)
+		state.tagSelections = [
+			GoalFormTagSelection(name: "Health"),
+			GoalFormTagSelection(name: "Running", isSelected: false)
+		]
+
+		let data = state.makeFormData()
+
+		#expect(data.tags.map(\.name) == ["Health"])
+	}
+
+	@Test
+	func `Unselected draft tags do not mark form as changed`() {
+		let state = GoalFormState(mode: .create)
+
+		state.tagSelections = [
+			GoalFormTagSelection(name: "Health", isSelected: false)
+		]
+
+		#expect(state.hasChanges == false)
 	}
 
 	@Test

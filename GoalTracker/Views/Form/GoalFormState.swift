@@ -20,7 +20,7 @@ final class GoalFormState {
 	var details: String
 	var schedule: GoalFormScheduleState
 	var progress: GoalFormProgressState
-	var selectedTags: [GoalFormTagSelection]
+	var tagSelections: [GoalFormTagSelection]
 
 	let mode: GoalFormMode
 
@@ -43,7 +43,7 @@ final class GoalFormState {
 			defaultTargetDate: now(),
 		)
 		progress = GoalFormProgressState(progress: data.progress)
-		selectedTags = data.tags
+		tagSelections = data.tags
 
 		initialSnapshot = currentSnapshot
 	}
@@ -79,7 +79,7 @@ final class GoalFormState {
 			reminder: schedule.formReminder,
 			progress: progress.makeProgress(timestamp: now()),
 			recurrence: schedule.recurrence,
-			tags: selectedTags,
+			tags: selectedTagSelections,
 		)
 	}
 
@@ -98,8 +98,12 @@ final class GoalFormState {
 			details: normalizedDetails,
 			schedule: schedule.snapshot,
 			progress: progress.snapshot,
-			tagNames: Set(selectedTags.map(\.normalizedName)),
+			tagNames: Set(selectedTagSelections.map(\.normalizedName)),
 		)
+	}
+
+	private var selectedTagSelections: [GoalFormTagSelection] {
+		tagSelections.filter(\.isSelected)
 	}
 }
 

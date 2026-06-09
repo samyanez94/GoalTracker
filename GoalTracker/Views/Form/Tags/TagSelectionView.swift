@@ -12,7 +12,7 @@ import SwiftUI
 
 struct TagSelectionView: View {
 
-	@Binding private var selectedTags: [GoalFormTagSelection]
+	@Binding private var tagSelections: [GoalFormTagSelection]
 
 	@Query(sort: [SortDescriptor<Tag>(\.normalizedName)]) private var availableTags: [Tag]
 
@@ -20,8 +20,8 @@ struct TagSelectionView: View {
 
 	@FocusState private var newTagFieldIsFocused: Bool
 
-	init(selectedTags: Binding<[GoalFormTagSelection]>) {
-		_selectedTags = selectedTags
+	init(tagSelections: Binding<[GoalFormTagSelection]>) {
+		_tagSelections = tagSelections
 	}
 
 	var body: some View {
@@ -60,44 +60,27 @@ struct TagSelectionView: View {
 	}
 
 	private var mergedTags: [GoalFormTagSelection] {
-		var tagsByNormalizedName: [String: GoalFormTagSelection] = [:]
-		for tag in availableTags {
-			tagsByNormalizedName[tag.normalizedName] = GoalFormTagSelection(tag: tag)
-		}
-		for tag in selectedTags where tagsByNormalizedName[tag.normalizedName] == nil {
-			tagsByNormalizedName[tag.normalizedName] = tag
-		}
-		return tagsByNormalizedName.values.sorted { lhs, rhs in
-			lhs.normalizedName.localizedStandardCompare(rhs.normalizedName) == .orderedAscending
-		}
+		tagSelectionState.visibleTags
 	}
 
 	private func isSelected(_ tag: GoalFormTagSelection) -> Bool {
-		selectedTags.contains { selectedTag in
-			selectedTag.normalizedName == tag.normalizedName
-		}
+		tagSelectionState.isSelected(tag)
 	}
 
 	private func toggleSelection(of tag: GoalFormTagSelection) {
-		if let index = selectedTags.firstIndex(where: { selectedTag in
-			selectedTag.normalizedName == tag.normalizedName
-		}) {
-			selectedTags.remove(at: index)
-		} else {
-			select(tag)
+		var state = tagSelectionState
+		state.toggleSelection(of: tag)
+		withAnimation {
+			apply(state)
 		}
 	}
 
 	private func addTag() {
-		let sanitizedTagName = Tag.sanitizedName(from: newTagName)
-		guard !sanitizedTagName.isEmpty else {
+		var state = tagSelectionState
+		guard state.addTag(named: newTagName) else {
 			return
 		}
-		if let tag = existingTag(named: sanitizedTagName) {
-			select(GoalFormTagSelection(tag: tag))
-		} else {
-			select(GoalFormTagSelection(name: sanitizedTagName))
-		}
+		apply(state)
 		resetNewTagField()
 	}
 
@@ -109,23 +92,22 @@ struct TagSelectionView: View {
 		newTagName = sanitizedName
 	}
 
-	private func existingTag(named name: String) -> Tag? {
-		let normalizedName = Tag.normalizedName(from: name)
-		return availableTags.first { tag in
-			tag.normalizedName == normalizedName
-		}
-	}
-
-	private func select(_ tag: GoalFormTagSelection) {
-		guard !isSelected(tag) else {
-			return
-		}
-		selectedTags.append(tag)
-	}
-
 	private func resetNewTagField() {
 		newTagName = ""
 		newTagFieldIsFocused = true
+	}
+
+	private var tagSelectionState: TagSelectionState {
+		TagSelectionState(
+			persistedTags: availableTags.map { tag in
+				GoalFormTagSelection(tag: tag, isSelected: false)
+			},
+			tagSelections: tagSelections,
+		)
+	}
+
+	private func apply(_ state: TagSelectionState) {
+		tagSelections = state.tagSelections
 	}
 }
 
@@ -133,7 +115,7 @@ struct TagSelectionView: View {
 
 #Preview {
 	NavigationStack {
-		TagSelectionView(selectedTags: .constant([]))
+		TagSelectionView(tagSelections: .constant([]))
 	}
 	.modelContainer(GoalPreviewContainer.make(goals: []))
 }

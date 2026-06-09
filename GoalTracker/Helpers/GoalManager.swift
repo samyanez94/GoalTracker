@@ -354,6 +354,7 @@ struct GoalManager {
 		var resolvedTagNames: Set<String> = []
 		return selections.compactMap { selection in
 			guard !selection.normalizedName.isEmpty,
+				selection.isSelected,
 				resolvedTagNames.insert(selection.normalizedName).inserted
 			else {
 				return nil
