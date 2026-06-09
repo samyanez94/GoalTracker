@@ -105,8 +105,7 @@ struct GoalFormView: View {
 				Text("Organization")
 			} footer: {
 				Text("Use tags to group related goals.")
-					.font(.footnote)
-					.foregroundStyle(.secondary)
+                    .font(.footnote)
 			}
 			Section {
 				GoalRecurrencePickerRow(recurrence: $formState.schedule.recurrence)
@@ -117,10 +116,9 @@ struct GoalFormView: View {
 				Text("Recurrence")
 			} footer: {
 				Text(
-					"Use recurring goals for habits and goals you want to repeat over time. Turn on reminders to get a notification at 9 AM on the first day of each repeat."
+					"Use recurring goals for goals and habits you want to repeat over time. Turn on reminders to get a notification at 9 AM on the first day of each repeat."
 				)
 				.font(.footnote)
-				.foregroundStyle(.secondary)
 			}
 			if formState.schedule.allowsTargetDate {
 				Section {
@@ -155,7 +153,6 @@ struct GoalFormView: View {
 						"Set a target date to help you know when to complete this goal. Turn on reminders to get a notification at 9 AM that day."
 					)
 					.font(.footnote)
-					.foregroundStyle(.secondary)
 				}
 			}
 			Section {
@@ -195,7 +192,6 @@ struct GoalFormView: View {
 			} footer: {
 				Text("Track progress toward a numeric target.")
 					.font(.footnote)
-					.foregroundStyle(.secondary)
 			}
 		}
 		.scrollDismissesKeyboard(.interactively)

@@ -6,8 +6,6 @@ import SwiftUI
 struct GoalRowView: View {
 	@Environment(\.editMode) private var editMode
 
-	@Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
-
 	@Environment(\.modelContext) private var modelContext
 
 	@State private var isPresentingEditForm = false
@@ -33,23 +31,23 @@ struct GoalRowView: View {
 					Text(goal.name)
 						.foregroundStyle(isCompleted ? .secondary : .primary)
 					if let targetDate = goal.targetDate {
-						let formattedDate = GoalTargetDateFormatter.string(from: targetDate)
-						let isOverdue = goal.isPastTargetDate()
-						HStack(spacing: 4) {
-							if isShowingOverdueIndicator(isOverdue: isOverdue) {
-								Image(systemName: "exclamationmark.circle.fill")
-									.imageScale(.small)
-									.accessibilityHidden(true)
+							let formattedDate = GoalTargetDateFormatter.string(from: targetDate)
+							let isPastTargetDate = goal.isPastTargetDate()
+							HStack(spacing: 4) {
+								if isPastTargetDate {
+									Image(systemName: "exclamationmark.circle.fill")
+										.imageScale(.small)
+										.accessibilityHidden(true)
 							}
 							Text(formattedDate)
 						}
 						.font(.subheadline)
-						.foregroundStyle(isOverdue ? .red : .secondary)
+						.foregroundStyle(isPastTargetDate ? .red : .secondary)
 						.accessibilityElement(children: .combine)
 						.accessibilityLabel(
 							targetDateAccessibilityLabel(
 								formattedDate: formattedDate,
-								isOverdue: isOverdue
+                                isPastTargetDate: isPastTargetDate
 							)
 						)
 					}
@@ -111,13 +109,9 @@ struct GoalRowView: View {
 
 	private func targetDateAccessibilityLabel(
 		formattedDate: String,
-		isOverdue: Bool,
+        isPastTargetDate: Bool,
 	) -> String {
-		isOverdue ? "Overdue: \(formattedDate)" : "Target date: \(formattedDate)"
-	}
-
-	private func isShowingOverdueIndicator(isOverdue: Bool) -> Bool {
-		isOverdue && differentiateWithoutColor
+        isPastTargetDate ? "Past target date: \(formattedDate)" : "Target date: \(formattedDate)"
 	}
 
 	private func toggleCompletion() {

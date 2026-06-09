@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct GoalDetailHeaderSection: View {
-	@Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
-
 	let goal: Goal
 
 	var body: some View {
@@ -31,9 +29,9 @@ struct GoalDetailHeaderSection: View {
 			}
 			if let targetDate = goal.targetDate {
 				let text = targetDateText(for: targetDate)
-				let isOverdue = goal.isPastTargetDate()
+				let isPastTargetDate = goal.isPastTargetDate()
 				HStack(spacing: 4) {
-					if isShowingOverdueIndicator(isOverdue: isOverdue) {
+					if isPastTargetDate {
 						Image(systemName: "exclamationmark.circle.fill")
 							.imageScale(.small)
 							.accessibilityHidden(true)
@@ -41,7 +39,7 @@ struct GoalDetailHeaderSection: View {
 					Text(text)
 				}
 				.font(.body.bold())
-				.foregroundStyle(isOverdue ? .red : .secondary)
+				.foregroundStyle(isPastTargetDate ? .red : .secondary)
 				.accessibilityElement(children: .combine)
 			}
 			if goal.tags?.isEmpty == false {
@@ -71,9 +69,4 @@ struct GoalDetailHeaderSection: View {
 		}
 		return "Complete by \(targetDate.formatted(date: .long, time: .omitted))"
 	}
-
-	private func isShowingOverdueIndicator(isOverdue: Bool) -> Bool {
-		isOverdue && differentiateWithoutColor
-	}
-
 }
