@@ -24,6 +24,9 @@ struct TagChip: View {
 				.clipShape(.capsule)
 		}
 		.buttonStyle(.plain)
-		.allowsHitTesting(isEnabled)
+		.disabled(!isEnabled)
+		.accessibilityLabel("Tag \(name)")
+		.accessibilityInputLabels([name, "#\(name)"])
+		.accessibilityAddTraits(isSelected ? .isSelected : [])
 	}
 }

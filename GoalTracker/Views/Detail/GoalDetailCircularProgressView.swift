@@ -10,6 +10,8 @@ import SwiftUI
 // MARK: - GoalDetailCircularProgressView
 
 struct GoalDetailCircularProgressView: View {
+	@Environment(\.accessibilityReduceMotion) private var reduceMotion
+
 	@State private var displayedProgress = 0.0
 
 	let progress: Double
@@ -23,6 +25,14 @@ struct GoalDetailCircularProgressView: View {
 
 	private var percentageText: String {
 		clampedProgress.formatted(.percent.precision(.fractionLength(0)))
+	}
+
+	private var renderedProgress: Double {
+		reduceMotion ? clampedProgress : displayedProgress
+	}
+
+	private var progressAnimation: Animation? {
+		reduceMotion ? nil : .spring(.smooth, blendDuration: 0.5)
 	}
 
 	private var endColor: Color {
@@ -47,7 +57,7 @@ struct GoalDetailCircularProgressView: View {
 				Circle()
 					.stroke(backgroundColor, lineWidth: lineWidth)
 				Circle()
-					.trim(from: 0, to: displayedProgress)
+					.trim(from: 0, to: renderedProgress)
 					.stroke(
 						AngularGradient(
 							gradient: Gradient(colors: [color, endColor]),
@@ -66,7 +76,7 @@ struct GoalDetailCircularProgressView: View {
 					.foregroundStyle(color)
 					.offset(y: capOffset)
 				CompletionCap(
-					progress: displayedProgress,
+					progress: renderedProgress,
 					color: endColor,
 					diameter: lineWidth,
 					verticalOffset: capOffset,
@@ -81,7 +91,7 @@ struct GoalDetailCircularProgressView: View {
 				.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
 		}
 		.frame(width: size, height: size, alignment: .center)
-		.animation(.spring(.smooth, blendDuration: 0.5), value: displayedProgress)
+		.animation(progressAnimation, value: displayedProgress)
 		.task(id: clampedProgress) {
 			displayedProgress = clampedProgress
 		}

@@ -19,7 +19,6 @@ struct GoalFormScheduleState {
 		}
 	}
 	var reminder: GoalReminder?
-	var isTargetDatePickerExpanded: Bool
 
 	var recurrence: GoalRecurrence? {
 		didSet {
@@ -36,7 +35,6 @@ struct GoalFormScheduleState {
 		self.targetDate = recurrence == nil ? targetDate : nil
 		draftTargetDate = targetDate ?? defaultTargetDate
 		self.reminder = reminder
-		isTargetDatePickerExpanded = false
 		self.recurrence = recurrence
 	}
 
@@ -69,15 +67,7 @@ struct GoalFormScheduleState {
 		)
 	}
 
-	mutating func toggleTargetDatePicker() {
-		guard hasTargetDate else {
-			return
-		}
-		isTargetDatePickerExpanded.toggle()
-	}
-
 	mutating func setTargetDateEnabled(_ isEnabled: Bool) {
-		isTargetDatePickerExpanded = isEnabled
 		if isEnabled {
 			targetDate = draftTargetDate
 		} else {
@@ -93,7 +83,6 @@ struct GoalFormScheduleState {
 			return
 		}
 		targetDate = nil
-		isTargetDatePickerExpanded = false
 	}
 
 	struct Snapshot: Equatable {

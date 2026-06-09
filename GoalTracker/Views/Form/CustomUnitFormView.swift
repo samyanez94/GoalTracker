@@ -44,7 +44,7 @@ struct CustomUnitFormView: View {
 		Form {
 			Section {
 				TextField("Name", text: $name)
-				TextField("Abbreviation (optional)", text: $abbreviation)
+				TextField("Abbreviation", text: $abbreviation)
 			} footer: {
 				Text("Values will display this text after the number.")
 					.font(.footnote)

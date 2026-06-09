@@ -105,8 +105,7 @@ struct GoalFormView: View {
 				Text("Organization")
 			} footer: {
 				Text("Use tags to group related goals.")
-					.font(.footnote)
-					.foregroundStyle(.secondary)
+                    .font(.footnote)
 			}
 			Section {
 				GoalRecurrencePickerRow(recurrence: $formState.schedule.recurrence)
@@ -117,41 +116,35 @@ struct GoalFormView: View {
 				Text("Recurrence")
 			} footer: {
 				Text(
-					"Use recurring goals for habits and goals you want to repeat over time. Turn on reminders to get a notification at 9 AM on the first day of each repeat."
+					"Use recurring goals for goals and habits you want to repeat over time. Turn on reminders to get a notification at 9 AM on the first day of each repeat."
 				)
 				.font(.footnote)
-				.foregroundStyle(.secondary)
 			}
 			if formState.schedule.allowsTargetDate {
 				Section {
-					HStack {
-						TargetDateSummaryButton(
-							hasTargetDate: formState.schedule.hasTargetDate,
-							targetDate: formState.schedule.draftTargetDate,
-							action: {
-								withAnimation {
-									formState.schedule.toggleTargetDatePicker()
+					Toggle(isOn: $formState.schedule.hasTargetDate) {
+						Label {
+							VStack(alignment: .leading, spacing: 2) {
+								Text("Target Date")
+								if formState.schedule.hasTargetDate {
+									Text(GoalTargetDateFormatter.string(from: formState.schedule.draftTargetDate))
+										.font(.subheadline)
+										.foregroundStyle(.secondary)
 								}
-							},
-						)
-						Toggle(
-							"Target Date",
-							isOn: $formState.schedule.hasTargetDate,
-						)
-						.labelsHidden()
+							}
+						} icon: {
+							Image(systemName: "calendar")
+								.foregroundStyle(.secondary)
+						}
 					}
-					if formState.schedule.hasTargetDate,
-						formState.schedule.isTargetDatePickerExpanded
-					{
+					if formState.schedule.hasTargetDate {
 						DatePicker(
 							"Select target date",
 							selection: $formState.schedule.draftTargetDate,
 							displayedComponents: .date,
 						)
 						.datePickerStyle(.graphical)
-					}
-					if formState.schedule.hasTargetDate {
-						GoalReminderToggleRow(reminder: $formState.schedule.reminder)
+                        GoalReminderToggleRow(reminder: $formState.schedule.reminder)
 					}
 				} header: {
 					Text("Date")
@@ -160,7 +153,6 @@ struct GoalFormView: View {
 						"Set a target date to help you know when to complete this goal. Turn on reminders to get a notification at 9 AM that day."
 					)
 					.font(.footnote)
-					.foregroundStyle(.secondary)
 				}
 			}
 			Section {
@@ -200,7 +192,6 @@ struct GoalFormView: View {
 			} footer: {
 				Text("Track progress toward a numeric target.")
 					.font(.footnote)
-					.foregroundStyle(.secondary)
 			}
 		}
 		.scrollDismissesKeyboard(.interactively)

@@ -15,6 +15,7 @@ struct GoalDetailHeaderSection: View {
 			Text(goal.name)
 				.font(.largeTitle.bold())
 				.foregroundStyle(.primary)
+				.accessibilityAddTraits(.isHeader)
 			if let recurrence = goal.recurrence {
 				Label(recurrence.detailTitle, systemImage: "repeat.circle.fill")
 					.font(.body.bold())
@@ -28,9 +29,18 @@ struct GoalDetailHeaderSection: View {
 			}
 			if let targetDate = goal.targetDate {
 				let text = targetDateText(for: targetDate)
-				Text(text)
-					.font(.body.bold())
-					.foregroundStyle(goal.isPastTargetDate() ? .red : .secondary)
+				let isPastTargetDate = goal.isPastTargetDate()
+				HStack(spacing: 4) {
+					if isPastTargetDate {
+						Image(systemName: "exclamationmark.circle.fill")
+							.imageScale(.small)
+							.accessibilityHidden(true)
+					}
+					Text(text)
+				}
+				.font(.body.bold())
+				.foregroundStyle(isPastTargetDate ? .red : .secondary)
+				.accessibilityElement(children: .combine)
 			}
 			if goal.tags?.isEmpty == false {
 				TagFlowLayout {
@@ -44,9 +54,10 @@ struct GoalDetailHeaderSection: View {
 	}
 
 	private var sortedTags: [Tag] {
-		(goal.tags ?? []).sorted { lhs, rhs in
-			lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
-		}
+		(goal.tags ?? [])
+			.sorted { lhs, rhs in
+				lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+			}
 	}
 
 	private func targetDateText(for targetDate: Date) -> String {
@@ -58,5 +69,4 @@ struct GoalDetailHeaderSection: View {
 		}
 		return "Complete by \(targetDate.formatted(date: .long, time: .omitted))"
 	}
-
 }

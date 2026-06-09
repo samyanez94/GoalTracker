@@ -17,6 +17,7 @@ struct GoalDetailStatusSection: View {
 			Text("Status")
 				.font(.headline)
 				.foregroundStyle(.secondary)
+				.accessibilityAddTraits(.isHeader)
 			HStack {
 				Image(systemName: goal.status().iconSystemName)
 					.imageScale(.large)
@@ -35,6 +36,9 @@ struct GoalDetailStatusSection: View {
 				Color(.secondarySystemGroupedBackground),
 				in: .rect(cornerRadius: 24, style: .continuous),
 			)
+			.accessibilityElement(children: .ignore)
+			.accessibilityLabel("Status")
+			.accessibilityValue(goal.status().displayString)
 		}
 	}
 }

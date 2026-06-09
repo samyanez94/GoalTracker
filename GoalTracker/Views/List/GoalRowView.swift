@@ -17,6 +17,7 @@ struct GoalRowView: View {
 	let goal: Goal
 
 	var body: some View {
+		let isCompleted = goal.isCompleted()
 		NavigationLink(value: GoalNavigationDestination.goal(goal.id)) {
 			HStack(spacing: 12) {
 				if editMode?.wrappedValue.isEditing != true {
@@ -24,28 +25,47 @@ struct GoalRowView: View {
 						.imageScale(.large)
 						.foregroundStyle(statusImageStyle)
 						.contentTransition(.symbolEffect(.replace))
-						.accessibilityLabel(goal.status().displayString)
+						.accessibilityHidden(true)
 				}
 				VStack(alignment: .leading, spacing: 2) {
 					Text(goal.name)
-						.foregroundStyle(goal.isCompleted() ? .secondary : .primary)
+						.foregroundStyle(isCompleted ? .secondary : .primary)
 					if let targetDate = goal.targetDate {
-						Text(GoalTargetDateFormatter.string(from: targetDate))
-							.font(.subheadline)
-							.foregroundStyle(goal.isPastTargetDate() ? .red : .secondary)
+							let formattedDate = GoalTargetDateFormatter.string(from: targetDate)
+							let isPastTargetDate = goal.isPastTargetDate()
+							HStack(spacing: 4) {
+								if isPastTargetDate {
+									Image(systemName: "exclamationmark.circle.fill")
+										.imageScale(.small)
+										.accessibilityHidden(true)
+							}
+							Text(formattedDate)
+						}
+						.font(.subheadline)
+						.foregroundStyle(isPastTargetDate ? .red : .secondary)
+						.accessibilityElement(children: .combine)
+						.accessibilityLabel(
+							targetDateAccessibilityLabel(
+								formattedDate: formattedDate,
+                                isPastTargetDate: isPastTargetDate
+							)
+						)
 					}
 					if let recurrence = goal.recurrence {
 						Text(recurrence.rowTitle)
 							.font(.subheadline)
 							.foregroundStyle(.secondary)
+							.accessibilityLabel("Repeats \(recurrence.rowTitle)")
 					}
 					GoalTagSummaryText(tags: goal.tags ?? [])
 				}
 			}
+			.accessibilityElement(children: .combine)
+			.accessibilityValue(isCompleted ? "Completed" : "Pending")
 		}
 		.contextMenu {
 			GoalActionMenuContent(
-				isCompleted: goal.isCompleted(),
+				isCompleted: isCompleted,
 				edit: {
 					isPresentingEditForm = true
 				},
@@ -85,6 +105,13 @@ struct GoalRowView: View {
 
 	private var statusImageStyle: AnyShapeStyle {
 		goal.isCompleted() ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.tertiary)
+	}
+
+	private func targetDateAccessibilityLabel(
+		formattedDate: String,
+        isPastTargetDate: Bool,
+	) -> String {
+        isPastTargetDate ? "Past target date: \(formattedDate)" : "Target date: \(formattedDate)"
 	}
 
 	private func toggleCompletion() {

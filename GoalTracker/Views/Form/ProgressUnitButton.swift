@@ -24,9 +24,11 @@ struct ProgressUnitButton: View {
 				if selectedUnit == unit {
 					Image(systemName: "checkmark")
 						.foregroundStyle(Color.accentColor)
+						.accessibilityHidden(true)
 				}
 			}
 		}
 		.foregroundStyle(.primary)
+		.accessibilityAddTraits(selectedUnit == unit ? .isSelected : [])
 	}
 }

@@ -28,6 +28,7 @@ struct GoalListBottomToolbar: ToolbarContent {
 					},
 				)
 				.disabled(selectedGoalCount == 0)
+				.accessibilityLabel(deleteButtonAccessibilityLabel)
 				.goalDeleteConfirmationDialog(
 					isPresented: $isPresentingDeleteConfirmation,
 					goalCount: selectedGoalCount,
@@ -44,4 +45,14 @@ struct GoalListBottomToolbar: ToolbarContent {
 		}
 	}
 
+	private var deleteButtonAccessibilityLabel: String {
+		switch selectedGoalCount {
+		case 0:
+			"Delete selected goals"
+		case 1:
+			"Delete 1 selected goal"
+		default:
+			"Delete \(selectedGoalCount) selected goals"
+		}
+	}
 }
