@@ -278,9 +278,11 @@ nonisolated struct MeasurableProgress: Codable, Equatable {
 	}
 
 	func deletingEvent(id: GoalProgressEvent.ID) -> MeasurableProgress? {
-		guard let index = events.firstIndex(where: { event in
-			event.id == id
-		}) else {
+		guard
+			let index = events.firstIndex(where: { event in
+				event.id == id
+			})
+		else {
 			return nil
 		}
 		var updatedEvents = events
@@ -302,11 +304,13 @@ nonisolated struct MeasurableProgress: Codable, Equatable {
 	}
 
 	private func replacingEventsIfValid(with events: [GoalProgressEvent]) -> MeasurableProgress? {
-		guard Self.isValid(
-			events: events,
-			targetValue: targetValue,
-			step: step,
-		) else {
+		guard
+			Self.isValid(
+				events: events,
+				targetValue: targetValue,
+				step: step,
+			)
+		else {
 			return nil
 		}
 		return replacingEvents(with: events)

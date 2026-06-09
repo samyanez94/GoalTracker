@@ -23,16 +23,16 @@ struct GoalPersistenceRecoveryView: View {
 			VStack {
 				Button("Try Again", action: retry)
 					.buttonStyle(.borderedProminent)
-                    .buttonSizing(.flexible)
-                    .controlSize(.large)
+					.buttonSizing(.flexible)
+					.controlSize(.large)
 				ShareLink(item: failure.diagnosticDetails) {
 					Text("Share Diagnostic Details")
 				}
 				.buttonStyle(.bordered)
-                .buttonSizing(.flexible)
-                .controlSize(.large)
+				.buttonSizing(.flexible)
+				.controlSize(.large)
 			}
-            .padding(.horizontal)
+			.padding(.horizontal)
 		}
 	}
 }

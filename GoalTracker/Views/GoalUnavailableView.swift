@@ -33,7 +33,7 @@ struct GoalUnavailableView: View {
 			if let systemImage {
 				Label(title, systemImage: systemImage)
 			} else {
-                Text(title).bold()
+				Text(title).bold()
 			}
 		} description: {
 			if let description {
@@ -47,7 +47,7 @@ struct GoalUnavailableView: View {
 // MARK: - GoalUnavailableView+Helpers
 
 extension GoalUnavailableView {
-    
+
 	private static var groupedBackgroundStyle: AnyShapeStyle {
 		AnyShapeStyle(Color(.systemGroupedBackground))
 	}
@@ -88,9 +88,9 @@ extension GoalUnavailableView {
 	}
 }
 
-private extension View {
+extension View {
 	@ViewBuilder
-	func optionalBackground(_ style: AnyShapeStyle?) -> some View {
+	fileprivate func optionalBackground(_ style: AnyShapeStyle?) -> some View {
 		if let style {
 			background(style)
 		} else {

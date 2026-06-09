@@ -134,13 +134,13 @@ extension View {
 		action: @escaping () -> Void
 	) -> some View {
 		safeAreaInset(edge: .bottom, alignment: .leading) {
-				Button("Toggle sign", systemImage: "plus.forwardslash.minus", action: action)
-					.fontWeight(.semibold)
-					.labelStyle(.iconOnly)
-					.accessibilityHint("Toggle between positive and negative values.")
-					.controlSize(.large)
-					.padding(8)
-					.buttonBorderShape(.circle)
+			Button("Toggle sign", systemImage: "plus.forwardslash.minus", action: action)
+				.fontWeight(.semibold)
+				.labelStyle(.iconOnly)
+				.accessibilityHint("Toggle between positive and negative values.")
+				.controlSize(.large)
+				.padding(8)
+				.buttonBorderShape(.circle)
 				.buttonStyle(.glass)
 		}
 	}

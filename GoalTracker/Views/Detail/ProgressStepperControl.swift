@@ -30,7 +30,7 @@ struct ProgressStepperControl: View {
 			)
 			.disabled(!canIncrement)
 		}
-        .frame(height: 48)
+		.frame(height: 48)
 	}
 
 	// MARK: - StepperButton
@@ -43,9 +43,9 @@ struct ProgressStepperControl: View {
 		var body: some View {
 			Button(action: action) {
 				Label(accessibilityLabel, systemImage: systemName)
-                    .fontWeight(.semibold)
+					.fontWeight(.semibold)
 					.labelStyle(.iconOnly)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+					.frame(maxWidth: .infinity, maxHeight: .infinity)
 			}
 			.buttonSizing(.flexible)
 			.buttonStyle(.glassProminent)

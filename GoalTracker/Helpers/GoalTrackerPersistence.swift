@@ -37,7 +37,7 @@ final class GoalTrackerPersistence {
 
 	private static func load(using makeContainer: () throws -> ModelContainer) -> State {
 		do {
-            let container = try makeContainer()
+			let container = try makeContainer()
 			return .ready(container)
 		} catch {
 			return .failed(GoalTrackerPersistenceFailure(error: error))
@@ -58,7 +58,8 @@ struct GoalTrackerPersistenceFailure {
 
 	init(error: Error) {
 		if let localizedError = error as? LocalizedError,
-			let errorDescription = localizedError.errorDescription {
+			let errorDescription = localizedError.errorDescription
+		{
 			message = errorDescription
 		} else {
 			message = error.localizedDescription

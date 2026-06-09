@@ -142,8 +142,8 @@ enum GoalProgressEventGrouper {
 	}
 }
 
-private extension GoalProgressEventSortOrder {
-	func sorted(_ events: [GoalProgressEvent]) -> [GoalProgressEvent] {
+extension GoalProgressEventSortOrder {
+	fileprivate func sorted(_ events: [GoalProgressEvent]) -> [GoalProgressEvent] {
 		events.sorted { lhs, rhs in
 			switch self {
 			case .newestFirst:
@@ -157,8 +157,8 @@ private extension GoalProgressEventSortOrder {
 
 // MARK: - Date+Helpers
 
-private extension Date {
-	func isInside(_ interval: DateInterval?) -> Bool {
+extension Date {
+	fileprivate func isInside(_ interval: DateInterval?) -> Bool {
 		guard let interval else {
 			return false
 		}

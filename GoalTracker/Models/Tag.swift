@@ -20,10 +20,10 @@ extension GoalTrackerSchemaV1 {
 		var name: String = ""
 		/// The normalized name used for duplicate detection and lookup.
 		var normalizedName: String = ""
-        /// The date the tag was created.
-        var createdAt: Date = Date()
-        /// Goals currently associated with this tag.
-        @Relationship(deleteRule: .nullify, inverse: \Goal.tags) var goals: [Goal]? = []
+		/// The date the tag was created.
+		var createdAt: Date = Date()
+		/// Goals currently associated with this tag.
+		@Relationship(deleteRule: .nullify, inverse: \Goal.tags) var goals: [Goal]? = []
 
 		init(
 			id: UUID = UUID(),

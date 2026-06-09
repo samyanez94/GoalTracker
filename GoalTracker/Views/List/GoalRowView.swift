@@ -31,13 +31,13 @@ struct GoalRowView: View {
 					Text(goal.name)
 						.foregroundStyle(isCompleted ? .secondary : .primary)
 					if let targetDate = goal.targetDate {
-							let formattedDate = GoalTargetDateFormatter.string(from: targetDate)
-							let isPastTargetDate = goal.isPastTargetDate()
-							HStack(spacing: 4) {
-								if isPastTargetDate {
-									Image(systemName: "exclamationmark.circle.fill")
-										.imageScale(.small)
-										.accessibilityHidden(true)
+						let formattedDate = GoalTargetDateFormatter.string(from: targetDate)
+						let isPastTargetDate = goal.isPastTargetDate()
+						HStack(spacing: 4) {
+							if isPastTargetDate {
+								Image(systemName: "exclamationmark.circle.fill")
+									.imageScale(.small)
+									.accessibilityHidden(true)
 							}
 							Text(formattedDate)
 						}
@@ -47,7 +47,7 @@ struct GoalRowView: View {
 						.accessibilityLabel(
 							targetDateAccessibilityLabel(
 								formattedDate: formattedDate,
-                                isPastTargetDate: isPastTargetDate
+								isPastTargetDate: isPastTargetDate
 							)
 						)
 					}
@@ -109,9 +109,9 @@ struct GoalRowView: View {
 
 	private func targetDateAccessibilityLabel(
 		formattedDate: String,
-        isPastTargetDate: Bool,
+		isPastTargetDate: Bool,
 	) -> String {
-        isPastTargetDate ? "Past target date: \(formattedDate)" : "Target date: \(formattedDate)"
+		isPastTargetDate ? "Past target date: \(formattedDate)" : "Target date: \(formattedDate)"
 	}
 
 	private func toggleCompletion() {

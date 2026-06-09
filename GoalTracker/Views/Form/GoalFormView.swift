@@ -105,7 +105,7 @@ struct GoalFormView: View {
 				Text("Organization")
 			} footer: {
 				Text("Use tags to group related goals.")
-                    .font(.footnote)
+					.font(.footnote)
 			}
 			Section {
 				GoalRecurrencePickerRow(recurrence: $formState.schedule.recurrence)
@@ -144,7 +144,7 @@ struct GoalFormView: View {
 							displayedComponents: .date,
 						)
 						.datePickerStyle(.graphical)
-                        GoalReminderToggleRow(reminder: $formState.schedule.reminder)
+						GoalReminderToggleRow(reminder: $formState.schedule.reminder)
 					}
 				} header: {
 					Text("Date")

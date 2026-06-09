@@ -57,7 +57,8 @@ struct GoalListView: View {
 				if goals.isEmpty {
 					GoalUnavailableView.emptyGoals()
 				} else if isSearching,
-					visibleSearchResultsAreEmpty {
+					visibleSearchResultsAreEmpty
+				{
 					GoalUnavailableView.emptySearch()
 				} else if pendingGoalsAreHiddenByCompletedFilter {
 					GoalUnavailableView.emptyPendingGoals()
@@ -100,10 +101,10 @@ struct GoalListView: View {
 					sortMode: $sortMode,
 					sortDirection: $sortDirection,
 					isShowingCompletedGoals: $isShowingCompletedGoals,
-                    isEditing: editMode.isEditing,
-                    isEditModeEnabled: !goals.isEmpty,
-                    enterEditMode: enterEditMode,
-                    exitEditMode: exitEditMode
+					isEditing: editMode.isEditing,
+					isEditModeEnabled: !goals.isEmpty,
+					enterEditMode: enterEditMode,
+					exitEditMode: exitEditMode
 				)
 			}
 			.sheet(isPresented: $isPresentingGoalFormView) {
@@ -125,7 +126,7 @@ struct GoalListView: View {
 			.onAppear {
 				navigateToGoalIfPossible(notificationRouter.pendingGoalId)
 			}
-            .goalSaveFailureAlert(failure: $saveFailure)
+			.goalSaveFailureAlert(failure: $saveFailure)
 		}
 	}
 
@@ -177,11 +178,11 @@ struct GoalListView: View {
 	private var goalSelection: Binding<Set<UUID>>? {
 		editMode.isEditing ? $selectedGoalIds : nil
 	}
-    
-    private func enterEditMode() {
-        selectedGoalIds.removeAll()
-        editMode = .active
-    }
+
+	private func enterEditMode() {
+		selectedGoalIds.removeAll()
+		editMode = .active
+	}
 
 	private func exitEditMode() {
 		selectedGoalIds.removeAll()
@@ -194,7 +195,7 @@ struct GoalListView: View {
 		}
 		do {
 			try goalManager.deleteGoals(selectedGoals)
-            exitEditMode()
+			exitEditMode()
 		} catch {
 			saveFailure = .deleteGoal
 		}
@@ -220,10 +221,11 @@ struct GoalListView: View {
 
 	private func navigateToGoalIfPossible(_ goalId: UUID?) {
 		guard let goalId,
-              goal(with: goalId) != nil else {
+			goal(with: goalId) != nil
+		else {
 			return
 		}
-        exitEditMode()
+		exitEditMode()
 		isPresentingGoalFormView = false
 		isPresentingDeleteConfirmation = false
 		navigationPath = [.goal(goalId)]

@@ -70,14 +70,14 @@ struct GoalProgressEventListView: View {
 				}
 				ToolbarItem(placement: .bottomBar) {
 					Button(
-                        selectedEventIds.count == 1 ? "Delete Event" : "Delete Events",
+						selectedEventIds.count == 1 ? "Delete Event" : "Delete Events",
 						systemImage: "trash",
 						role: .destructive,
 						action: {
 							isPresentingDeleteConfirmation = true
 						},
 					)
-                    .disabled(selectedEventIds.count == 0)
+					.disabled(selectedEventIds.count == 0)
 					.goalProgressEventDeleteConfirmationDialog(
 						isPresented: $isPresentingDeleteConfirmation,
 						eventCount: selectedEventIds.count,
@@ -87,11 +87,11 @@ struct GoalProgressEventListView: View {
 			} else {
 				ToolbarItem(placement: .topBarTrailing) {
 					Menu {
-                        Button {
-                            withAnimation {
-                                editMode = .active
-                            }
-                        } label: {
+						Button {
+							withAnimation {
+								editMode = .active
+							}
+						} label: {
 							Label("Select Events", systemImage: "checkmark.circle")
 						}
 						.disabled(events.isEmpty)
@@ -145,13 +145,13 @@ struct GoalProgressEventListView: View {
 	private var eventSelection: Binding<Set<GoalProgressEvent.ID>>? {
 		editMode.isEditing ? $selectedEventIds : nil
 	}
-    
+
 	private var allEventsAreSelected: Bool {
-        !eventIds.isEmpty && selectedEventIds.count == eventIds.count
+		!eventIds.isEmpty && selectedEventIds.count == eventIds.count
 	}
 
 	private var selectAllButtonTitle: String {
-        allEventsAreSelected ? "Deselect All" : "Select All"
+		allEventsAreSelected ? "Deselect All" : "Select All"
 	}
 
 	private var goalManager: GoalManager {
@@ -161,9 +161,9 @@ struct GoalProgressEventListView: View {
 	private func exitEditMode() {
 		selectedEventIds.removeAll()
 		isPresentingDeleteConfirmation = false
-        withAnimation {
-            editMode = .inactive
-        }
+		withAnimation {
+			editMode = .inactive
+		}
 	}
 
 	private func toggleSelectAllEvents() {
@@ -230,7 +230,7 @@ struct GoalProgressEventListView: View {
 							GoalProgressEvent(
 								delta: 3,
 								timestamp: Date().addingTimeInterval(-31_536_000),
-							),
+							)
 						],
 						targetValue: 5,
 						unit: .kilometers,

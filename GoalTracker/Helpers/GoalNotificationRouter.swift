@@ -35,8 +35,8 @@ extension GoalNotificationRouter: UNUserNotificationCenterDelegate {
 		)
 		if let goalId {
 			Task { @MainActor in
-                self.navigate(to: goalId)
-                completionHandler()
+				self.navigate(to: goalId)
+				completionHandler()
 			}
 		} else {
 			completionHandler()

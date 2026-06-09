@@ -9,7 +9,7 @@ import Foundation
 
 /// A reminder configured to fire at the app's default reminder time.
 nonisolated struct GoalReminder: Codable, Hashable {
-    
+
 	/// The local hour used as the reminder-time anchor for goals without a custom reminder time.
 	static let defaultSettingHour = 9
 

@@ -107,7 +107,7 @@ struct GoalManagerTests {
 					events: [
 						GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
 						GoalProgressEvent(id: deletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
-						GoalProgressEvent(delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+						GoalProgressEvent(delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3))
 					],
 					targetValue: 10,
 					step: 2,
@@ -133,7 +133,7 @@ struct GoalManagerTests {
 				MeasurableProgress(
 					events: [
 						GoalProgressEvent(id: deletedEventID, delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
-						GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+						GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 2))
 					],
 					targetValue: 10,
 				)
@@ -158,7 +158,7 @@ struct GoalManagerTests {
 				MeasurableProgress(
 					events: [
 						GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
-						GoalProgressEvent(id: deletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+						GoalProgressEvent(id: deletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2))
 					],
 					targetValue: 10,
 				)
@@ -190,7 +190,7 @@ struct GoalManagerTests {
 					events: [
 						GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
 						GoalProgressEvent(id: firstDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
-						GoalProgressEvent(id: secondDeletedEventID, delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+						GoalProgressEvent(id: secondDeletedEventID, delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3))
 					],
 					targetValue: 10,
 					step: 2,
@@ -221,7 +221,7 @@ struct GoalManagerTests {
 					events: [
 						GoalProgressEvent(id: firstDeletedEventID, delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
 						GoalProgressEvent(id: secondDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
-						GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+						GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 3))
 					],
 					targetValue: 10,
 				)
@@ -251,7 +251,7 @@ struct GoalManagerTests {
 					events: [
 						GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
 						GoalProgressEvent(id: firstDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
-						GoalProgressEvent(id: secondDeletedEventID, delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+						GoalProgressEvent(id: secondDeletedEventID, delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3))
 					],
 					targetValue: 10,
 				)
@@ -814,9 +814,10 @@ struct GoalManagerTests {
 		)
 
 		let goal = try #require(
-			fetchGoals(in: container).first { goal in
-				goal.name == "Read"
-			}
+			fetchGoals(in: container)
+				.first { goal in
+					goal.name == "Read"
+				}
 		)
 		#expect(goal.reminder == reminder)
 		#expect(goal.targetDate == targetDate)
@@ -834,15 +835,16 @@ struct GoalManagerTests {
 				progress: .outcome(OutcomeProgress()),
 				tags: [
 					GoalFormTagSelection(name: "Health"),
-					GoalFormTagSelection(name: "Running"),
+					GoalFormTagSelection(name: "Running")
 				],
 			),
 		)
 
 		let goal = try #require(
-			fetchGoals(in: container).first { goal in
-				goal.name == "Run"
-			}
+			fetchGoals(in: container)
+				.first { goal in
+					goal.name == "Run"
+				}
 		)
 		#expect(Set((goal.tags ?? []).map(\.name)) == ["Health", "Running"])
 		#expect(Set(try fetchTags(in: container).map(\.name)) == ["Health", "Running"])
@@ -862,16 +864,17 @@ struct GoalManagerTests {
 				details: "",
 				progress: .outcome(OutcomeProgress()),
 				tags: [
-					GoalFormTagSelection(name: "health"),
+					GoalFormTagSelection(name: "health")
 				],
 			),
 		)
 
 		let tags = try fetchTags(in: container)
 		let goal = try #require(
-			fetchGoals(in: container).first { goal in
-				goal.name == "Run"
-			}
+			fetchGoals(in: container)
+				.first { goal in
+					goal.name == "Run"
+				}
 		)
 		#expect(tags.map(\.id) == [existingTag.id])
 		#expect((goal.tags ?? []).map(\.id) == [existingTag.id])
@@ -894,7 +897,7 @@ struct GoalManagerTests {
 					details: "",
 					progress: .outcome(OutcomeProgress()),
 					tags: [
-						GoalFormTagSelection(name: "Health"),
+						GoalFormTagSelection(name: "Health")
 					],
 				),
 			)
@@ -920,7 +923,7 @@ struct GoalManagerTests {
 				details: goal.details ?? "",
 				progress: goal.progress,
 				tags: [
-					GoalFormTagSelection(name: "New"),
+					GoalFormTagSelection(name: "New")
 				],
 			),
 		)
@@ -946,7 +949,7 @@ struct GoalManagerTests {
 				details: goal.details ?? "",
 				progress: goal.progress,
 				tags: [
-					GoalFormTagSelection(name: "Retained"),
+					GoalFormTagSelection(name: "Retained")
 				],
 			),
 		)
@@ -977,7 +980,7 @@ struct GoalManagerTests {
 					details: goal.details ?? "",
 					progress: goal.progress,
 					tags: [
-						GoalFormTagSelection(name: "New"),
+						GoalFormTagSelection(name: "New")
 					],
 				),
 			)

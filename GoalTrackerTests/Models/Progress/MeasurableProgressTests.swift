@@ -213,7 +213,7 @@ struct MeasurableProgressTests {
 			events: [
 				GoalProgressEvent(delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
 				GoalProgressEvent(id: deletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
-				GoalProgressEvent(delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+				GoalProgressEvent(delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3))
 			],
 			targetValue: 10,
 		)
@@ -221,10 +221,12 @@ struct MeasurableProgressTests {
 		let updatedProgress = try #require(progress.deletingEvent(id: deletedEventID))
 
 		#expect(updatedProgress.events.map(\.delta) == [4, 3])
-		#expect(updatedProgress.events.map(\.timestamp) == [
-			Date(timeIntervalSinceReferenceDate: 1),
-			Date(timeIntervalSinceReferenceDate: 3),
-		])
+		#expect(
+			updatedProgress.events.map(\.timestamp) == [
+				Date(timeIntervalSinceReferenceDate: 1),
+				Date(timeIntervalSinceReferenceDate: 3)
+			]
+		)
 		#expect(updatedProgress.currentValue == 7)
 	}
 
@@ -241,7 +243,7 @@ struct MeasurableProgressTests {
 		let progress = measurableProgress(
 			events: [
 				GoalProgressEvent(id: deletedEventID, delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
-				GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+				GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 2))
 			],
 			targetValue: 10,
 		)
@@ -268,7 +270,7 @@ struct MeasurableProgressTests {
 			events: [
 				GoalProgressEvent(id: firstDeletedEventID, delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
 				GoalProgressEvent(delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
-				GoalProgressEvent(id: secondDeletedEventID, delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+				GoalProgressEvent(id: secondDeletedEventID, delta: 3, timestamp: Date(timeIntervalSinceReferenceDate: 3))
 			],
 			targetValue: 10,
 		)
@@ -278,9 +280,11 @@ struct MeasurableProgressTests {
 		)
 
 		#expect(updatedProgress.events.map(\.delta) == [2])
-		#expect(updatedProgress.events.map(\.timestamp) == [
-			Date(timeIntervalSinceReferenceDate: 2)
-		])
+		#expect(
+			updatedProgress.events.map(\.timestamp) == [
+				Date(timeIntervalSinceReferenceDate: 2)
+			]
+		)
 		#expect(updatedProgress.currentValue == 2)
 	}
 
@@ -306,7 +310,7 @@ struct MeasurableProgressTests {
 			events: [
 				GoalProgressEvent(id: firstDeletedEventID, delta: 10, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
 				GoalProgressEvent(id: secondDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
-				GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 3)),
+				GoalProgressEvent(delta: -3, timestamp: Date(timeIntervalSinceReferenceDate: 3))
 			],
 			targetValue: 10,
 		)
@@ -321,7 +325,7 @@ struct MeasurableProgressTests {
 		let progress = measurableProgress(
 			events: [
 				GoalProgressEvent(id: firstDeletedEventID, delta: 4, timestamp: Date(timeIntervalSinceReferenceDate: 1)),
-				GoalProgressEvent(id: secondDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2)),
+				GoalProgressEvent(id: secondDeletedEventID, delta: 2, timestamp: Date(timeIntervalSinceReferenceDate: 2))
 			],
 			targetValue: 10,
 		)

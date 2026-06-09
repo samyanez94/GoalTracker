@@ -10,7 +10,7 @@ import SwiftUI
 // MARK: - GoalDetailProgressSection
 
 struct GoalDetailProgressSection: View {
-    
+
 	let goalId: UUID
 
 	let recurrence: GoalRecurrence?

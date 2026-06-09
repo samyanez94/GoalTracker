@@ -21,7 +21,7 @@ struct GoalProgressEventGrouperTests {
 				event(delta: 3, year: 2026, month: 6, day: 20, hour: 9),
 				event(delta: 4, year: 2026, month: 6, day: 5),
 				event(delta: 5, year: 2024, month: 12, day: 31),
-				event(delta: 6, year: 2026, month: 1, day: 10),
+				event(delta: 6, year: 2026, month: 1, day: 10)
 			],
 			now: date(year: 2026, month: 6, day: 20, hour: 12),
 			calendar: calendar,
@@ -40,7 +40,7 @@ struct GoalProgressEventGrouperTests {
 				event(delta: 3, year: 2026, month: 6, day: 20, hour: 9),
 				event(delta: 4, year: 2026, month: 6, day: 5),
 				event(delta: 5, year: 2024, month: 12, day: 31),
-				event(delta: 6, year: 2026, month: 1, day: 10),
+				event(delta: 6, year: 2026, month: 1, day: 10)
 			],
 			sortOrder: .oldestFirst,
 			now: date(year: 2026, month: 6, day: 20, hour: 12),
@@ -57,7 +57,7 @@ struct GoalProgressEventGrouperTests {
 			for: [
 				event(delta: 1, year: 2026, month: 6, day: 4, hour: 8),
 				event(delta: 2, year: 2026, month: 6, day: 4, hour: 14),
-				event(delta: 3, year: 2026, month: 6, day: 4, hour: 10),
+				event(delta: 3, year: 2026, month: 6, day: 4, hour: 10)
 			],
 			now: date(year: 2026, month: 6, day: 4, hour: 16),
 			calendar: calendar,
@@ -75,7 +75,7 @@ struct GoalProgressEventGrouperTests {
 			for: [
 				event(delta: 1, year: 2026, month: 6, day: 4, hour: 8),
 				event(delta: 2, year: 2026, month: 6, day: 4, hour: 14),
-				event(delta: 3, year: 2026, month: 6, day: 4, hour: 10),
+				event(delta: 3, year: 2026, month: 6, day: 4, hour: 10)
 			],
 			sortOrder: .oldestFirst,
 			now: date(year: 2026, month: 6, day: 4, hour: 16),
@@ -93,7 +93,7 @@ struct GoalProgressEventGrouperTests {
 		let events = [
 			event(delta: 1, year: 2026, month: 6, day: 4, hour: 8),
 			event(delta: 2, year: 2026, month: 6, day: 4, hour: 14),
-			event(delta: 3, year: 2026, month: 6, day: 4, hour: 10),
+			event(delta: 3, year: 2026, month: 6, day: 4, hour: 10)
 		]
 
 		let sections = GoalProgressEventGrouper.sections(
@@ -105,11 +105,13 @@ struct GoalProgressEventGrouperTests {
 		let todaySection = sections.first
 
 		#expect(todaySection?.events.map(\.delta) == [2, 3, 1])
-		#expect(todaySection?.events.map(\.id) == [
-			events[1].id,
-			events[2].id,
-			events[0].id,
-		])
+		#expect(
+			todaySection?.events.map(\.id) == [
+				events[1].id,
+				events[2].id,
+				events[0].id
+			]
+		)
 	}
 
 	private var calendar: Calendar {
