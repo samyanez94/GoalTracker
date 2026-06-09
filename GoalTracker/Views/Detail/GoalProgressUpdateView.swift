@@ -25,20 +25,28 @@ struct GoalProgressUpdateView: View {
 
 	var body: some View {
 		VStack(spacing: 8) {
-			TextField("0", value: $progressAmount, format: .number.sign(strategy: .automatic))
-				.focused($isProgressFieldFocused)
-				.tint(.clear)
-				.keyboardType(.decimalPad)
-				.font(.system(size: 72, weight: .bold))
-				.multilineTextAlignment(.center)
-				.textFieldStyle(.plain)
+			TextField(
+				"Progress update amount",
+				value: $progressAmount,
+				format: .number.sign(strategy: .automatic),
+				prompt: Text("0"),
+			)
+			.focused($isProgressFieldFocused)
+			.tint(.clear)
+			.keyboardType(.decimalPad)
+			.font(.largeTitle.scaled(by: 2.25).bold())
+			.multilineTextAlignment(.center)
+			.textFieldStyle(.plain)
+			.accessibilityLabel("Progress update amount")
+			.accessibilityHint("Enter the amount to add or subtract from the goal's progress.")
 			if let unitTitle {
 				Text(unitTitle)
 					.font(.title3)
 					.foregroundStyle(.secondary)
+					.accessibilityHidden(true)
 			}
 		}
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+		.frame(maxWidth: .infinity, maxHeight: .infinity)
 		.padding()
 		.navigationTitle(progressAmountTitle)
 		.navigationBarTitleDisplayMode(.inline)
@@ -115,24 +123,25 @@ struct GoalProgressUpdateView: View {
 	}
 }
 
-private extension View {
-    
+extension View {
+
 	/// Attaches a leading keyboard accessory button for toggling the progress entry sign.
 	///
 	/// Uses `safeAreaInset` as a workaround for the iOS 26 keyboard toolbar padding
 	/// issue, pending [FB22938104](https://feedbackassistant.apple.com/feedback/22938104).
 	@ViewBuilder
-	func progressKeyboardAccessory(
+	fileprivate func progressKeyboardAccessory(
 		action: @escaping () -> Void
 	) -> some View {
 		safeAreaInset(edge: .bottom, alignment: .leading) {
-            Button("Toggle sign", systemImage: "plus.forwardslash.minus", action: action)
-                .fontWeight(.semibold)
-                .labelStyle(.iconOnly)
-                .controlSize(.large)
-                .padding(8)
-                .buttonBorderShape(.circle)
-                .buttonStyle(.glass)
+				Button("Toggle sign", systemImage: "plus.forwardslash.minus", action: action)
+					.fontWeight(.semibold)
+					.labelStyle(.iconOnly)
+					.accessibilityHint("Toggle between positive and negative values.")
+					.controlSize(.large)
+					.padding(8)
+					.buttonBorderShape(.circle)
+				.buttonStyle(.glass)
 		}
 	}
 }

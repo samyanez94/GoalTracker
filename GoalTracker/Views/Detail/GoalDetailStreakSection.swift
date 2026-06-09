@@ -18,6 +18,7 @@ struct GoalDetailStreakSection: View {
 				Text("Streak")
 					.font(.headline)
 					.foregroundStyle(.secondary)
+					.accessibilityAddTraits(.isHeader)
 				HStack {
 					Image(systemName: streakDetails.iconSystemName)
 						.imageScale(.large)
@@ -36,6 +37,9 @@ struct GoalDetailStreakSection: View {
 					Color(.secondarySystemGroupedBackground),
 					in: .rect(cornerRadius: 24, style: .continuous),
 				)
+				.accessibilityElement(children: .ignore)
+				.accessibilityLabel("Current Streak")
+				.accessibilityValue(streakDetails.title)
 			}
 		}
 	}

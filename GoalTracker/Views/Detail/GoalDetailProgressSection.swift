@@ -34,6 +34,7 @@ struct GoalDetailProgressSection: View {
 			}
 			.buttonStyle(.plain)
 			.foregroundStyle(.secondary)
+			.accessibilityAddTraits(.isHeader)
 			HStack {
 				VStack(alignment: .leading, spacing: 4) {
 					Text(progressTitle)
@@ -55,6 +56,9 @@ struct GoalDetailProgressSection: View {
 				Color(.secondarySystemGroupedBackground),
 				in: .rect(cornerRadius: 24, style: .continuous),
 			)
+			.accessibilityElement(children: .ignore)
+			.accessibilityLabel("Progress")
+			.accessibilityValue(progressAccessibilityValue)
 		}
 	}
 
@@ -97,6 +101,21 @@ struct GoalDetailProgressSection: View {
 			return "\(remainingText) more to go"
 		}
 		return "\(remainingText) \(unitText) more to go"
+	}
+
+	private var progressAccessibilityValue: String {
+		let currentValue = formattedNumber(currentProgressValue)
+		let targetValue = formattedNumber(progress.targetValue)
+		let percentCompleted = fractionCompleted.formatted(
+			.percent.precision(.fractionLength(0))
+		)
+		let progressValue =
+			if let unitTitle = progress.unit?.title {
+				"\(currentValue) of \(targetValue) \(unitTitle)"
+			} else {
+				"\(currentValue) of \(targetValue)"
+			}
+		return "\(progressValue), \(progressSubtitle), \(percentCompleted)"
 	}
 
 	private func formattedNumber(_ value: Double, for progress: MeasurableProgress) -> String {
