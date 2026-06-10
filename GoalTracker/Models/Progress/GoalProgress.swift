@@ -12,6 +12,8 @@ import Foundation
 /// Describes how a goal tracks progress toward completion.
 ///
 /// Each case owns only the state that applies to that goal type. Outcome goals are binary, while measurable goals advance toward a numeric target.
+///
+///  - Note: Progress history is stored as a single Codable value. In CloudKit sync edge cases, stale local writes may replace the full event array. Long-term fix: persist progress events as separate SwiftData records.
 nonisolated enum GoalProgress: Codable, Equatable {
 
 	/// Binary progress for goals that are either incomplete or complete.
