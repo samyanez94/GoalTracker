@@ -20,41 +20,45 @@ struct GoalListTopToolbar: ToolbarContent {
 	var body: some ToolbarContent {
 		ToolbarItem(placement: .topBarTrailing) {
 			if isEditing {
-				Button("Done", systemImage: "checkmark", action: exitEditMode)
+				Button(.commonDone, systemImage: "checkmark", action: exitEditMode)
 			} else {
 				Menu {
 					Button(action: enterEditMode) {
-						Label("Select Goals", systemImage: "checkmark.circle")
+						Label(.goalListSelectGoals, systemImage: "checkmark.circle")
 					}
 					.disabled(!isEditModeEnabled)
 					Menu {
-						Picker("Sort", selection: $sortMode) {
+						Picker(.commonSort, selection: $sortMode) {
 							ForEach(GoalSortMode.allCases) { sortMode in
 								Text(sortMode.title)
 									.tag(sortMode)
 							}
 						}
-						Picker("Direction", selection: $sortDirection) {
+						Picker(.commonDirection, selection: $sortDirection) {
 							ForEach(GoalSortDirection.allCases) { direction in
 								Text(direction.title)
 									.tag(direction)
 							}
 						}
 					} label: {
-						Label("Sort By", systemImage: "arrow.up.arrow.down")
+						Label(.toolbarSortBy, systemImage: "arrow.up.arrow.down")
 					}
 					Button {
 						isShowingCompletedGoals.toggle()
 					} label: {
 						Label(
-							isShowingCompletedGoals ? "Hide Completed" : "Show Completed",
+							completedGoalsVisibilityTitle,
 							systemImage: isShowingCompletedGoals ? "eye.slash" : "eye",
 						)
 					}
 				} label: {
-					Label("List Options", systemImage: "ellipsis")
+					Label(.toolbarListOptions, systemImage: "ellipsis")
 				}
 			}
 		}
+	}
+
+	private var completedGoalsVisibilityTitle: LocalizedStringResource {
+		isShowingCompletedGoals ? .goalListHideCompleted : .goalListShowCompleted
 	}
 }

@@ -41,7 +41,7 @@ struct TagSelectionView: View {
 				}
 			}
 			Section {
-				TextField("Add New Tag...", text: $newTagName)
+				TextField(.tagSelectionAddNewTagField, text: $newTagName)
 					.focused($newTagFieldIsFocused)
 					.submitLabel(.done)
 					.textInputAutocapitalization(.words)
@@ -51,7 +51,7 @@ struct TagSelectionView: View {
 					.onSubmit(addTag)
 			}
 		}
-		.navigationTitle("Tags")
+		.navigationTitle(.commonTags)
 		.navigationBarTitleDisplayMode(.inline)
 	}
 

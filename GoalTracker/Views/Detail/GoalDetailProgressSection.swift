@@ -21,7 +21,7 @@ struct GoalDetailProgressSection: View {
 		VStack(alignment: .leading, spacing: 8) {
 			NavigationLink(value: GoalNavigationDestination.progressEvents(goalId)) {
 				HStack(alignment: .firstTextBaseline, spacing: 4) {
-					Text("Progress")
+					Text(.commonProgress)
 						.font(.headline)
 					Image(systemName: "chevron.right")
 						.font(.headline.weight(.semibold))
@@ -57,7 +57,7 @@ struct GoalDetailProgressSection: View {
 				in: .rect(cornerRadius: 24, style: .continuous),
 			)
 			.accessibilityElement(children: .ignore)
-			.accessibilityLabel("Progress")
+			.accessibilityLabel(Text(.commonProgress))
 			.accessibilityValue(progressAccessibilityValue)
 		}
 	}
@@ -90,7 +90,7 @@ struct GoalDetailProgressSection: View {
 
 	private var progressSubtitle: String {
 		guard !isCompleted else {
-			return "Completed"
+			return String(localized: .detailCompleteGoalButtonCompleted)
 		}
 		let remainingValue = max(progress.targetValue - currentProgressValue, 0)
 		let remainingText = formattedNumber(

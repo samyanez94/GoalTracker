@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProgressTextFieldRow: View {
-	let label: String
+	let label: LocalizedStringResource
 	let placeholder: String
 	@Binding var value: Double?
 	let focus: FocusState<Bool>.Binding

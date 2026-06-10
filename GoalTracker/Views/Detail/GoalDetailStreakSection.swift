@@ -15,7 +15,7 @@ struct GoalDetailStreakSection: View {
 	var body: some View {
 		if let streakDetails {
 			VStack(alignment: .leading, spacing: 8) {
-				Text("Streak")
+				Text(.detailStreak)
 					.font(.headline)
 					.foregroundStyle(.secondary)
 					.accessibilityAddTraits(.isHeader)
@@ -25,7 +25,7 @@ struct GoalDetailStreakSection: View {
 						.foregroundStyle(streakDetails.iconForegroundStyle)
 						.contentTransition(.symbolEffect(.replace))
 						.accessibilityHidden(true)
-					Text("Current Streak")
+					Text(.detailCurrentStreak)
 					Spacer(minLength: 8)
 					Text(streakDetails.title)
 						.foregroundStyle(.secondary)
@@ -38,7 +38,7 @@ struct GoalDetailStreakSection: View {
 					in: .rect(cornerRadius: 24, style: .continuous),
 				)
 				.accessibilityElement(children: .ignore)
-				.accessibilityLabel("Current Streak")
+				.accessibilityLabel(Text(.detailCurrentStreak))
 				.accessibilityValue(streakDetails.title)
 			}
 		}

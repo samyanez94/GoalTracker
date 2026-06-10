@@ -12,12 +12,16 @@ struct CompleteGoalButton: View {
 	let action: () -> Void
 
 	var body: some View {
-		Button(isCompleted ? "Completed" : "Complete", action: action)
+		Button(title, action: action)
 			.font(.headline)
 			.controlSize(.large)
 			.buttonSizing(.flexible)
 			.buttonStyle(.glassProminent)
 			.disabled(isCompleted)
 			.padding(.horizontal)
+	}
+
+	private var title: LocalizedStringResource {
+		isCompleted ? .detailCompleteGoalButtonCompleted : .detailCompleteGoalButtonComplete
 	}
 }

@@ -30,9 +30,9 @@ struct ProgressUnitSelectionView: View {
 
 	var body: some View {
 		List {
-			Section("None") {
+			Section(String(localized: .commonNone)) {
 				ProgressUnitButton(
-					title: "None",
+					title: String(localized: .commonNone),
 					unit: nil,
 					selectedUnit: $selectedUnit,
 				) {
@@ -55,7 +55,7 @@ struct ProgressUnitSelectionView: View {
 			Section {
 				NavigationLink(value: ProgressUnitSelectionDestination.customUnit) {
 					HStack {
-						Text("Custom")
+						Text(.commonCustom)
 							.foregroundStyle(.primary)
 						Spacer()
 						if let customUnit {
@@ -66,7 +66,7 @@ struct ProgressUnitSelectionView: View {
 				}
 			}
 		}
-		.navigationTitle("Unit")
+		.navigationTitle(.commonUnit)
 		.navigationBarTitleDisplayMode(.inline)
 		.navigationDestination(for: ProgressUnitSelectionDestination.self) { destination in
 			switch destination {

@@ -55,13 +55,13 @@ struct GoalRowView: View {
 						Text(recurrence.rowTitle)
 							.font(.subheadline)
 							.foregroundStyle(.secondary)
-							.accessibilityLabel("Repeats \(recurrence.rowTitle)")
+							.accessibilityLabel(Text(verbatim: "Repeats \(recurrence.rowTitle)"))
 					}
 					GoalTagSummaryText(tags: goal.tags ?? [])
 				}
 			}
 			.accessibilityElement(children: .combine)
-			.accessibilityValue(isCompleted ? "Completed" : "Pending")
+			.accessibilityValue(Text(verbatim: isCompleted ? "Completed" : "Pending"))
 		}
 		.contextMenu {
 			GoalActionMenuContent(
@@ -88,7 +88,7 @@ struct GoalRowView: View {
 			Button(role: .destructive) {
 				deleteGoal()
 			} label: {
-				Label("Delete", systemImage: "trash")
+				Label(.commonDelete, systemImage: "trash")
 			}
 		}
 		.goalDeleteConfirmationDialog(

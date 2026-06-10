@@ -43,19 +43,19 @@ struct CustomUnitFormView: View {
 	var body: some View {
 		Form {
 			Section {
-				TextField("Name", text: $name)
-				TextField("Abbreviation", text: $abbreviation)
+				TextField(.formCustomUnitNameField, text: $name)
+				TextField(.formCustomUnitAbbreviationField, text: $abbreviation)
 			} footer: {
-				Text("Values will display this text after the number.")
+				Text(.formCustomUnitFooter)
 					.font(.footnote)
 					.foregroundStyle(.secondary)
 			}
 		}
-		.navigationTitle("Custom Unit")
+		.navigationTitle(.formCustomUnitTitle)
 		.navigationBarTitleDisplayMode(.inline)
 		.toolbar {
 			ToolbarItem(placement: .confirmationAction) {
-				Button("Save", systemImage: "checkmark", action: save)
+				Button(.commonSave, systemImage: "checkmark", action: save)
 					.labelStyle(.iconOnly)
 					.buttonStyle(.glassProminent)
 					.disabled(isSaveDisabled)

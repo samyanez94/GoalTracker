@@ -10,16 +10,16 @@ import SwiftUI
 // MARK: - GoalUnavailableView
 
 struct GoalUnavailableView: View {
-	let title: String
+	let title: LocalizedStringResource
 	let systemImage: String?
-	let description: String?
+	let description: LocalizedStringResource?
 
 	private let backgroundStyle: AnyShapeStyle?
 
 	init(
-		_ title: String,
+		_ title: LocalizedStringResource,
 		systemImage: String? = nil,
-		description: String? = nil,
+		description: LocalizedStringResource? = nil,
 		backgroundStyle: AnyShapeStyle? = nil
 	) {
 		self.title = title
@@ -54,35 +54,35 @@ extension GoalUnavailableView {
 
 	static func emptyGoals(backgroundStyle: AnyShapeStyle? = groupedBackgroundStyle) -> Self {
 		Self(
-			"No goals",
-			description: "Create your first goal to start tracking progress.",
+			.goalUnavailableEmptyGoalsTitle,
+			description: .goalUnavailableEmptyGoalsDescription,
 			backgroundStyle: backgroundStyle
 		)
 	}
 
 	static func emptySearch(backgroundStyle: AnyShapeStyle? = groupedBackgroundStyle) -> Self {
 		Self(
-			"No matching goals",
+			.goalUnavailableEmptySearchTitle,
 			systemImage: "magnifyingglass",
-			description: "Check the spelling or try a new search.",
+			description: .goalUnavailableEmptySearchDescription,
 			backgroundStyle: backgroundStyle
 		)
 	}
 
 	static func emptyPendingGoals(backgroundStyle: AnyShapeStyle? = groupedBackgroundStyle) -> Self {
 		Self(
-			"No pending goals",
+			.goalUnavailableEmptyPendingGoalsTitle,
 			systemImage: "checkmark.circle",
-			description: "Show completed goals to see what you've finished.",
+			description: .goalUnavailableEmptyPendingGoalsDescription,
 			backgroundStyle: backgroundStyle
 		)
 	}
 
 	static func goalNotFound(backgroundStyle: AnyShapeStyle? = nil) -> Self {
 		Self(
-			"Goal Not Found",
+			.goalUnavailableGoalNotFoundTitle,
 			systemImage: "exclamationmark.triangle",
-			description: "This goal may have been deleted.",
+			description: .goalUnavailableGoalNotFoundDescription,
 			backgroundStyle: backgroundStyle
 		)
 	}

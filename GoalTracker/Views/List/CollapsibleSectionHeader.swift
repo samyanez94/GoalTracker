@@ -29,8 +29,12 @@ struct CollapsibleSectionHeader: View {
 		}
 		.buttonStyle(.plain)
 		.accessibilityLabel(title)
-		.accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
-		.accessibilityHint("Expands or collapses this section.")
+		.accessibilityValue(
+			isExpanded
+				? Text(.accessibilityCollapsibleSectionExpanded)
+				: Text(.accessibilityCollapsibleSectionCollapsed)
+		)
+		.accessibilityHint(Text(.accessibilityCollapsibleSectionHint))
 		.accessibilityAddTraits(.isHeader)
 	}
 }

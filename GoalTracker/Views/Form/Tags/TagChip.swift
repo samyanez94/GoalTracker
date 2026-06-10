@@ -15,7 +15,7 @@ struct TagChip: View {
 
 	var body: some View {
 		Button(action: action) {
-			Text("#\(name)")
+			Text(verbatim: "#\(name)")
 				.font(.subheadline.bold())
 				.foregroundStyle(isSelected ? .white : .secondary)
 				.padding(.horizontal, 12)
@@ -25,7 +25,7 @@ struct TagChip: View {
 		}
 		.buttonStyle(.plain)
 		.disabled(!isEnabled)
-		.accessibilityLabel("Tag \(name)")
+		.accessibilityLabel(Text(verbatim: "Tag \(name)"))
 		.accessibilityInputLabels([name, "#\(name)"])
 		.accessibilityAddTraits(isSelected ? .isSelected : [])
 	}

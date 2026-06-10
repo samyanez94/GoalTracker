@@ -14,7 +14,7 @@ struct GoalDetailStatusSection: View {
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
-			Text("Status")
+			Text(.commonStatus)
 				.font(.headline)
 				.foregroundStyle(.secondary)
 				.accessibilityAddTraits(.isHeader)
@@ -24,7 +24,7 @@ struct GoalDetailStatusSection: View {
 					.foregroundStyle(goal.isCompleted() ? AnyShapeStyle(.accent) : AnyShapeStyle(.tertiary))
 					.contentTransition(.symbolEffect(.replace))
 					.accessibilityHidden(true)
-				Text("Status")
+				Text(.commonStatus)
 				Spacer(minLength: 8)
 				Text(goal.status().displayString)
 					.foregroundStyle(.secondary)
@@ -37,7 +37,7 @@ struct GoalDetailStatusSection: View {
 				in: .rect(cornerRadius: 24, style: .continuous),
 			)
 			.accessibilityElement(children: .ignore)
-			.accessibilityLabel("Status")
+			.accessibilityLabel(Text(.commonStatus))
 			.accessibilityValue(goal.status().displayString)
 		}
 	}

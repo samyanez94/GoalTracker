@@ -14,12 +14,16 @@ struct GoalActionMenuContent: View {
 	let delete: () -> Void
 
 	var body: some View {
-		Button("Edit", systemImage: "pencil", action: edit)
+		Button(.goalActionEdit, systemImage: "pencil", action: edit)
 		Button(
-			isCompleted ? "Mark as Pending" : "Mark as Completed",
+			toggleCompletionTitle,
 			systemImage: isCompleted ? "circle" : "checkmark.circle",
 			action: toggleCompletion,
 		)
-		Button("Delete", systemImage: "trash", role: .destructive, action: delete)
+		Button(.commonDelete, systemImage: "trash", role: .destructive, action: delete)
+	}
+
+	private var toggleCompletionTitle: LocalizedStringResource {
+		isCompleted ? .goalActionMarkAsPending : .goalActionMarkAsCompleted
 	}
 }

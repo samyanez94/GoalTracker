@@ -20,7 +20,7 @@ struct GoalListBottomToolbar: ToolbarContent {
 		if isSelectingGoals {
 			ToolbarItem(placement: .bottomBar) {
 				Button(
-					selectedGoalCount == 1 ? "Delete Goal" : "Delete Goals",
+					deleteSelectedGoalsButtonTitle,
 					systemImage: "trash",
 					role: .destructive,
 					action: {
@@ -39,10 +39,14 @@ struct GoalListBottomToolbar: ToolbarContent {
 			DefaultToolbarItem(kind: .search, placement: .bottomBar)
 			ToolbarSpacer(.flexible, placement: .bottomBar)
 			ToolbarItem(placement: .bottomBar) {
-				Button("Add Goal", systemImage: "plus", action: onAddGoal)
+				Button(.goalListAddGoal, systemImage: "plus", action: onAddGoal)
 					.buttonStyle(.glassProminent)
 			}
 		}
+	}
+
+	private var deleteSelectedGoalsButtonTitle: LocalizedStringResource {
+		selectedGoalCount == 1 ? .commonDeleteGoal : .commonDeleteGoals
 	}
 
 	private var deleteButtonAccessibilityLabel: String {

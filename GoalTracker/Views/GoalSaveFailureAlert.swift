@@ -57,7 +57,7 @@ struct GoalSaveFailureAlertModifier: ViewModifier {
 			Alert(
 				title: Text(failure.title),
 				message: Text(failure.message),
-				dismissButton: .default(Text("OK")),
+				dismissButton: .default(Text(.commonOk)),
 			)
 		}
 	}

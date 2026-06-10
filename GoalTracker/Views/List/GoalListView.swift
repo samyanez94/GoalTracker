@@ -66,12 +66,12 @@ struct GoalListView: View {
 					List(selection: goalSelection) {
 						if isShowingCompletedGoals {
 							GoalSectionView(
-								title: "Pending",
+								title: String(localized: .goalListSectionPending),
 								goals: pendingGoals,
 								isExpanded: $isPendingSectionExpanded,
 							)
 							GoalSectionView(
-								title: "Completed",
+								title: String(localized: .goalListSectionCompleted),
 								goals: completedGoals,
 								isExpanded: $isCompletedSectionExpanded,
 							)
@@ -84,9 +84,9 @@ struct GoalListView: View {
 					}
 				}
 			}
-			.navigationTitle("Goals")
+			.navigationTitle(.goalListTitle)
 			.environment(\.editMode, $editMode)
-			.searchable(text: $searchText, prompt: "Search goals")
+			.searchable(text: $searchText, prompt: Text(.goalListSearchPrompt))
 			.toolbar {
 				GoalListBottomToolbar(
 					isSelectingGoals: editMode.isEditing,
@@ -221,8 +221,7 @@ struct GoalListView: View {
 
 	private func navigateToGoalIfPossible(_ goalId: UUID?) {
 		guard let goalId,
-			goal(with: goalId) != nil
-		else {
+			goal(with: goalId) != nil else {
 			return
 		}
 		exitEditMode()

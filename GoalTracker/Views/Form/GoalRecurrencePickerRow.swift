@@ -12,7 +12,7 @@ struct GoalRecurrencePickerRow: View {
 
 	var body: some View {
 		Picker(selection: $recurrence) {
-			Text("Never")
+			Text(.commonNever)
 				.tag(nil as GoalRecurrence?)
 			Divider()
 			ForEach(GoalRecurrenceCadence.builtInOptions, id: \.self) { cadence in
@@ -21,7 +21,7 @@ struct GoalRecurrencePickerRow: View {
 			}
 		} label: {
 			Label {
-				Text("Repeat")
+				Text(.commonRepeat)
 			} icon: {
 				Image(systemName: "repeat")
 					.foregroundStyle(.secondary)
