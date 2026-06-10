@@ -60,13 +60,14 @@ struct GoalDetailHeaderSection: View {
 			}
 	}
 
-	private func targetDateText(for targetDate: Date) -> String {
+	private func targetDateText(for targetDate: Date) -> LocalizedStringResource {
 		if Calendar.current.isDateInToday(targetDate) {
-			return "Complete by today"
+			return .detailTargetDateToday
 		}
 		if Calendar.current.isDateInTomorrow(targetDate) {
-			return "Complete by tomorrow"
+			return .detailTargetDateTomorrow
 		}
-		return "Complete by \(targetDate.formatted(date: .long, time: .omitted))"
+		let formattedDate = targetDate.formatted(date: .long, time: .omitted)
+		return .detailTargetDateDate(formattedDate)
 	}
 }

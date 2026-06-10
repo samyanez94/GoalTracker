@@ -217,9 +217,10 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 	) -> String {
 		switch schedule.targetDescription {
 		case .date:
-			return "Don't forget to complete today"
+			return String(localized: .notificationReminderDateBody)
 		case .cadence(let cadence):
-			return "Don't forget to complete \(cadence.reminderTargetDescription)"
+			let targetDescription = String(localized: cadence.reminderTargetDescription)
+			return String(localized: .notificationReminderCadenceBody(targetDescription))
 		}
 	}
 

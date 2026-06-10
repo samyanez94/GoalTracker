@@ -397,6 +397,39 @@
         }
       }
     },
+    "detail.targetDate.date" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete by %@"
+          }
+        }
+      }
+    },
+    "detail.targetDate.today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete by today"
+          }
+        }
+      }
+    },
+    "detail.targetDate.tomorrow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete by tomorrow"
+          }
+        }
+      }
+    },
     "detail.updateProgressButton" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -404,6 +437,182 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Update progress"
+          }
+        }
+      }
+    },
+    "goal.failure.addOrUpdate.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your changes weren't saved. Please try again."
+          }
+        }
+      }
+    },
+    "goal.failure.addOrUpdate.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Save Goal"
+          }
+        }
+      }
+    },
+    "goal.failure.deleteGoal.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The goal wasn't deleted. Please try again."
+          }
+        }
+      }
+    },
+    "goal.failure.deleteGoal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Delete Goal"
+          }
+        }
+      }
+    },
+    "goal.failure.deleteTag.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The tag wasn't deleted. Please try again."
+          }
+        }
+      }
+    },
+    "goal.failure.deleteTag.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Delete Tag"
+          }
+        }
+      }
+    },
+    "goal.failure.updateProgress.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your progress change wasn't saved. Please try again."
+          }
+        }
+      }
+    },
+    "goal.failure.updateProgress.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Update Goal"
+          }
+        }
+      }
+    },
+    "goal.sortDirection.ascending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ascending"
+          }
+        }
+      }
+    },
+    "goal.sortDirection.descending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descending"
+          }
+        }
+      }
+    },
+    "goal.sortMode.creationDate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date Created"
+          }
+        }
+      }
+    },
+    "goal.sortMode.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        }
+      }
+    },
+    "goal.sortMode.targetDate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target Date"
+          }
+        }
+      }
+    },
+    "goal.status.completed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed"
+          }
+        }
+      }
+    },
+    "goal.status.inProgress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Progress"
+          }
+        }
+      }
+    },
+    "goal.status.pending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pending"
           }
         }
       }
@@ -782,6 +991,39 @@
         }
       }
     },
+    "goal.row.recurrence.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeats %@"
+          }
+        }
+      }
+    },
+    "goal.row.targetDate.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target date: %@"
+          }
+        }
+      }
+    },
+    "goal.row.targetDate.past.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past target date: %@"
+          }
+        }
+      }
+    },
     "goal.unavailable.emptyGoals.description" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -870,6 +1112,28 @@
         }
       }
     },
+    "notification.reminder.cadence.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don't forget to complete %@"
+          }
+        }
+      }
+    },
+    "notification.reminder.date.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don't forget to complete today"
+          }
+        }
+      }
+    },
     "persistenceRecovery.description" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -914,6 +1178,160 @@
         }
       }
     },
+    "progress.stepper.decrease" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decrease progress"
+          }
+        }
+      }
+    },
+    "progress.stepper.increase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Increase progress"
+          }
+        }
+      }
+    },
+    "progressEvent.deletionFailure.blocked.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleting this event would make the remaining progress history invalid."
+          }
+        }
+      }
+    },
+    "progressEvent.deletionFailure.blocked.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progress Event Not Deleted"
+          }
+        }
+      }
+    },
+    "progressEvent.deletionFailure.blockedBatch.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleting these events would make the remaining progress history invalid."
+          }
+        }
+      }
+    },
+    "progressEvent.deletionFailure.blockedBatch.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progress Events Not Deleted"
+          }
+        }
+      }
+    },
+    "progressEvent.deletionFailure.saveFailed.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your progress change wasn't saved. Please try again."
+          }
+        }
+      }
+    },
+    "progressEvent.deletionFailure.saveFailed.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Delete Progress"
+          }
+        }
+      }
+    },
+    "progressEvent.format.decreased" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decreased"
+          }
+        }
+      }
+    },
+    "progressEvent.format.increased" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Increased"
+          }
+        }
+      }
+    },
+    "progressEvent.group.thisMonth" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Month"
+          }
+        }
+      }
+    },
+    "progressEvent.group.thisWeek" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Week"
+          }
+        }
+      }
+    },
+    "progressEvent.group.thisYear" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Year"
+          }
+        }
+      }
+    },
+    "progressEvent.group.today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        }
+      }
+    },
     "progressEvent.list.noProgress" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -943,6 +1361,204 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "History"
+          }
+        }
+      }
+    },
+    "progressEvent.sortOrder.newestFirst" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Newest First"
+          }
+        }
+      }
+    },
+    "progressEvent.sortOrder.oldestFirst" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oldest First"
+          }
+        }
+      }
+    },
+    "recurrence.cadence.daily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily"
+          }
+        }
+      }
+    },
+    "recurrence.cadence.monthly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly"
+          }
+        }
+      }
+    },
+    "recurrence.cadence.weekly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly"
+          }
+        }
+      }
+    },
+    "recurrence.cadence.yearly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yearly"
+          }
+        }
+      }
+    },
+    "recurrence.detail.daily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeats every day"
+          }
+        }
+      }
+    },
+    "recurrence.detail.monthly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeats every month"
+          }
+        }
+      }
+    },
+    "recurrence.detail.weekly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeats every week"
+          }
+        }
+      }
+    },
+    "recurrence.detail.yearly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeats every year"
+          }
+        }
+      }
+    },
+    "recurrence.reminderTarget.daily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "today"
+          }
+        }
+      }
+    },
+    "recurrence.reminderTarget.monthly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "this month"
+          }
+        }
+      }
+    },
+    "recurrence.reminderTarget.weekly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "this week"
+          }
+        }
+      }
+    },
+    "recurrence.reminderTarget.yearly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "this year"
+          }
+        }
+      }
+    },
+    "recurrence.row.daily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every day"
+          }
+        }
+      }
+    },
+    "recurrence.row.monthly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every month"
+          }
+        }
+      }
+    },
+    "recurrence.row.weekly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every week"
+          }
+        }
+      }
+    },
+    "recurrence.row.yearly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every year"
           }
         }
       }

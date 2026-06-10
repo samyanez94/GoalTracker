@@ -14,7 +14,11 @@ enum GoalProgressEventFormatter {
 		for event: GoalProgressEvent,
 		unit: GoalProgressUnit?,
 	) -> String {
-		let verb = event.delta >= 0 ? "Increased" : "Decreased"
+		let verb = String(
+			localized: event.delta >= 0
+				? .progressEventFormatIncreased
+				: .progressEventFormatDecreased
+		)
 		return "\(verb) by \(formattedAmount(abs(event.delta), unit: unit))"
 	}
 

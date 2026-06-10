@@ -5,6 +5,7 @@
 //  Created by Samuel Yanez on 5/27/26.
 //
 
+import Foundation
 import Testing
 
 @testable import GoalTracker
@@ -18,11 +19,11 @@ struct GoalStatusTests {
 			(.completed, "Completed")
 		],
 	)
-	func `Display strings describe each status`(
+	func `Titles describe each status`(
 		status: GoalStatus,
-		expectedDisplayString: String,
+		expectedTitle: String,
 	) {
-		#expect(status.displayString == expectedDisplayString)
+		#expect(String(localized: status.title) == expectedTitle)
 	}
 
 	@Test(

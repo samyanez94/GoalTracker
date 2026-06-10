@@ -5,6 +5,8 @@
 //  Created by Samuel Yanez on 6/4/26.
 //
 
+import Foundation
+
 // MARK: - GoalProgressEventSortOrder
 
 enum GoalProgressEventSortOrder: CaseIterable, Identifiable {
@@ -15,12 +17,12 @@ enum GoalProgressEventSortOrder: CaseIterable, Identifiable {
 		self
 	}
 
-	var title: String {
+	var title: LocalizedStringResource {
 		switch self {
 		case .newestFirst:
-			"Newest First"
+			.progressEventSortOrderNewestFirst
 		case .oldestFirst:
-			"Oldest First"
+			.progressEventSortOrderOldestFirst
 		}
 	}
 }

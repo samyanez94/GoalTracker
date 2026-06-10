@@ -26,7 +26,7 @@ struct GoalDetailStatusSection: View {
 					.accessibilityHidden(true)
 				Text(.commonStatus)
 				Spacer(minLength: 8)
-				Text(goal.status().displayString)
+				Text(goal.status().title)
 					.foregroundStyle(.secondary)
 					.multilineTextAlignment(.trailing)
 			}
@@ -38,7 +38,7 @@ struct GoalDetailStatusSection: View {
 			)
 			.accessibilityElement(children: .ignore)
 			.accessibilityLabel(Text(.commonStatus))
-			.accessibilityValue(goal.status().displayString)
+			.accessibilityValue(goal.status().title)
 		}
 	}
 }

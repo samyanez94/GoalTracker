@@ -18,11 +18,11 @@ nonisolated struct GoalRecurrence: Codable, Equatable, Hashable {
 		self.cadence = cadence
 	}
 
-	var detailTitle: String {
+	var detailTitle: LocalizedStringResource {
 		cadence.detailTitle
 	}
 
-	var rowTitle: String {
+	var rowTitle: LocalizedStringResource {
 		cadence.rowTitle
 	}
 

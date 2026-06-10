@@ -13,14 +13,14 @@ nonisolated enum GoalStatus {
 	case inProgress
 	case completed
 
-	var displayString: String {
+	var title: LocalizedStringResource {
 		switch self {
 		case .pending:
-			"Pending"
+			.goalStatusPending
 		case .inProgress:
-			"In Progress"
+			.goalStatusInProgress
 		case .completed:
-			"Completed"
+			.goalStatusCompleted
 		}
 	}
 

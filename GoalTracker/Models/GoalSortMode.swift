@@ -16,14 +16,14 @@ enum GoalSortMode: String, CaseIterable, Identifiable {
 		self
 	}
 
-	var title: String {
+	var title: LocalizedStringResource {
 		switch self {
 		case .targetDate:
-			"Target Date"
+			.goalSortModeTargetDate
 		case .creationDate:
-			"Date Created"
+			.goalSortModeCreationDate
 		case .name:
-			"Name"
+			.goalSortModeName
 		}
 	}
 }

@@ -81,13 +81,13 @@ enum GoalProgressEventGrouper {
 		var title: String {
 			switch self {
 			case .today:
-				"Today"
+				String(localized: .progressEventGroupToday)
 			case .thisWeek:
-				"This Week"
+				String(localized: .progressEventGroupThisWeek)
 			case .thisMonth:
-				"This Month"
+				String(localized: .progressEventGroupThisMonth)
 			case .thisYear:
-				"This Year"
+				String(localized: .progressEventGroupThisYear)
 			case .year(let year):
 				year.formatted(.number.grouping(.never))
 			}
