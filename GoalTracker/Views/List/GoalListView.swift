@@ -36,10 +36,14 @@ struct GoalListView: View {
 
 	@AppStorage(AppStorageKey.isShowingCompletedGoals) private var isShowingCompletedGoals = true
 
-	@AppStorage(AppStorageKey.isPendingSectionExpanded) private var isPendingSectionExpanded = true
+	@AppStorage(AppStorageKey.isPendingSectionExpanded) private var storedPendingSectionExpanded = true
 
-	@AppStorage(AppStorageKey.isCompletedSectionExpanded) private var isCompletedSectionExpanded =
+	@AppStorage(AppStorageKey.isCompletedSectionExpanded) private var storedCompletedSectionExpanded =
 		true
+
+	@State private var isPendingSectionExpanded: Bool
+
+	@State private var isCompletedSectionExpanded: Bool
 
 	private let sorter = GoalSorter()
 
@@ -49,6 +53,18 @@ struct GoalListView: View {
 
 	init(notificationRouter: GoalNotificationRouter = GoalNotificationRouter()) {
 		self.notificationRouter = notificationRouter
+		_isPendingSectionExpanded = State(
+			initialValue: Self.storedBool(
+				for: AppStorageKey.isPendingSectionExpanded,
+				defaultValue: true
+			)
+		)
+		_isCompletedSectionExpanded = State(
+			initialValue: Self.storedBool(
+				for: AppStorageKey.isCompletedSectionExpanded,
+				defaultValue: true
+			)
+		)
 	}
 
 	var body: some View {
@@ -120,6 +136,12 @@ struct GoalListView: View {
 			.onChange(of: notificationRouter.pendingGoalId) { _, goalId in
 				navigateToGoalIfPossible(goalId)
 			}
+			.onChange(of: isPendingSectionExpanded) { _, isExpanded in
+				storedPendingSectionExpanded = isExpanded
+			}
+			.onChange(of: isCompletedSectionExpanded) { _, isExpanded in
+				storedCompletedSectionExpanded = isExpanded
+			}
 			.onChange(of: goals.map(\.id)) { _, _ in
 				navigateToGoalIfPossible(notificationRouter.pendingGoalId)
 			}
@@ -177,6 +199,10 @@ struct GoalListView: View {
 
 	private var goalSelection: Binding<Set<UUID>>? {
 		editMode.isEditing ? $selectedGoalIds : nil
+	}
+
+	private static func storedBool(for key: String, defaultValue: Bool) -> Bool {
+		UserDefaults.standard.object(forKey: key) as? Bool ?? defaultValue
 	}
 
 	private func enterEditMode() {

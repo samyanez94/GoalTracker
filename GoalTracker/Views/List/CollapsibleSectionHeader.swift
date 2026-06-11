@@ -12,17 +12,19 @@ struct CollapsibleSectionHeader: View {
 
 	@Binding var isExpanded: Bool
 
+	@Environment(\.accessibilityReduceMotion) private var reduceMotion
+
 	var body: some View {
 		Button {
-			withAnimation {
-				isExpanded.toggle()
-			}
+			toggleExpansion()
 		} label: {
 			HStack(spacing: 6) {
 				Text(title)
+					.font(.title3.bold())
 				Image(systemName: "chevron.right")
-					.font(.caption.weight(.semibold))
+					.font(.caption.bold())
 					.rotationEffect(.degrees(isExpanded ? 90 : 0))
+					.animation(expansionAnimation, value: isExpanded)
 				Spacer()
 			}
 			.contentShape(Rectangle())
@@ -36,5 +38,19 @@ struct CollapsibleSectionHeader: View {
 		)
 		.accessibilityHint(Text(.accessibilityCollapsibleSectionHint))
 		.accessibilityAddTraits(.isHeader)
+	}
+
+	private var expansionAnimation: Animation? {
+		reduceMotion ? nil : .smooth
+	}
+
+	private func toggleExpansion() {
+		if reduceMotion {
+			isExpanded.toggle()
+		} else {
+			withAnimation(.smooth) {
+				isExpanded.toggle()
+			}
+		}
 	}
 }
