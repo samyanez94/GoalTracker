@@ -14,8 +14,11 @@ enum GoalProgressEventFormatter {
 		for event: GoalProgressEvent,
 		unit: GoalProgressUnit?,
 	) -> String {
-		let verb = event.delta >= 0 ? "Increased" : "Decreased"
-		return "\(verb) by \(formattedAmount(abs(event.delta), unit: unit))"
+		let amount = formattedAmount(abs(event.delta), unit: unit)
+		if event.delta >= 0 {
+			return String(localized: .progressEventFormatIncreasedBy(amount))
+		}
+		return String(localized: .progressEventFormatDecreasedBy(amount))
 	}
 
 	static func subtitle(for event: GoalProgressEvent) -> String {

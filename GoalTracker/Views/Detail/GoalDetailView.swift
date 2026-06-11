@@ -48,7 +48,7 @@ struct GoalDetailView: View {
 		.background(Color(.systemGroupedBackground).ignoresSafeArea())
 		.toolbar {
 			ToolbarItem(placement: .topBarTrailing) {
-				Menu("Goal Actions", systemImage: "ellipsis") {
+				Menu(.detailGoalActions, systemImage: "ellipsis") {
 					GoalActionMenuContent(
 						isCompleted: goal.isCompleted(),
 						edit: {

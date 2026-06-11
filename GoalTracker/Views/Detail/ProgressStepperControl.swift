@@ -19,13 +19,13 @@ struct ProgressStepperControl: View {
 		HStack(spacing: 12) {
 			StepperButton(
 				systemName: "minus",
-				accessibilityLabel: "Decrease progress",
+				accessibilityLabel: .progressStepperDecrease,
 				action: onDecrement,
 			)
 			.disabled(!canDecrement)
 			StepperButton(
 				systemName: "plus",
-				accessibilityLabel: "Increase progress",
+				accessibilityLabel: .progressStepperIncrease,
 				action: onIncrement,
 			)
 			.disabled(!canIncrement)
@@ -37,7 +37,7 @@ struct ProgressStepperControl: View {
 
 	struct StepperButton: View {
 		let systemName: String
-		let accessibilityLabel: String
+		let accessibilityLabel: LocalizedStringResource
 		let action: () -> Void
 
 		var body: some View {

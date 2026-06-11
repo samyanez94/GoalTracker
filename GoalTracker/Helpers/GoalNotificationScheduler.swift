@@ -202,24 +202,24 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 	private func notificationContent(
 		for schedule: GoalReminderSchedule
 	) -> UNMutableNotificationContent {
-		let content = UNMutableNotificationContent()
-		content.title = schedule.goalName
-		content.body = notificationBody(for: schedule)
-		content.sound = .default
-		content.userInfo = [
-			GoalNotificationPayload.goalIdUserInfoKey: schedule.goalId.uuidString
-		]
-		return content
+		UNMutableNotificationContent(
+			title: schedule.goalName,
+			body: notificationBody(for: schedule),
+			userInfo: [
+				GoalNotificationPayload.goalIdUserInfoKey: schedule.goalId.uuidString
+			],
+		)
 	}
 
 	private func notificationBody(
 		for schedule: GoalReminderSchedule
-	) -> String {
+	) -> LocalizedStringResource {
 		switch schedule.targetDescription {
 		case .date:
-			return "Don't forget to complete today"
+			return LocalizedStringResource.notificationReminderDateBody
 		case .cadence(let cadence):
-			return "Don't forget to complete \(cadence.reminderTargetDescription)"
+			let targetDescription = String(localized: cadence.reminderTargetDescription)
+			return LocalizedStringResource.notificationReminderCadenceBody(targetDescription)
 		}
 	}
 

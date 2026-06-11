@@ -23,7 +23,7 @@ struct GoalProgressUnitTests {
 	func `Preset sections group units by category`() throws {
 		let sections = GoalProgressUnit.presetSections
 
-		#expect(sections.map(\.title) == ["Currency", "Time", "Weight", "Distance"])
+		#expect(sections.map { String(localized: $0.title) } == ["Currency", "Time", "Weight", "Distance"])
 		try #require(sections.count == 4)
 		#expect(sections[0].units == [.dollars, .euros, .poundsSterling])
 		#expect(sections[1].units == [.minutes, .hours, .days, .weeks, .months, .years])

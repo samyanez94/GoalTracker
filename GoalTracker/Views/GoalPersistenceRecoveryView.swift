@@ -15,18 +15,21 @@ struct GoalPersistenceRecoveryView: View {
 
 	var body: some View {
 		ContentUnavailableView {
-			Label("Moku Couldn't Open Your Data", systemImage: "externaldrive.badge.exclamationmark")
+			Label(
+				.persistenceRecoveryTitle,
+				systemImage: "externaldrive.badge.exclamationmark"
+			)
 		} description: {
-			Text("Try again. If the problem continues, share the diagnostic details so we can help.")
+			Text(.persistenceRecoveryDescription)
 		}
 		.safeAreaInset(edge: .bottom) {
 			VStack {
-				Button("Try Again", action: retry)
+				Button(.persistenceRecoveryTryAgain, action: retry)
 					.buttonStyle(.borderedProminent)
 					.buttonSizing(.flexible)
 					.controlSize(.large)
 				ShareLink(item: failure.diagnosticDetails) {
-					Text("Share Diagnostic Details")
+					Text(.persistenceRecoveryShareDiagnosticDetails)
 				}
 				.buttonStyle(.bordered)
 				.buttonSizing(.flexible)

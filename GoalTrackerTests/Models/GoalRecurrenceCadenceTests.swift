@@ -46,9 +46,9 @@ struct GoalRecurrenceCadenceTests {
 		expectedDetailTitle: String,
 		expectedRowTitle: String,
 	) {
-		#expect(cadence.displayTitle == expectedDisplayTitle)
-		#expect(cadence.detailTitle == expectedDetailTitle)
-		#expect(cadence.rowTitle == expectedRowTitle)
+		#expect(String(localized: cadence.displayTitle) == expectedDisplayTitle)
+		#expect(String(localized: cadence.detailTitle) == expectedDetailTitle)
+		#expect(String(localized: cadence.rowTitle) == expectedRowTitle)
 	}
 
 	@Test(
@@ -122,7 +122,7 @@ struct GoalRecurrenceCadenceTests {
 		cadence: GoalRecurrenceCadence,
 		expectedDescription: String,
 	) {
-		#expect(cadence.reminderTargetDescription == expectedDescription)
+		#expect(String(localized: cadence.reminderTargetDescription) == expectedDescription)
 	}
 
 	@Test
@@ -167,6 +167,6 @@ struct GoalRecurrenceCadenceTests {
 		count: Int,
 		expectedTitle: String,
 	) {
-		#expect(cadence.streakValueTitle(for: count) == expectedTitle)
+		#expect(String(localized: cadence.streakValueTitle(for: count)) == expectedTitle)
 	}
 }

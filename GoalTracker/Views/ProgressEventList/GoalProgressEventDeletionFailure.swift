@@ -5,6 +5,8 @@
 //  Created by Samuel Yanez on 6/4/26.
 //
 
+import Foundation
+
 // MARK: - GoalProgressEventDeletionFailure
 
 enum GoalProgressEventDeletionFailure: Identifiable {
@@ -16,25 +18,25 @@ enum GoalProgressEventDeletionFailure: Identifiable {
 		self
 	}
 
-	var title: String {
+	var title: LocalizedStringResource {
 		switch self {
 		case .blocked:
-			"Progress Event Not Deleted"
+			.progressEventDeletionFailureBlockedTitle
 		case .blockedBatch:
-			"Progress Events Not Deleted"
+			.progressEventDeletionFailureBlockedBatchTitle
 		case .saveFailed:
-			"Couldn't Delete Progress"
+			.progressEventDeletionFailureSaveFailedTitle
 		}
 	}
 
-	var message: String {
+	var message: LocalizedStringResource {
 		switch self {
 		case .blocked:
-			"Deleting this event would make the remaining progress history invalid."
+			.progressEventDeletionFailureBlockedMessage
 		case .blockedBatch:
-			"Deleting these events would make the remaining progress history invalid."
+			.progressEventDeletionFailureBlockedBatchMessage
 		case .saveFailed:
-			"Your progress change wasn't saved. Please try again."
+			.progressEventDeletionFailureSaveFailedMessage
 		}
 	}
 }

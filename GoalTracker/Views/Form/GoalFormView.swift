@@ -17,12 +17,12 @@ enum GoalFormMode {
 	/// Create a form with pre-filled values for editing.
 	case edit(GoalFormData)
 
-	var title: String {
+	var title: LocalizedStringResource {
 		switch self {
 		case .create:
-			"New Goal"
+			.goalFormTitleCreate
 		case .edit:
-			"Edit Goal"
+			.goalFormTitleEdit
 		}
 	}
 
@@ -74,22 +74,24 @@ struct GoalFormView: View {
 		@Bindable var formState = formState
 
 		Form {
-			Section("Details") {
-				TextField("Goal name", text: $formState.name)
+			Section {
+				TextField(.goalFormGoalNameField, text: $formState.name)
 					.focused($isTextInputFocused)
 				TextField(
-					"Description",
+					.goalFormDescriptionField,
 					text: $formState.details,
 					axis: .vertical,
 				)
 				.focused($isTextInputFocused)
 				.lineLimit(1...6)
+			} header: {
+				Text(.goalFormDetailsSection)
 			}
 			Section {
 				NavigationLink(value: GoalFormDestination.tags) {
 					HStack {
 						Label {
-							Text("Tags")
+							Text(.commonTags)
 						} icon: {
 							Image(systemName: "number")
 								.foregroundStyle(.secondary)
@@ -102,9 +104,9 @@ struct GoalFormView: View {
 					}
 				}
 			} header: {
-				Text("Organization")
+				Text(.goalFormOrganizationSection)
 			} footer: {
-				Text("Use tags to group related goals.")
+				Text(.goalFormOrganizationFooter)
 					.font(.footnote)
 			}
 			Section {
@@ -113,19 +115,17 @@ struct GoalFormView: View {
 					GoalReminderToggleRow(reminder: $formState.schedule.reminder)
 				}
 			} header: {
-				Text("Recurrence")
+				Text(.goalFormRecurrenceSection)
 			} footer: {
-				Text(
-					"Use recurring goals for goals and habits you want to repeat over time. Turn on reminders to get a notification at 9 AM on the first day of each repeat."
-				)
-				.font(.footnote)
+				Text(.goalFormRecurrenceFooter)
+					.font(.footnote)
 			}
 			if formState.schedule.allowsTargetDate {
 				Section {
 					Toggle(isOn: $formState.schedule.hasTargetDate) {
 						Label {
 							VStack(alignment: .leading, spacing: 2) {
-								Text("Target Date")
+								Text(.goalFormTargetDate)
 								if formState.schedule.hasTargetDate {
 									Text(GoalTargetDateFormatter.string(from: formState.schedule.draftTargetDate))
 										.font(.subheadline)
@@ -139,7 +139,7 @@ struct GoalFormView: View {
 					}
 					if formState.schedule.hasTargetDate {
 						DatePicker(
-							"Select target date",
+							String(localized: .goalFormSelectTargetDate),
 							selection: $formState.schedule.draftTargetDate,
 							displayedComponents: .date,
 						)
@@ -147,18 +147,16 @@ struct GoalFormView: View {
 						GoalReminderToggleRow(reminder: $formState.schedule.reminder)
 					}
 				} header: {
-					Text("Date")
+					Text(.goalFormDateSection)
 				} footer: {
-					Text(
-						"Set a target date to help you know when to complete this goal. Turn on reminders to get a notification at 9 AM that day."
-					)
-					.font(.footnote)
+					Text(.goalFormDateFooter)
+						.font(.footnote)
 				}
 			}
 			Section {
 				Toggle(isOn: $formState.progress.isProgressBased) {
 					Label {
-						Text("Track progress")
+						Text(.goalFormProgressTrackProgress)
 					} icon: {
 						Image(systemName: "plus.forwardslash.minus")
 							.foregroundStyle(.secondary)
@@ -166,31 +164,36 @@ struct GoalFormView: View {
 				}
 				if formState.progress.isProgressBased {
 					ProgressTextFieldRow(
-						label: "Target Value",
+						label: .goalFormTargetValueField,
 						placeholder: "1",
 						value: $formState.progress.targetValue,
 						focus: $isTextInputFocused,
 					)
 					ProgressTextFieldRow(
-						label: "Step",
+						label: .goalFormStepField,
 						placeholder: "1",
 						value: $formState.progress.step,
 						focus: $isTextInputFocused,
 					)
 					NavigationLink(value: GoalFormDestination.progressUnit) {
 						HStack {
-							Text("Unit")
+							Text(.commonUnit)
 								.foregroundStyle(.primary)
 							Spacer()
-							Text(formState.progress.selectedUnit?.title ?? "None")
-								.foregroundStyle(.secondary)
+							if let selectedUnit = formState.progress.selectedUnit {
+								Text(selectedUnit.title)
+									.foregroundStyle(.secondary)
+							} else {
+								Text(.commonNone)
+									.foregroundStyle(.secondary)
+							}
 						}
 					}
 				}
 			} header: {
-				Text("Progress")
+				Text(.commonProgress)
 			} footer: {
-				Text("Track progress toward a numeric target.")
+				Text(.goalFormProgressFooter)
 					.font(.footnote)
 			}
 		}
@@ -199,15 +202,18 @@ struct GoalFormView: View {
 		.navigationBarTitleDisplayMode(.inline)
 		.toolbar {
 			ToolbarItem(placement: .cancellationAction) {
-				Button("Cancel", systemImage: "xmark") {
+				Button(.commonCancel, systemImage: "xmark") {
 					if formState.hasChanges {
 						isShowingConfirmation = true
 					} else {
 						dismiss()
 					}
 				}
-				.confirmationDialog("Dismiss confirmation", isPresented: $isShowingConfirmation) {
-					Button("Discard Changes", role: .destructive) {
+				.confirmationDialog(
+					.goalFormDismissConfirmationTitle,
+					isPresented: $isShowingConfirmation
+				) {
+					Button(.goalFormDiscardChangesButton, role: .destructive) {
 						dismiss()
 					}
 				} message: {
@@ -215,7 +221,7 @@ struct GoalFormView: View {
 				}
 			}
 			ToolbarItem(placement: .confirmationAction) {
-				Button("Save", systemImage: "checkmark", action: save)
+				Button(.commonSave, systemImage: "checkmark", action: save)
 					.buttonStyle(.glassProminent)
 					.disabled(formState.isSaveDisabled)
 			}
@@ -255,13 +261,13 @@ struct GoalFormView: View {
 		}
 	}
 
-	private func tagSelectionSummary(for tagSelections: [GoalFormTagSelection]) -> String {
+	private func tagSelectionSummary(for tagSelections: [GoalFormTagSelection]) -> LocalizedStringResource {
 		let selectedTagCount =
 			tagSelections.filter { tagSelection in
 				tagSelection.isSelected
 			}
 			.count
-		return "\(selectedTagCount) Selected"
+		return .goalFormTagSelectionSummary(selectedTagCount)
 	}
 
 	private var discardConfirmationMessage: String {

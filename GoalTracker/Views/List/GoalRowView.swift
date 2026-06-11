@@ -55,13 +55,13 @@ struct GoalRowView: View {
 						Text(recurrence.rowTitle)
 							.font(.subheadline)
 							.foregroundStyle(.secondary)
-							.accessibilityLabel("Repeats \(recurrence.rowTitle)")
+							.accessibilityLabel(recurrenceAccessibilityLabel(for: recurrence))
 					}
 					GoalTagSummaryText(tags: goal.tags ?? [])
 				}
 			}
 			.accessibilityElement(children: .combine)
-			.accessibilityValue(isCompleted ? "Completed" : "Pending")
+			.accessibilityValue(goal.status().title)
 		}
 		.contextMenu {
 			GoalActionMenuContent(
@@ -88,7 +88,7 @@ struct GoalRowView: View {
 			Button(role: .destructive) {
 				deleteGoal()
 			} label: {
-				Label("Delete", systemImage: "trash")
+				Label(.commonDelete, systemImage: "trash")
 			}
 		}
 		.goalDeleteConfirmationDialog(
@@ -110,8 +110,16 @@ struct GoalRowView: View {
 	private func targetDateAccessibilityLabel(
 		formattedDate: String,
 		isPastTargetDate: Bool,
-	) -> String {
-		isPastTargetDate ? "Past target date: \(formattedDate)" : "Target date: \(formattedDate)"
+	) -> LocalizedStringResource {
+		if isPastTargetDate {
+			return .goalRowTargetDatePastAccessibilityLabel(formattedDate)
+		}
+		return .goalRowTargetDateAccessibilityLabel(formattedDate)
+	}
+
+	private func recurrenceAccessibilityLabel(for recurrence: GoalRecurrence) -> LocalizedStringResource {
+		let rowTitle = String(localized: recurrence.rowTitle)
+		return .goalRowRecurrenceAccessibilityLabel(rowTitle)
 	}
 
 	private func toggleCompletion() {

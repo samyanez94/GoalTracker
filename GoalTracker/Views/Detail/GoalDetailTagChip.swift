@@ -11,7 +11,7 @@ struct GoalDetailTagChip: View {
 	let tag: Tag
 
 	var body: some View {
-		Text("#\(tag.name)")
+		Text(verbatim: "#\(tag.name)")
 			.font(.subheadline.bold())
 			.foregroundStyle(.white)
 			.padding(.horizontal, 12)

@@ -20,29 +20,29 @@ enum GoalSaveFailure: String, Identifiable {
 		self
 	}
 
-	var title: String {
+	var title: LocalizedStringResource {
 		switch self {
 		case .addGoal, .updateGoal:
-			"Couldn't Save Goal"
+			.goalFailureAddOrUpdateTitle
 		case .deleteGoal:
-			"Couldn't Delete Goal"
+			.goalFailureDeleteGoalTitle
 		case .deleteTag:
-			"Couldn't Delete Tag"
+			.goalFailureDeleteTagTitle
 		case .updateProgress:
-			"Couldn't Update Goal"
+			.goalFailureUpdateProgressTitle
 		}
 	}
 
-	var message: String {
+	var message: LocalizedStringResource {
 		switch self {
 		case .addGoal, .updateGoal:
-			"Your changes weren't saved. Please try again."
+			.goalFailureAddOrUpdateMessage
 		case .deleteGoal:
-			"The goal wasn't deleted. Please try again."
+			.goalFailureDeleteGoalMessage
 		case .deleteTag:
-			"The tag wasn't deleted. Please try again."
+			.goalFailureDeleteTagMessage
 		case .updateProgress:
-			"Your progress change wasn't saved. Please try again."
+			.goalFailureUpdateProgressMessage
 		}
 	}
 }
@@ -57,7 +57,7 @@ struct GoalSaveFailureAlertModifier: ViewModifier {
 			Alert(
 				title: Text(failure.title),
 				message: Text(failure.message),
-				dismissButton: .default(Text("OK")),
+				dismissButton: .default(Text(.commonOk)),
 			)
 		}
 	}

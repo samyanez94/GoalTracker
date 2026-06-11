@@ -21,7 +21,7 @@ struct GoalDetailProgressSection: View {
 		VStack(alignment: .leading, spacing: 8) {
 			NavigationLink(value: GoalNavigationDestination.progressEvents(goalId)) {
 				HStack(alignment: .firstTextBaseline, spacing: 4) {
-					Text("Progress")
+					Text(.commonProgress)
 						.font(.headline)
 					Image(systemName: "chevron.right")
 						.font(.headline.weight(.semibold))
@@ -57,7 +57,7 @@ struct GoalDetailProgressSection: View {
 				in: .rect(cornerRadius: 24, style: .continuous),
 			)
 			.accessibilityElement(children: .ignore)
-			.accessibilityLabel("Progress")
+			.accessibilityLabel(Text(.commonProgress))
 			.accessibilityValue(progressAccessibilityValue)
 		}
 	}
@@ -88,9 +88,9 @@ struct GoalDetailProgressSection: View {
 		}
 	}
 
-	private var progressSubtitle: String {
+	private var progressSubtitle: LocalizedStringResource {
 		guard !isCompleted else {
-			return "Completed"
+			return .detailCompleteGoalButtonCompleted
 		}
 		let remainingValue = max(progress.targetValue - currentProgressValue, 0)
 		let remainingText = formattedNumber(
@@ -98,24 +98,33 @@ struct GoalDetailProgressSection: View {
 			for: progress
 		)
 		guard !unitText.isEmpty else {
-			return "\(remainingText) more to go"
+			return .detailProgressRemainingNoUnit(remainingText)
 		}
-		return "\(remainingText) \(unitText) more to go"
+		return .detailProgressRemainingWithUnit(remainingText, unitText)
 	}
 
-	private var progressAccessibilityValue: String {
+	private var progressAccessibilityValue: LocalizedStringResource {
 		let currentValue = formattedNumber(currentProgressValue)
 		let targetValue = formattedNumber(progress.targetValue)
 		let percentCompleted = fractionCompleted.formatted(
 			.percent.precision(.fractionLength(0))
 		)
-		let progressValue =
-			if let unitTitle = progress.unit?.title {
-				"\(currentValue) of \(targetValue) \(unitTitle)"
-			} else {
-				"\(currentValue) of \(targetValue)"
-			}
-		return "\(progressValue), \(progressSubtitle), \(percentCompleted)"
+		let localizedProgressSubtitle = String(localized: progressSubtitle)
+		if let unitTitle = progress.unit?.title {
+			return .detailProgressAccessibilityValueWithUnit(
+				currentValue,
+				targetValue,
+				unitTitle,
+				localizedProgressSubtitle,
+				percentCompleted,
+			)
+		}
+		return .detailProgressAccessibilityValueNoUnit(
+			currentValue,
+			targetValue,
+			localizedProgressSubtitle,
+			percentCompleted,
+		)
 	}
 
 	private func formattedNumber(_ value: Double, for progress: MeasurableProgress) -> String {

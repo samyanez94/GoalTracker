@@ -25,14 +25,14 @@ struct GoalProgressEventDeleteConfirmationDialog: ViewModifier {
 		}
 	}
 
-	private var title: String {
+	private var title: LocalizedStringResource {
 		eventCount == 1
-			? "Are you sure you want to delete this progress event?"
-			: "Are you sure you want to delete these progress events?"
+			? .progressEventDeleteConfirmationTitleSingle
+			: .progressEventDeleteConfirmationTitleMultiple
 	}
 
-	private var buttonTitle: String {
-		eventCount == 1 ? "Delete Event" : "Delete Events"
+	private var buttonTitle: LocalizedStringResource {
+		eventCount == 1 ? .commonDeleteEvent : .commonDeleteEvents
 	}
 }
 

@@ -15,12 +15,12 @@ enum GoalSortDirection: String, CaseIterable, Identifiable {
 		self
 	}
 
-	var title: String {
+	var title: LocalizedStringResource {
 		switch self {
 		case .ascending:
-			"Ascending"
+			.goalSortDirectionAscending
 		case .descending:
-			"Descending"
+			.goalSortDirectionDescending
 		}
 	}
 }

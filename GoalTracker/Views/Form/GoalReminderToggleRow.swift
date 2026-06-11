@@ -13,7 +13,7 @@ struct GoalReminderToggleRow: View {
 	var body: some View {
 		Toggle(isOn: reminderBinding) {
 			Label {
-				Text("Reminder")
+				Text(.commonReminder)
 			} icon: {
 				Image(systemName: "bell")
 					.foregroundStyle(.secondary)

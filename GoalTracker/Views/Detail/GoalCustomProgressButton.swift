@@ -12,7 +12,7 @@ struct UpdateProgressButton: View {
 	let action: () -> Void
 
 	var body: some View {
-		Button("Update progress", systemImage: "plus.forwardslash.minus", action: action)
+		Button(.detailUpdateProgressButton, systemImage: "plus.forwardslash.minus", action: action)
 			.fontWeight(.semibold)
 			.labelStyle(.iconOnly)
 			.controlSize(.large)

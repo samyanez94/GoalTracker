@@ -26,10 +26,10 @@ struct GoalProgressUpdateView: View {
 	var body: some View {
 		VStack(spacing: 8) {
 			TextField(
-				"Progress update amount",
+				.detailProgressUpdateAmountLabel,
 				value: $progressAmount,
 				format: .number.sign(strategy: .automatic),
-				prompt: Text("0"),
+				prompt: Text(verbatim: "0"),
 			)
 			.focused($isProgressFieldFocused)
 			.tint(.clear)
@@ -37,8 +37,8 @@ struct GoalProgressUpdateView: View {
 			.font(.largeTitle.scaled(by: 2.25).bold())
 			.multilineTextAlignment(.center)
 			.textFieldStyle(.plain)
-			.accessibilityLabel("Progress update amount")
-			.accessibilityHint("Enter the amount to add or subtract from the goal's progress.")
+			.accessibilityLabel(Text(.detailProgressUpdateAmountLabel))
+			.accessibilityHint(Text(.detailProgressUpdateAmountAccessibilityHint))
 			if let unitTitle {
 				Text(unitTitle)
 					.font(.title3)
@@ -52,12 +52,12 @@ struct GoalProgressUpdateView: View {
 		.navigationBarTitleDisplayMode(.inline)
 		.toolbar {
 			ToolbarItem(placement: .cancellationAction) {
-				Button("Cancel", systemImage: "xmark") {
+				Button(.commonCancel, systemImage: "xmark") {
 					dismiss()
 				}
 			}
 			ToolbarItem(placement: .confirmationAction) {
-				Button("Save", systemImage: "checkmark") {
+				Button(.commonSave, systemImage: "checkmark") {
 					saveProgressUpdate()
 				}
 				.buttonStyle(.glassProminent)
@@ -90,11 +90,11 @@ struct GoalProgressUpdateView: View {
 		return false
 	}
 
-	private var progressAmountTitle: String {
+	private var progressAmountTitle: LocalizedStringResource {
 		guard let progressAmount, progressAmount < 0 else {
-			return "Increase Progress"
+			return .detailProgressUpdateIncreaseTitle
 		}
-		return "Decrease Progress"
+		return .detailProgressUpdateDecreaseTitle
 	}
 
 	private var goalManager: GoalManager {
@@ -134,10 +134,14 @@ extension View {
 		action: @escaping () -> Void
 	) -> some View {
 		safeAreaInset(edge: .bottom, alignment: .leading) {
-			Button("Toggle sign", systemImage: "plus.forwardslash.minus", action: action)
+			Button(
+				.detailProgressUpdateToggleSignLabel,
+				systemImage: "plus.forwardslash.minus",
+				action: action
+			)
 				.fontWeight(.semibold)
 				.labelStyle(.iconOnly)
-				.accessibilityHint("Toggle between positive and negative values.")
+				.accessibilityHint(Text(.detailProgressUpdateToggleSignAccessibilityHint))
 				.controlSize(.large)
 				.padding(8)
 				.buttonBorderShape(.circle)

@@ -28,7 +28,7 @@ struct GoalProgressEventListView: View {
 	var body: some View {
 		Group {
 			if events.isEmpty {
-				Text("No progress yet")
+				Text(.progressEventListNoProgress)
 					.font(.body)
 					.foregroundStyle(.secondary)
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -47,7 +47,7 @@ struct GoalProgressEventListView: View {
 									Button(role: .destructive) {
 										deleteEvent(id: event.id)
 									} label: {
-										Label("Delete", systemImage: "trash")
+										Label(.commonDelete, systemImage: "trash")
 									}
 								}
 							}
@@ -56,7 +56,7 @@ struct GoalProgressEventListView: View {
 				}
 			}
 		}
-		.navigationTitle("History")
+		.navigationTitle(.progressEventListTitle)
 		.navigationBarTitleDisplayMode(.large)
 		.environment(\.editMode, $editMode)
 		.toolbar {
@@ -66,11 +66,11 @@ struct GoalProgressEventListView: View {
 						.disabled(eventIds.isEmpty)
 				}
 				ToolbarItem(placement: .topBarTrailing) {
-					Button("Done", systemImage: "checkmark", action: exitEditMode)
+					Button(.commonDone, systemImage: "checkmark", action: exitEditMode)
 				}
 				ToolbarItem(placement: .bottomBar) {
 					Button(
-						selectedEventIds.count == 1 ? "Delete Event" : "Delete Events",
+						deleteSelectedEventsButtonTitle,
 						systemImage: "trash",
 						role: .destructive,
 						action: {
@@ -78,6 +78,7 @@ struct GoalProgressEventListView: View {
 						},
 					)
 					.disabled(selectedEventIds.count == 0)
+					.accessibilityLabel(deleteButtonAccessibilityLabel)
 					.goalProgressEventDeleteConfirmationDialog(
 						isPresented: $isPresentingDeleteConfirmation,
 						eventCount: selectedEventIds.count,
@@ -92,21 +93,21 @@ struct GoalProgressEventListView: View {
 								editMode = .active
 							}
 						} label: {
-							Label("Select Events", systemImage: "checkmark.circle")
+							Label(.progressEventListSelectEvents, systemImage: "checkmark.circle")
 						}
 						.disabled(events.isEmpty)
 						Menu {
-							Picker("Sort", selection: $sortOrder) {
+							Picker(.commonSort, selection: $sortOrder) {
 								ForEach(GoalProgressEventSortOrder.allCases) { sortOrder in
 									Text(sortOrder.title)
 										.tag(sortOrder)
 								}
 							}
 						} label: {
-							Label("Sort By", systemImage: "arrow.up.arrow.down")
+							Label(.toolbarSortBy, systemImage: "arrow.up.arrow.down")
 						}
 					} label: {
-						Label("List Options", systemImage: "ellipsis")
+						Label(.toolbarListOptions, systemImage: "ellipsis")
 					}
 				}
 			}
@@ -115,7 +116,7 @@ struct GoalProgressEventListView: View {
 			Alert(
 				title: Text(failure.title),
 				message: Text(failure.message),
-				dismissButton: .default(Text("OK")),
+				dismissButton: .default(Text(.commonOk)),
 			)
 		}
 	}
@@ -150,8 +151,21 @@ struct GoalProgressEventListView: View {
 		!eventIds.isEmpty && selectedEventIds.count == eventIds.count
 	}
 
-	private var selectAllButtonTitle: String {
-		allEventsAreSelected ? "Deselect All" : "Select All"
+	private var selectAllButtonTitle: LocalizedStringResource {
+		allEventsAreSelected ? .commonDeselectAll : .commonSelectAll
+	}
+
+	private var deleteSelectedEventsButtonTitle: LocalizedStringResource {
+		selectedEventIds.count == 1 ? .commonDeleteEvent : .commonDeleteEvents
+	}
+
+	private var deleteButtonAccessibilityLabel: LocalizedStringResource {
+		switch selectedEventIds.count {
+		case 0:
+			.progressEventListDeleteSelectedEventsAccessibilityLabelNone
+		default:
+			.progressEventListDeleteSelectedEventsAccessibilityLabel(selectedEventIds.count)
+		}
 	}
 
 	private var goalManager: GoalManager {

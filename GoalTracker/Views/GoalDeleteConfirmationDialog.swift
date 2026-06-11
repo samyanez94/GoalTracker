@@ -25,14 +25,14 @@ struct GoalDeleteConfirmationDialog: ViewModifier {
 		}
 	}
 
-	private var title: String {
+	private var title: LocalizedStringResource {
 		goalCount == 1
-			? "Are you sure you want to delete this goal?"
-			: "Are you sure you want to delete these goals?"
+			? .goalDeleteConfirmationTitleSingle
+			: .goalDeleteConfirmationTitleMultiple
 	}
 
-	private var buttonTitle: String {
-		goalCount == 1 ? "Delete Goal" : "Delete Goals"
+	private var buttonTitle: LocalizedStringResource {
+		goalCount == 1 ? .commonDeleteGoal : .commonDeleteGoals
 	}
 }
 

@@ -35,6 +35,6 @@ struct GoalRecurrenceTests {
 	) {
 		let recurrence = GoalRecurrence(cadence: cadence)
 
-		#expect(recurrence.detailTitle == expectedDetailTitle)
+		#expect(String(localized: recurrence.detailTitle) == expectedDetailTitle)
 	}
 }
