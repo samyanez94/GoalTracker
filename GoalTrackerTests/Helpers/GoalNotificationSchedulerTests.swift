@@ -49,7 +49,7 @@ struct GoalNotificationSchedulerTests {
 		)
 
 		let didSchedule = try await scheduler.syncReminder(
-			for: goal,
+			for: GoalReminderSyncState(goal: goal),
 			requestsAuthorization: true,
 		)
 
@@ -69,7 +69,7 @@ struct GoalNotificationSchedulerTests {
 		)
 
 		let didSchedule = try await scheduler.syncReminder(
-			for: goal,
+			for: GoalReminderSyncState(goal: goal),
 			requestsAuthorization: true,
 		)
 
@@ -93,7 +93,7 @@ struct GoalNotificationSchedulerTests {
 		)
 
 		let didSchedule = try await scheduler.syncReminder(
-			for: goal,
+			for: GoalReminderSyncState(goal: goal),
 			requestsAuthorization: true,
 		)
 
@@ -117,7 +117,7 @@ struct GoalNotificationSchedulerTests {
 		)
 
 		let didSchedule = try await scheduler.syncReminder(
-			for: goal,
+			for: GoalReminderSyncState(goal: goal),
 			requestsAuthorization: true,
 		)
 
@@ -153,7 +153,7 @@ struct GoalNotificationSchedulerTests {
 		)
 
 		let didSchedule = try await scheduler.syncReminder(
-			for: goal,
+			for: GoalReminderSyncState(goal: goal),
 			requestsAuthorization: true,
 		)
 
@@ -178,7 +178,10 @@ struct GoalNotificationSchedulerTests {
 			reminder: GoalReminder(),
 		)
 
-		let didSchedule = try await scheduler.scheduleReminder(for: goal)
+		let didSchedule = try await scheduler.syncReminder(
+			for: GoalReminderSyncState(goal: goal),
+			requestsAuthorization: false,
+		)
 
 		let request = try #require(notificationCenter.addedRequests.first)
 		let trigger = try #require(request.trigger as? UNCalendarNotificationTrigger)
@@ -214,7 +217,10 @@ struct GoalNotificationSchedulerTests {
 			reminder: GoalReminder(),
 		)
 
-		let didSchedule = try await scheduler.scheduleReminder(for: goal)
+		let didSchedule = try await scheduler.syncReminder(
+			for: GoalReminderSyncState(goal: goal),
+			requestsAuthorization: false,
+		)
 
 		let request = try #require(notificationCenter.addedRequests.first)
 		#expect(didSchedule)
@@ -234,7 +240,10 @@ struct GoalNotificationSchedulerTests {
 			recurrence: GoalRecurrence(cadence: .daily),
 		)
 
-		let didSchedule = try await scheduler.scheduleReminder(for: goal)
+		let didSchedule = try await scheduler.syncReminder(
+			for: GoalReminderSyncState(goal: goal),
+			requestsAuthorization: false,
+		)
 
 		let request = try #require(notificationCenter.addedRequests.first)
 		let trigger = try #require(request.trigger as? UNCalendarNotificationTrigger)
@@ -260,7 +269,7 @@ struct GoalNotificationSchedulerTests {
 		)
 
 		let didSchedule = try await scheduler.syncReminder(
-			for: goal,
+			for: GoalReminderSyncState(goal: goal),
 			requestsAuthorization: true,
 		)
 
@@ -284,7 +293,10 @@ struct GoalNotificationSchedulerTests {
 		)
 
 		await #expect(throws: TestNotificationError.self) {
-			try await scheduler.scheduleReminder(for: goal)
+			try await scheduler.syncReminder(
+				for: GoalReminderSyncState(goal: goal),
+				requestsAuthorization: false,
+			)
 		}
 
 		#expect(notificationCenter.removedIdentifiers.isEmpty)

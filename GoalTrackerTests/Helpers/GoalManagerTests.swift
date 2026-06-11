@@ -305,31 +305,6 @@ struct GoalManagerTests {
 	}
 
 	@Test
-	func `Updating recurrence preserves progress history`() async throws {
-		let container = try makeContainer()
-		let completionDate = date(year: 2026, month: 5, day: 27, hour: 12)
-		let currentDate = date(year: 2026, month: 5, day: 28, hour: 12)
-		let goal = makeGoal(
-			progress: .outcome(
-				OutcomeProgress(events: [
-					GoalProgressEvent(delta: 1, timestamp: completionDate)
-				])
-			),
-		)
-		insert(goal, into: container)
-		let manager = makeManager(in: container, now: { currentDate })
-
-		try manager.updateRecurrence(
-			goal,
-			recurrence: GoalRecurrence(cadence: .daily),
-		)
-
-		#expect(goal.recurrence == GoalRecurrence(cadence: .daily))
-		#expect(goal.progress.events.map(\.delta) == [1])
-		#expect(goal.isCompleted(at: currentDate) == false)
-	}
-
-	@Test
 	func `Updating goal with form data sets recurrence`() async throws {
 		let container = try makeContainer()
 		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
@@ -647,22 +622,6 @@ struct GoalManagerTests {
 
 		#expect(try fetchGoals(in: container).map(\.id) == [retainedGoal.id])
 		#expect(try fetchTags(in: container).map(\.name) == ["Shared"])
-	}
-
-	@Test
-	func `Deleting a tag removes it from goals`() throws {
-		let container = try makeContainer()
-		let tag = Tag(name: "Health")
-		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
-		goal.tags = [tag]
-		insert(goal, into: container)
-		let manager = makeManager(in: container)
-
-		try manager.deleteTag(tag)
-
-		let fetchedGoal = try #require(try fetchGoals(in: container).first)
-		#expect(try fetchTags(in: container).isEmpty)
-		#expect(fetchedGoal.tags?.isEmpty != false)
 	}
 
 	@Test

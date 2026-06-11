@@ -153,27 +153,6 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 		return true
 	}
 
-	/// Reconciles the pending reminder notification with a goal's current reminder state.
-	///
-	/// This convenience overload snapshots the model before starting async work.
-	/// - Returns: `true` when a notification request was scheduled.
-	@discardableResult
-	func syncReminder(for goal: Goal, requestsAuthorization: Bool) async throws -> Bool {
-		try await syncReminder(
-			for: GoalReminderSyncState(goal: goal),
-			requestsAuthorization: requestsAuthorization,
-		)
-	}
-
-	/// Schedules pending reminder notifications for a goal when they are eligible.
-	///
-	/// Existing pending reminders are replaced when a new request can be scheduled.
-	/// - Returns: `true` when a notification request was scheduled.
-	@discardableResult
-	func scheduleReminder(for goal: Goal) async throws -> Bool {
-		try await syncReminder(for: goal, requestsAuthorization: false)
-	}
-
 	private func reminderSchedule(
 		state: GoalReminderSyncState,
 		currentDate: Date,

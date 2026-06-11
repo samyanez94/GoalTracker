@@ -13,7 +13,6 @@ enum GoalSaveFailure: String, Identifiable {
 	case addGoal
 	case updateGoal
 	case deleteGoal
-	case deleteTag
 	case updateProgress
 
 	var id: Self {
@@ -26,8 +25,6 @@ enum GoalSaveFailure: String, Identifiable {
 			.goalFailureAddOrUpdateTitle
 		case .deleteGoal:
 			.goalFailureDeleteGoalTitle
-		case .deleteTag:
-			.goalFailureDeleteTagTitle
 		case .updateProgress:
 			.goalFailureUpdateProgressTitle
 		}
@@ -39,8 +36,6 @@ enum GoalSaveFailure: String, Identifiable {
 			.goalFailureAddOrUpdateMessage
 		case .deleteGoal:
 			.goalFailureDeleteGoalMessage
-		case .deleteTag:
-			.goalFailureDeleteTagMessage
 		case .updateProgress:
 			.goalFailureUpdateProgressMessage
 		}

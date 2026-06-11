@@ -135,23 +135,6 @@ struct GoalManager {
 		)
 	}
 
-	/// Updates a goal's recurrence without changing its existing progress history.
-	func updateRecurrence(
-		_ goal: Goal,
-		recurrence: GoalRecurrence?,
-	) throws {
-		let snapshot = GoalSnapshot(goal: goal)
-		try saveChanges(
-			performing: {
-				goal.recurrence = recurrence
-			},
-			restoreOnFailure: {
-				snapshot.restore(goal)
-			},
-		)
-		syncReminder(for: goal)
-	}
-
 	/// Toggles a goal between completed and incomplete states, then saves the change.
 	///
 	/// - Returns: `true` when the goal's progress changed.
@@ -254,14 +237,6 @@ struct GoalManager {
 	/// Deletes a single goal and removes any of its tags that are no longer used.
 	func deleteGoal(_ goal: Goal) throws {
 		try deleteGoals([goal])
-	}
-
-	/// Deletes a tag and saves the change.
-	///
-	/// SwiftData updates goal relationships for the deleted tag.
-	func deleteTag(_ tag: Tag) throws {
-		modelContext.delete(tag)
-		try saveChanges()
 	}
 
 	/// Deletes multiple goals and removes any tags that are no longer used.
