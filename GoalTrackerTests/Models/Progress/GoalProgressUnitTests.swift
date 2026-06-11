@@ -23,12 +23,19 @@ struct GoalProgressUnitTests {
 	func `Preset sections group units by category`() throws {
 		let sections = GoalProgressUnit.presetSections
 
-		#expect(sections.map { String(localized: $0.title) } == ["Currency", "Time", "Weight", "Distance"])
-		try #require(sections.count == 4)
+		#expect(
+			sections.map { String(localized: $0.title) } == [
+				"Currency", "Time", "Weight", "Distance", "Quantity", "Volume", "Energy"
+			]
+		)
+		try #require(sections.count == 7)
 		#expect(sections[0].units == [.dollars, .euros, .poundsSterling])
 		#expect(sections[1].units == [.minutes, .hours, .days, .weeks, .months, .years])
-		#expect(sections[2].units == [.pounds, .kilograms])
-		#expect(sections[3].units == [.miles, .kilometers])
+		#expect(sections[2].units == [.pounds, .kilograms, .ounces, .grams])
+		#expect(sections[3].units == [.miles, .kilometers, .steps, .meters, .feet, .floors])
+		#expect(sections[4].units == [.repetitions, .pages, .books, .sessions, .tasks])
+		#expect(sections[5].units == [.liters, .fluidOunces])
+		#expect(sections[6].units == [.calories])
 	}
 
 	@Test
