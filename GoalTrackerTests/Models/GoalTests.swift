@@ -455,20 +455,19 @@ struct GoalTests {
 		#expect(progress.unit == nil)
 	}
 
-	// MARK: - Helpers
+}
 
-	private func makeGoal(
-		targetDate: Date? = nil,
-		progress: GoalProgress = .outcome(OutcomeProgress()),
-		recurrence: GoalRecurrence? = nil,
-	) -> Goal {
-		Goal(
-			name: "Test Goal",
-			details: nil,
-			targetDate: targetDate,
-			createdAt: Date(timeIntervalSinceReferenceDate: 0),
-			progress: progress,
-			recurrence: recurrence,
-		)
-	}
+func makeGoal(
+	targetDate: Date? = nil,
+	progress: GoalProgress = .outcome(OutcomeProgress()),
+	recurrence: GoalRecurrence? = nil,
+) -> Goal {
+	Goal(
+		name: "Test Goal",
+		details: nil,
+		targetDate: targetDate,
+		createdAt: Date(timeIntervalSinceReferenceDate: 0),
+		progress: progress,
+		recurrence: recurrence,
+	)
 }

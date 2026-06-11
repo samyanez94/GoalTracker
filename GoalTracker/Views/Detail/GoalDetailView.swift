@@ -40,6 +40,7 @@ struct GoalDetailView: View {
 						goalId: goal.id,
 						recurrence: goal.recurrence,
 						progress: progress,
+						completedFooterText: goal.detailCompletionFooterText(),
 					)
 				}
 			}

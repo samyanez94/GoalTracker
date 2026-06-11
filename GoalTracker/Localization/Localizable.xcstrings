@@ -298,6 +298,83 @@
         }
       }
     },
+    "detail.completed.onDate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed on %@"
+          }
+        }
+      }
+    },
+    "detail.completed.resetsInDays" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@. Resets in %lld days"
+          }
+        }
+      }
+    },
+    "detail.completed.resetsTomorrow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@. Resets tomorrow"
+          }
+        }
+      }
+    },
+    "detail.completed.thisMonth" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed this month"
+          }
+        }
+      }
+    },
+    "detail.completed.thisWeek" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed this week"
+          }
+        }
+      }
+    },
+    "detail.completed.thisYear" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed this year"
+          }
+        }
+      }
+    },
+    "detail.completed.today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed today"
+          }
+        }
+      }
+    },
     "detail.currentStreak" : {
       "extractionState" : "manual",
       "localizations" : {

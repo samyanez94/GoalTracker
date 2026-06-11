@@ -17,6 +17,8 @@ struct GoalDetailProgressSection: View {
 
 	let progress: MeasurableProgress
 
+	let completedFooterText: LocalizedStringResource?
+
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
 			NavigationLink(value: GoalNavigationDestination.progressEvents(goalId)) {
@@ -52,6 +54,14 @@ struct GoalDetailProgressSection: View {
 			.accessibilityElement(children: .ignore)
 			.accessibilityLabel(Text(.commonProgress))
 			.accessibilityValue(progressAccessibilityValue)
+			if isCompleted,
+				let completedFooterText
+			{
+				Text(completedFooterText)
+					.font(.footnote)
+					.foregroundStyle(.secondary)
+					.padding(.horizontal, 16)
+			}
 		}
 	}
 
@@ -175,7 +185,8 @@ struct GoalDetailProgressSection: View {
 				title: "Marathons",
 				abbreviatedTitle: "marathons",
 			),
-		)
+		),
+		completedFooterText: nil,
 	)
 	.padding()
 	.background(Color(.systemGroupedBackground))
@@ -189,7 +200,8 @@ struct GoalDetailProgressSection: View {
 			currentValue: 2_500,
 			targetValue: 2_500,
 			unit: .dollars,
-		)
+		),
+		completedFooterText: .detailCompletedOnDate("Jun 11, 2026"),
 	)
 	.padding()
 	.background(Color(.systemGroupedBackground))
@@ -203,7 +215,8 @@ struct GoalDetailProgressSection: View {
 			currentValue: 2.5,
 			targetValue: 5,
 			unit: .kilometers,
-		)
+		),
+		completedFooterText: nil,
 	)
 	.padding()
 	.background(Color(.systemGroupedBackground))
