@@ -33,29 +33,32 @@ struct GoalProgressEventListView: View {
 					.foregroundStyle(.secondary)
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
 					.background(Color(.systemGroupedBackground))
-			} else {
-				List(selection: eventSelection) {
-					ForEach(eventSections) { section in
-						Section(section.title) {
-							ForEach(section.events) { event in
-								GoalProgressEventRowView(
-									event: event,
-									unit: progress?.unit,
-								)
-								.tag(event.id)
-								.swipeActions {
-									Button(role: .destructive) {
-										deleteEvent(id: event.id)
-									} label: {
-										Label(.commonDelete, systemImage: "trash")
+				} else {
+					List(selection: eventSelection) {
+						ForEach(eventSections) { section in
+							Section {
+								ForEach(section.events) { event in
+									GoalProgressEventRowView(
+										event: event,
+										unit: progress?.unit,
+									)
+									.tag(event.id)
+									.swipeActions {
+										Button(role: .destructive) {
+											deleteEvent(id: event.id)
+										} label: {
+											Label(.commonDelete, systemImage: "trash")
+										}
 									}
 								}
+							} header: {
+								Text(verbatim: section.title)
+									.font(.title3.bold())
 							}
 						}
 					}
 				}
 			}
-		}
 		.navigationTitle(.progressEventListTitle)
 		.navigationBarTitleDisplayMode(.large)
 		.environment(\.editMode, $editMode)

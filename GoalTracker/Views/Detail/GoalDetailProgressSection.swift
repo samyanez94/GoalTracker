@@ -20,12 +20,11 @@ struct GoalDetailProgressSection: View {
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
 			NavigationLink(value: GoalNavigationDestination.progressEvents(goalId)) {
-				HStack(alignment: .firstTextBaseline, spacing: 4) {
-					Text(.commonProgress)
-						.font(.headline)
+				HStack(alignment: .center, spacing: 4) {
+					GoalDetailSectionHeader(title: .commonProgress)
 					Image(systemName: "chevron.right")
-						.font(.headline.weight(.semibold))
-						.imageScale(.small)
+						.font(.caption.bold())
+						.foregroundStyle(.secondary)
 						.accessibilityHidden(true)
 					Spacer()
 				}
@@ -33,29 +32,23 @@ struct GoalDetailProgressSection: View {
 				.contentShape(.rect)
 			}
 			.buttonStyle(.plain)
-			.foregroundStyle(.secondary)
-			.accessibilityAddTraits(.isHeader)
-			HStack {
-				VStack(alignment: .leading, spacing: 4) {
-					Text(progressTitle)
-						.font(.title2.bold())
-						.foregroundStyle(.primary)
-						.contentTransition(.numericText(value: fractionCompleted))
-					Text(progressSubtitle)
-						.font(.body)
-						.foregroundStyle(.secondary)
+			GoalDetailCard {
+				HStack {
+					VStack(alignment: .leading, spacing: 4) {
+						Text(progressTitle)
+							.font(.title2.bold())
+							.foregroundStyle(.primary)
+							.contentTransition(.numericText(value: fractionCompleted))
+						Text(progressSubtitle)
+							.font(.body)
+							.foregroundStyle(.secondary)
+					}
+					Spacer(minLength: 8)
+					GoalDetailCircularProgressView(
+						progress: fractionCompleted
+					)
 				}
-				Spacer(minLength: 8)
-				GoalDetailCircularProgressView(
-					progress: fractionCompleted
-				)
 			}
-			.padding(.all, 16)
-			.frame(maxWidth: .infinity, alignment: .leading)
-			.background(
-				Color(.secondarySystemGroupedBackground),
-				in: .rect(cornerRadius: 24, style: .continuous),
-			)
 			.accessibilityElement(children: .ignore)
 			.accessibilityLabel(Text(.commonProgress))
 			.accessibilityValue(progressAccessibilityValue)

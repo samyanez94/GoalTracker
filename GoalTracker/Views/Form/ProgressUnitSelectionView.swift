@@ -30,7 +30,7 @@ struct ProgressUnitSelectionView: View {
 
 	var body: some View {
 		List {
-			Section(String(localized: .commonNone)) {
+			Section {
 				ProgressUnitButton(
 					title: .commonNone,
 					unit: nil,
@@ -38,9 +38,12 @@ struct ProgressUnitSelectionView: View {
 				) {
 					dismiss()
 				}
+			} header: {
+				Text(.commonNone)
+					.font(.title3.bold())
 			}
 			ForEach(GoalProgressUnit.presetSections) { section in
-				Section(String(localized: section.title)) {
+				Section {
 					ForEach(section.units) { unit in
 						ProgressUnitButton(
 							title: unit.title,
@@ -50,6 +53,9 @@ struct ProgressUnitSelectionView: View {
 							dismiss()
 						}
 					}
+				} header: {
+					Text(section.title)
+						.font(.title3.bold())
 				}
 			}
 			Section {

@@ -84,9 +84,10 @@ struct GoalFormView: View {
 				)
 				.focused($isTextInputFocused)
 				.lineLimit(1...6)
-			} header: {
-				Text(.goalFormDetailsSection)
-			}
+				} header: {
+					Text(.goalFormDetailsSection)
+						.font(.title3.bold())
+				}
 			Section {
 				NavigationLink(value: GoalFormDestination.tags) {
 					HStack {
@@ -103,9 +104,10 @@ struct GoalFormView: View {
 						}
 					}
 				}
-			} header: {
-				Text(.goalFormOrganizationSection)
-			} footer: {
+				} header: {
+					Text(.goalFormOrganizationSection)
+						.font(.title3.bold())
+				} footer: {
 				Text(.goalFormOrganizationFooter)
 					.font(.footnote)
 			}
@@ -114,9 +116,10 @@ struct GoalFormView: View {
 				if formState.schedule.recurrence != nil {
 					GoalReminderToggleRow(reminder: $formState.schedule.reminder)
 				}
-			} header: {
-				Text(.goalFormRecurrenceSection)
-			} footer: {
+				} header: {
+					Text(.goalFormRecurrenceSection)
+						.font(.title3.bold())
+				} footer: {
 				Text(.goalFormRecurrenceFooter)
 					.font(.footnote)
 			}
@@ -146,9 +149,10 @@ struct GoalFormView: View {
 						.datePickerStyle(.graphical)
 						GoalReminderToggleRow(reminder: $formState.schedule.reminder)
 					}
-				} header: {
-					Text(.goalFormDateSection)
-				} footer: {
+					} header: {
+						Text(.goalFormDateSection)
+							.font(.title3.bold())
+					} footer: {
 					Text(.goalFormDateFooter)
 						.font(.footnote)
 				}
@@ -190,9 +194,10 @@ struct GoalFormView: View {
 						}
 					}
 				}
-			} header: {
-				Text(.commonProgress)
-			} footer: {
+				} header: {
+					Text(.commonProgress)
+						.font(.title3.bold())
+				} footer: {
 				Text(.goalFormProgressFooter)
 					.font(.footnote)
 			}

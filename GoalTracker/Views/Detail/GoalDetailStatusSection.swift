@@ -14,28 +14,21 @@ struct GoalDetailStatusSection: View {
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
-			Text(.commonStatus)
-				.font(.headline)
-				.foregroundStyle(.secondary)
-				.accessibilityAddTraits(.isHeader)
-			HStack {
-				Image(systemName: goal.status().iconSystemName)
-					.imageScale(.large)
-					.foregroundStyle(goal.isCompleted() ? AnyShapeStyle(.accent) : AnyShapeStyle(.tertiary))
-					.contentTransition(.symbolEffect(.replace))
-					.accessibilityHidden(true)
-				Text(.commonStatus)
-				Spacer(minLength: 8)
-				Text(goal.status().title)
-					.foregroundStyle(.secondary)
-					.multilineTextAlignment(.trailing)
+			GoalDetailSectionHeader(title: .commonStatus)
+			GoalDetailCard {
+				HStack {
+					Image(systemName: goal.status().iconSystemName)
+						.imageScale(.large)
+						.foregroundStyle(goal.isCompleted() ? AnyShapeStyle(.accent) : AnyShapeStyle(.tertiary))
+						.contentTransition(.symbolEffect(.replace))
+						.accessibilityHidden(true)
+					Text(.commonStatus)
+					Spacer(minLength: 8)
+					Text(goal.status().title)
+						.foregroundStyle(.secondary)
+						.multilineTextAlignment(.trailing)
+				}
 			}
-			.padding(.all, 16)
-			.frame(maxWidth: .infinity, alignment: .leading)
-			.background(
-				Color(.secondarySystemGroupedBackground),
-				in: .rect(cornerRadius: 24, style: .continuous),
-			)
 			.accessibilityElement(children: .ignore)
 			.accessibilityLabel(Text(.commonStatus))
 			.accessibilityValue(goal.status().title)

@@ -15,28 +15,21 @@ struct GoalDetailStreakSection: View {
 	var body: some View {
 		if let streakDetails {
 			VStack(alignment: .leading, spacing: 8) {
-				Text(.detailStreak)
-					.font(.headline)
-					.foregroundStyle(.secondary)
-					.accessibilityAddTraits(.isHeader)
-				HStack {
-					Image(systemName: streakDetails.iconSystemName)
-						.imageScale(.large)
-						.foregroundStyle(streakDetails.iconForegroundStyle)
-						.contentTransition(.symbolEffect(.replace))
-						.accessibilityHidden(true)
-					Text(.detailCurrentStreak)
-					Spacer(minLength: 8)
-					Text(streakDetails.title)
-						.foregroundStyle(.secondary)
-						.multilineTextAlignment(.trailing)
+				GoalDetailSectionHeader(title: .detailStreak)
+				GoalDetailCard {
+					HStack {
+						Image(systemName: streakDetails.iconSystemName)
+							.imageScale(.large)
+							.foregroundStyle(streakDetails.iconForegroundStyle)
+							.contentTransition(.symbolEffect(.replace))
+							.accessibilityHidden(true)
+						Text(.detailCurrentStreak)
+						Spacer(minLength: 8)
+						Text(streakDetails.title)
+							.foregroundStyle(.secondary)
+							.multilineTextAlignment(.trailing)
+					}
 				}
-				.padding(.all, 16)
-				.frame(maxWidth: .infinity, alignment: .leading)
-				.background(
-					Color(.secondarySystemGroupedBackground),
-					in: .rect(cornerRadius: 24, style: .continuous),
-				)
 				.accessibilityElement(children: .ignore)
 				.accessibilityLabel(Text(.detailCurrentStreak))
 				.accessibilityValue(streakDetails.title)

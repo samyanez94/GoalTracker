@@ -18,7 +18,7 @@ struct CollapsibleSectionHeader: View {
 		Button {
 			toggleExpansion()
 		} label: {
-			HStack(spacing: 6) {
+			HStack(spacing: 8) {
 				Text(title)
 					.font(.title3.bold())
 				Image(systemName: "chevron.right")
