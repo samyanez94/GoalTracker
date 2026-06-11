@@ -55,20 +55,14 @@ extension GoalTrackerSchemaV1 {
 			at date: Date = Date(),
 			calendar: Calendar = .current,
 		) -> Bool {
-			guard let period = recurrence?.period(containing: date, calendar: calendar) else {
-				return progress.isCompleted
-			}
-			return progress.isCompleted(in: period)
+			progress.isCompleted(in: activeProgressPeriod(containing: date, calendar: calendar))
 		}
 
 		func currentProgressValue(
 			at date: Date = Date(),
 			calendar: Calendar = .current,
 		) -> Double {
-			guard let period = recurrence?.period(containing: date, calendar: calendar) else {
-				return progress.currentValue
-			}
-			return progress.currentValue(in: period)
+			progress.currentValue(in: activeProgressPeriod(containing: date, calendar: calendar))
 		}
 
 		func isPastTargetDate(
@@ -110,20 +104,14 @@ extension GoalTrackerSchemaV1 {
 			at date: Date = Date(),
 			calendar: Calendar = .current,
 		) -> Bool {
-			guard let period = recurrence?.period(containing: date, calendar: calendar) else {
-				return progress.canDecrement
-			}
-			return progress.canDecrement(in: period)
+			progress.canDecrement(in: activeProgressPeriod(containing: date, calendar: calendar))
 		}
 
 		func canIncrementProgress(
 			at date: Date = Date(),
 			calendar: Calendar = .current,
 		) -> Bool {
-			guard let period = recurrence?.period(containing: date, calendar: calendar) else {
-				return progress.canIncrement
-			}
-			return progress.canIncrement(in: period)
+			progress.canIncrement(in: activeProgressPeriod(containing: date, calendar: calendar))
 		}
 
 		@discardableResult
@@ -131,10 +119,10 @@ extension GoalTrackerSchemaV1 {
 			timestamp: Date = Date(),
 			calendar: Calendar = .current,
 		) -> Bool {
-			guard let period = recurrence?.period(containing: timestamp, calendar: calendar) else {
-				return progress.complete(timestamp: timestamp)
-			}
-			return progress.complete(in: period, timestamp: timestamp)
+			progress.complete(
+				in: activeProgressPeriod(containing: timestamp, calendar: calendar),
+				timestamp: timestamp,
+			)
 		}
 
 		@discardableResult
@@ -142,10 +130,10 @@ extension GoalTrackerSchemaV1 {
 			timestamp: Date = Date(),
 			calendar: Calendar = .current,
 		) -> Bool {
-			guard let period = recurrence?.period(containing: timestamp, calendar: calendar) else {
-				return progress.toggleCompletion(timestamp: timestamp)
-			}
-			return progress.toggleCompletion(in: period, timestamp: timestamp)
+			progress.toggleCompletion(
+				in: activeProgressPeriod(containing: timestamp, calendar: calendar),
+				timestamp: timestamp,
+			)
 		}
 
 		@discardableResult
@@ -153,10 +141,10 @@ extension GoalTrackerSchemaV1 {
 			timestamp: Date = Date(),
 			calendar: Calendar = .current,
 		) -> Bool {
-			guard let period = recurrence?.period(containing: timestamp, calendar: calendar) else {
-				return progress.increment(timestamp: timestamp)
-			}
-			return progress.increment(in: period, timestamp: timestamp)
+			progress.increment(
+				in: activeProgressPeriod(containing: timestamp, calendar: calendar),
+				timestamp: timestamp,
+			)
 		}
 
 		@discardableResult
@@ -164,10 +152,10 @@ extension GoalTrackerSchemaV1 {
 			timestamp: Date = Date(),
 			calendar: Calendar = .current,
 		) -> Bool {
-			guard let period = recurrence?.period(containing: timestamp, calendar: calendar) else {
-				return progress.decrement(timestamp: timestamp)
-			}
-			return progress.decrement(in: period, timestamp: timestamp)
+			progress.decrement(
+				in: activeProgressPeriod(containing: timestamp, calendar: calendar),
+				timestamp: timestamp,
+			)
 		}
 
 		@discardableResult
@@ -176,10 +164,11 @@ extension GoalTrackerSchemaV1 {
 			timestamp: Date = Date(),
 			calendar: Calendar = .current,
 		) -> Bool {
-			guard let period = recurrence?.period(containing: timestamp, calendar: calendar) else {
-				return progress.update(by: amount, timestamp: timestamp)
-			}
-			return progress.update(by: amount, in: period, timestamp: timestamp)
+			progress.update(
+				by: amount,
+				in: activeProgressPeriod(containing: timestamp, calendar: calendar),
+				timestamp: timestamp,
+			)
 		}
 
 		init(
@@ -200,6 +189,13 @@ extension GoalTrackerSchemaV1 {
 			self.createdAt = createdAt
 			self.progress = progress
 			self.recurrence = recurrence
+		}
+
+		private func activeProgressPeriod(
+			containing date: Date,
+			calendar: Calendar,
+		) -> DateInterval? {
+			recurrence?.period(containing: date, calendar: calendar)
 		}
 	}
 }

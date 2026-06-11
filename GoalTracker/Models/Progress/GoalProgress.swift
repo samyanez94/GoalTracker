@@ -126,50 +126,28 @@ nonisolated enum GoalProgress: Codable, Equatable {
 
 	@discardableResult
 	mutating func complete(timestamp: Date = Date()) -> Bool {
-		switch self {
-		case .outcome(var progress):
-			let didChange = progress.complete(timestamp: timestamp)
-			self = .outcome(progress)
-			return didChange
-		case .measurable(var progress):
-			let didChange = progress.complete(timestamp: timestamp)
-			self = .measurable(progress)
-			return didChange
-		}
+		updateProgress(
+			outcome: { $0.complete(timestamp: timestamp) },
+			measurable: { $0.complete(timestamp: timestamp) },
+		)
 	}
 
 	@discardableResult
 	mutating func toggleCompletion(timestamp: Date = Date()) -> Bool {
-		switch self {
-		case .outcome(var progress):
-			let didChange = progress.toggleCompletion(timestamp: timestamp)
-			self = .outcome(progress)
-			return didChange
-		case .measurable(var progress):
-			let didChange = progress.toggleCompletion(timestamp: timestamp)
-			self = .measurable(progress)
-			return didChange
-		}
+		updateProgress(
+			outcome: { $0.toggleCompletion(timestamp: timestamp) },
+			measurable: { $0.toggleCompletion(timestamp: timestamp) },
+		)
 	}
 
 	@discardableResult
 	mutating func increment(timestamp: Date = Date()) -> Bool {
-		guard case .measurable(var progress) = self else {
-			return false
-		}
-		let didChange = progress.increment(timestamp: timestamp)
-		self = .measurable(progress)
-		return didChange
+		updateMeasurableProgress { $0.increment(timestamp: timestamp) }
 	}
 
 	@discardableResult
 	mutating func decrement(timestamp: Date = Date()) -> Bool {
-		guard case .measurable(var progress) = self else {
-			return false
-		}
-		let didChange = progress.decrement(timestamp: timestamp)
-		self = .measurable(progress)
-		return didChange
+		updateMeasurableProgress { $0.decrement(timestamp: timestamp) }
 	}
 
 	@discardableResult
@@ -177,12 +155,7 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		by amount: Double,
 		timestamp: Date = Date(),
 	) -> Bool {
-		guard case .measurable(var progress) = self else {
-			return false
-		}
-		let didChange = progress.update(by: amount, timestamp: timestamp)
-		self = .measurable(progress)
-		return didChange
+		updateMeasurableProgress { $0.update(by: amount, timestamp: timestamp) }
 	}
 
 	func currentValue(in period: DateInterval) -> Double {
@@ -194,6 +167,13 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		}
 	}
 
+	func currentValue(in period: DateInterval?) -> Double {
+		guard let period else {
+			return currentValue
+		}
+		return currentValue(in: period)
+	}
+
 	func isCompleted(in period: DateInterval) -> Bool {
 		switch self {
 		case .outcome(let progress):
@@ -201,6 +181,13 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		case .measurable(let progress):
 			progress.isCompleted(in: period)
 		}
+	}
+
+	func isCompleted(in period: DateInterval?) -> Bool {
+		guard let period else {
+			return isCompleted
+		}
+		return isCompleted(in: period)
 	}
 
 	func canDecrement(in period: DateInterval) -> Bool {
@@ -212,6 +199,13 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		}
 	}
 
+	func canDecrement(in period: DateInterval?) -> Bool {
+		guard let period else {
+			return canDecrement
+		}
+		return canDecrement(in: period)
+	}
+
 	func canIncrement(in period: DateInterval) -> Bool {
 		switch self {
 		case .outcome:
@@ -221,21 +215,33 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		}
 	}
 
+	func canIncrement(in period: DateInterval?) -> Bool {
+		guard let period else {
+			return canIncrement
+		}
+		return canIncrement(in: period)
+	}
+
 	@discardableResult
 	mutating func complete(
 		in period: DateInterval,
 		timestamp: Date = Date(),
 	) -> Bool {
-		switch self {
-		case .outcome(var progress):
-			let didChange = progress.complete(in: period, timestamp: timestamp)
-			self = .outcome(progress)
-			return didChange
-		case .measurable(var progress):
-			let didChange = progress.complete(in: period, timestamp: timestamp)
-			self = .measurable(progress)
-			return didChange
+		updateProgress(
+			outcome: { $0.complete(in: period, timestamp: timestamp) },
+			measurable: { $0.complete(in: period, timestamp: timestamp) },
+		)
+	}
+
+	@discardableResult
+	mutating func complete(
+		in period: DateInterval?,
+		timestamp: Date = Date(),
+	) -> Bool {
+		guard let period else {
+			return complete(timestamp: timestamp)
 		}
+		return complete(in: period, timestamp: timestamp)
 	}
 
 	@discardableResult
@@ -243,16 +249,21 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		in period: DateInterval,
 		timestamp: Date = Date(),
 	) -> Bool {
-		switch self {
-		case .outcome(var progress):
-			let didChange = progress.toggleCompletion(in: period, timestamp: timestamp)
-			self = .outcome(progress)
-			return didChange
-		case .measurable(var progress):
-			let didChange = progress.toggleCompletion(in: period, timestamp: timestamp)
-			self = .measurable(progress)
-			return didChange
+		updateProgress(
+			outcome: { $0.toggleCompletion(in: period, timestamp: timestamp) },
+			measurable: { $0.toggleCompletion(in: period, timestamp: timestamp) },
+		)
+	}
+
+	@discardableResult
+	mutating func toggleCompletion(
+		in period: DateInterval?,
+		timestamp: Date = Date(),
+	) -> Bool {
+		guard let period else {
+			return toggleCompletion(timestamp: timestamp)
 		}
+		return toggleCompletion(in: period, timestamp: timestamp)
 	}
 
 	@discardableResult
@@ -260,12 +271,18 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		in period: DateInterval,
 		timestamp: Date = Date(),
 	) -> Bool {
-		guard case .measurable(var progress) = self else {
-			return false
+		updateMeasurableProgress { $0.increment(in: period, timestamp: timestamp) }
+	}
+
+	@discardableResult
+	mutating func increment(
+		in period: DateInterval?,
+		timestamp: Date = Date(),
+	) -> Bool {
+		guard let period else {
+			return increment(timestamp: timestamp)
 		}
-		let didChange = progress.increment(in: period, timestamp: timestamp)
-		self = .measurable(progress)
-		return didChange
+		return increment(in: period, timestamp: timestamp)
 	}
 
 	@discardableResult
@@ -273,12 +290,18 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		in period: DateInterval,
 		timestamp: Date = Date(),
 	) -> Bool {
-		guard case .measurable(var progress) = self else {
-			return false
+		updateMeasurableProgress { $0.decrement(in: period, timestamp: timestamp) }
+	}
+
+	@discardableResult
+	mutating func decrement(
+		in period: DateInterval?,
+		timestamp: Date = Date(),
+	) -> Bool {
+		guard let period else {
+			return decrement(timestamp: timestamp)
 		}
-		let didChange = progress.decrement(in: period, timestamp: timestamp)
-		self = .measurable(progress)
-		return didChange
+		return decrement(in: period, timestamp: timestamp)
 	}
 
 	@discardableResult
@@ -287,12 +310,19 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		in period: DateInterval,
 		timestamp: Date = Date(),
 	) -> Bool {
-		guard case .measurable(var progress) = self else {
-			return false
+		updateMeasurableProgress { $0.update(by: amount, in: period, timestamp: timestamp) }
+	}
+
+	@discardableResult
+	mutating func update(
+		by amount: Double,
+		in period: DateInterval?,
+		timestamp: Date = Date(),
+	) -> Bool {
+		guard let period else {
+			return update(by: amount, timestamp: timestamp)
 		}
-		let didChange = progress.update(by: amount, in: period, timestamp: timestamp)
-		self = .measurable(progress)
-		return didChange
+		return update(by: amount, in: period, timestamp: timestamp)
 	}
 
 	/// Returns this progress with the previous event history preserved when the case matches.
@@ -307,6 +337,35 @@ nonisolated enum GoalProgress: Codable, Equatable {
 		default:
 			self
 		}
+	}
+
+	@discardableResult
+	private mutating func updateProgress(
+		outcome updateOutcome: (inout OutcomeProgress) -> Bool,
+		measurable updateMeasurable: (inout MeasurableProgress) -> Bool,
+	) -> Bool {
+		switch self {
+		case .outcome(var progress):
+			let didChange = updateOutcome(&progress)
+			self = .outcome(progress)
+			return didChange
+		case .measurable(var progress):
+			let didChange = updateMeasurable(&progress)
+			self = .measurable(progress)
+			return didChange
+		}
+	}
+
+	@discardableResult
+	private mutating func updateMeasurableProgress(
+		_ update: (inout MeasurableProgress) -> Bool,
+	) -> Bool {
+		guard case .measurable(var progress) = self else {
+			return false
+		}
+		let didChange = update(&progress)
+		self = .measurable(progress)
+		return didChange
 	}
 }
 
