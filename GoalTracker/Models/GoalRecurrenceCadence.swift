@@ -60,8 +60,17 @@ nonisolated enum GoalRecurrenceCadence: String, Codable, Equatable, Hashable {
 		}
 	}
 
-	func streakValueTitle(for count: Int) -> String {
-		"\(count) \(streakUnitTitle(for: count))"
+	func streakValueTitle(for count: Int) -> LocalizedStringResource {
+		switch self {
+		case .daily:
+			.recurrenceStreakDaily(count)
+		case .weekly:
+			.recurrenceStreakWeekly(count)
+		case .monthly:
+			.recurrenceStreakMonthly(count)
+		case .yearly:
+			.recurrenceStreakYearly(count)
+		}
 	}
 
 	func period(
@@ -144,16 +153,4 @@ nonisolated enum GoalRecurrenceCadence: String, Codable, Equatable, Hashable {
 		}
 	}
 
-	private func streakUnitTitle(for count: Int) -> String {
-		switch self {
-		case .daily:
-			count == 1 ? "day" : "days"
-		case .weekly:
-			count == 1 ? "week" : "weeks"
-		case .monthly:
-			count == 1 ? "month" : "months"
-		case .yearly:
-			count == 1 ? "year" : "years"
-		}
-	}
 }

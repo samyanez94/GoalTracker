@@ -78,6 +78,7 @@ struct GoalProgressEventListView: View {
 						},
 					)
 					.disabled(selectedEventIds.count == 0)
+					.accessibilityLabel(deleteButtonAccessibilityLabel)
 					.goalProgressEventDeleteConfirmationDialog(
 						isPresented: $isPresentingDeleteConfirmation,
 						eventCount: selectedEventIds.count,
@@ -156,6 +157,15 @@ struct GoalProgressEventListView: View {
 
 	private var deleteSelectedEventsButtonTitle: LocalizedStringResource {
 		selectedEventIds.count == 1 ? .commonDeleteEvent : .commonDeleteEvents
+	}
+
+	private var deleteButtonAccessibilityLabel: LocalizedStringResource {
+		switch selectedEventIds.count {
+		case 0:
+			.progressEventListDeleteSelectedEventsAccessibilityLabelNone
+		default:
+			.progressEventListDeleteSelectedEventsAccessibilityLabel(selectedEventIds.count)
+		}
 	}
 
 	private var goalManager: GoalManager {

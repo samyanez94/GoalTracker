@@ -320,6 +320,50 @@
         }
       }
     },
+    "detail.progress.accessibilityValue.noUnit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ of %@, %@, %@"
+          }
+        }
+      }
+    },
+    "detail.progress.accessibilityValue.withUnit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ of %@ %@, %@, %@"
+          }
+        }
+      }
+    },
+    "detail.progress.remaining.noUnit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ more to go"
+          }
+        }
+      }
+    },
+    "detail.progress.remaining.withUnit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ %@ more to go"
+          }
+        }
+      }
+    },
     "detail.progressUpdate.amount.accessibilityHint" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -529,6 +573,28 @@
         }
       }
     },
+    "goal.deleteConfirmation.title.multiple" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to delete these goals?"
+          }
+        }
+      }
+    },
+    "goal.deleteConfirmation.title.single" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to delete this goal?"
+          }
+        }
+      }
+    },
     "goal.sortDirection.ascending" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -613,6 +679,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pending"
+          }
+        }
+      }
+    },
+    "goal.tagSummary.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tag: %@"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tags: %@"
+                }
+              }
+            }
           }
         }
       }
@@ -756,6 +845,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dismiss confirmation"
+          }
+        }
+      }
+    },
+    "goal.form.tagSelection.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Selected"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Selected"
+                }
+              }
+            }
           }
         }
       }
@@ -910,6 +1022,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add Goal"
+          }
+        }
+      }
+    },
+    "goal.list.deleteSelectedGoals.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld selected goal"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld selected goals"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "goal.list.deleteSelectedGoals.accessibilityLabel.none" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete selected goals"
           }
         }
       }
@@ -1266,24 +1412,80 @@
         }
       }
     },
-    "progressEvent.format.decreased" : {
+    "progressEvent.deleteConfirmation.title.multiple" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Decreased"
+            "value" : "Are you sure you want to delete these progress events?"
           }
         }
       }
     },
-    "progressEvent.format.increased" : {
+    "progressEvent.deleteConfirmation.title.single" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Increased"
+            "value" : "Are you sure you want to delete this progress event?"
+          }
+        }
+      }
+    },
+    "progressEvent.list.deleteSelectedEvents.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld selected event"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld selected events"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "progressEvent.list.deleteSelectedEvents.accessibilityLabel.none" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete selected events"
+          }
+        }
+      }
+    },
+    "progressEvent.format.decreasedBy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decreased by %@"
+          }
+        }
+      }
+    },
+    "progressEvent.format.increasedBy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Increased by %@"
           }
         }
       }
@@ -1559,6 +1761,98 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Every year"
+          }
+        }
+      }
+    },
+    "recurrence.streak.daily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "recurrence.streak.monthly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld month"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld months"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "recurrence.streak.weekly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld week"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld weeks"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "recurrence.streak.yearly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld year"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld years"
+                }
+              }
+            }
           }
         }
       }

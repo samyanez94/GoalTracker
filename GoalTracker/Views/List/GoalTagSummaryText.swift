@@ -25,9 +25,9 @@ struct GoalTagSummaryText: View {
 			.joined(separator: " ")
 	}
 
-	private var accessibilitySummary: String {
+	private var accessibilitySummary: LocalizedStringResource {
 		let tagNames = sortedTagNames.joined(separator: ", ")
-		return sortedTagNames.count == 1 ? "Tag: \(tagNames)" : "Tags: \(tagNames)"
+		return .goalTagSummaryAccessibilityLabel(sortedTagNames.count, tagNames)
 	}
 
 	private var sortedTagNames: [String] {

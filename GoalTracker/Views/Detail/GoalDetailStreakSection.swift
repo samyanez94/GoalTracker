@@ -58,7 +58,7 @@ struct GoalDetailStreakSection: View {
 	}
 
 	private struct StreakDetails {
-		var title: String
+		var title: LocalizedStringResource
 		var iconSystemName: String
 		var iconForegroundStyle: AnyShapeStyle
 	}

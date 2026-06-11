@@ -261,13 +261,13 @@ struct GoalFormView: View {
 		}
 	}
 
-	private func tagSelectionSummary(for tagSelections: [GoalFormTagSelection]) -> String {
+	private func tagSelectionSummary(for tagSelections: [GoalFormTagSelection]) -> LocalizedStringResource {
 		let selectedTagCount =
 			tagSelections.filter { tagSelection in
 				tagSelection.isSelected
 			}
 			.count
-		return "\(selectedTagCount) Selected"
+		return .goalFormTagSelectionSummary(selectedTagCount)
 	}
 
 	private var discardConfirmationMessage: String {

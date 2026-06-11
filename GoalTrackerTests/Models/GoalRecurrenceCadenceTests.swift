@@ -167,6 +167,6 @@ struct GoalRecurrenceCadenceTests {
 		count: Int,
 		expectedTitle: String,
 	) {
-		#expect(cadence.streakValueTitle(for: count) == expectedTitle)
+		#expect(String(localized: cadence.streakValueTitle(for: count)) == expectedTitle)
 	}
 }

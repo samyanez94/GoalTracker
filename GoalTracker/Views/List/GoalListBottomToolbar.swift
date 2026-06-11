@@ -49,14 +49,12 @@ struct GoalListBottomToolbar: ToolbarContent {
 		selectedGoalCount == 1 ? .commonDeleteGoal : .commonDeleteGoals
 	}
 
-	private var deleteButtonAccessibilityLabel: String {
+	private var deleteButtonAccessibilityLabel: LocalizedStringResource {
 		switch selectedGoalCount {
 		case 0:
-			"Delete selected goals"
-		case 1:
-			"Delete 1 selected goal"
+			.goalListDeleteSelectedGoalsAccessibilityLabelNone
 		default:
-			"Delete \(selectedGoalCount) selected goals"
+			.goalListDeleteSelectedGoalsAccessibilityLabel(selectedGoalCount)
 		}
 	}
 }
