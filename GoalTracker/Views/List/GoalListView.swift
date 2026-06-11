@@ -66,12 +66,12 @@ struct GoalListView: View {
 					List(selection: goalSelection) {
 						if isShowingCompletedGoals {
 							GoalSectionView(
-								title: String(localized: .goalListSectionPending),
+								title: .goalListSectionPending,
 								goals: pendingGoals,
 								isExpanded: $isPendingSectionExpanded,
 							)
 							GoalSectionView(
-								title: String(localized: .goalListSectionCompleted),
+								title: .goalListSectionCompleted,
 								goals: completedGoals,
 								isExpanded: $isCompletedSectionExpanded,
 							)

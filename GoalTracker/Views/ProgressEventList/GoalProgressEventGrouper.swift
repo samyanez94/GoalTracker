@@ -28,9 +28,7 @@ enum GoalProgressEventGrouper {
 				lhs.isOrdered(before: rhs, sortOrder: sortOrder)
 			}
 			.map { bucket in
-				GoalProgressEventSection(
-					id: bucket.id,
-					title: bucket.title,
+				bucket.section(
 					events: sortOrder.sorted(eventsByBucket[bucket] ?? []),
 				)
 			}
@@ -78,19 +76,44 @@ enum GoalProgressEventGrouper {
 			}
 		}
 
-		var title: String {
+		func section(events: [GoalProgressEvent]) -> GoalProgressEventSection {
 			switch self {
 			case .today:
-				String(localized: .progressEventGroupToday)
+				makeSection(title: .progressEventGroupToday, events: events)
 			case .thisWeek:
-				String(localized: .progressEventGroupThisWeek)
+				makeSection(title: .progressEventGroupThisWeek, events: events)
 			case .thisMonth:
-				String(localized: .progressEventGroupThisMonth)
+				makeSection(title: .progressEventGroupThisMonth, events: events)
 			case .thisYear:
-				String(localized: .progressEventGroupThisYear)
+				makeSection(title: .progressEventGroupThisYear, events: events)
 			case .year(let year):
-				year.formatted(.number.grouping(.never))
+				makeSection(
+					title: year.formatted(.number.grouping(.never)),
+					events: events,
+				)
 			}
+		}
+
+		private func makeSection(
+			title: LocalizedStringResource,
+			events: [GoalProgressEvent],
+		) -> GoalProgressEventSection {
+			GoalProgressEventSection(
+				id: id,
+				title: title,
+				events: events,
+			)
+		}
+
+		private func makeSection(
+			title: String,
+			events: [GoalProgressEvent],
+		) -> GoalProgressEventSection {
+			GoalProgressEventSection(
+				id: id,
+				title: title,
+				events: events,
+			)
 		}
 
 		func isOrdered(

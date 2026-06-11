@@ -32,7 +32,7 @@ struct ProgressUnitSelectionView: View {
 		List {
 			Section(String(localized: .commonNone)) {
 				ProgressUnitButton(
-					title: String(localized: .commonNone),
+					title: .commonNone,
 					unit: nil,
 					selectedUnit: $selectedUnit,
 				) {
@@ -40,7 +40,7 @@ struct ProgressUnitSelectionView: View {
 				}
 			}
 			ForEach(GoalProgressUnit.presetSections) { section in
-				Section(section.title) {
+				Section(String(localized: section.title)) {
 					ForEach(section.units) { unit in
 						ProgressUnitButton(
 							title: unit.title,

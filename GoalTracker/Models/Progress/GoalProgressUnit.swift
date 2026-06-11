@@ -26,18 +26,18 @@ nonisolated struct GoalProgressUnit: Codable, Hashable, Identifiable {
 			self
 		}
 
-		var title: String {
+		var title: LocalizedStringResource {
 			switch self {
 			case .currency:
-				"Currency"
+				.progressUnitCategoryCurrency
 			case .time:
-				"Time"
+				.progressUnitCategoryTime
 			case .weight:
-				"Weight"
+				.progressUnitCategoryWeight
 			case .distance:
-				"Distance"
+				.progressUnitCategoryDistance
 			case .custom:
-				"Custom"
+				.commonCustom
 			}
 		}
 	}
@@ -74,6 +74,24 @@ nonisolated struct GoalProgressUnit: Codable, Hashable, Identifiable {
 		self.suffix = suffix
 	}
 
+	init(
+		id: String,
+		category: Category,
+		title: LocalizedStringResource,
+		abbreviatedTitle: LocalizedStringResource,
+		prefix: LocalizedStringResource? = nil,
+		suffix: LocalizedStringResource? = nil,
+	) {
+		self.init(
+			id: id,
+			category: category,
+			title: String(localized: title),
+			abbreviatedTitle: String(localized: abbreviatedTitle),
+			prefix: prefix.map { String(localized: $0) },
+			suffix: suffix.map { String(localized: $0) },
+		)
+	}
+
 	init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		let id = try container.decode(String.self, forKey: .id)
@@ -96,135 +114,122 @@ nonisolated extension GoalProgressUnit {
 	static let dollars = GoalProgressUnit(
 		id: "currency.usd",
 		category: .currency,
-		title: "US Dollars",
-		abbreviatedTitle: "$",
-		prefix: "$",
-		suffix: nil,
+		title: .progressUnitCurrencyUsdTitle,
+		abbreviatedTitle: .progressUnitCurrencyUsdAbbreviation,
+		prefix: .progressUnitCurrencyUsdPrefix,
 	)
 
 	static let euros = GoalProgressUnit(
 		id: "currency.eur",
 		category: .currency,
-		title: "Euros",
-		abbreviatedTitle: "EUR",
-		prefix: "€",
-		suffix: nil,
+		title: .progressUnitCurrencyEurTitle,
+		abbreviatedTitle: .progressUnitCurrencyEurAbbreviation,
+		prefix: .progressUnitCurrencyEurPrefix,
 	)
 
 	static let poundsSterling = GoalProgressUnit(
 		id: "currency.gbp",
 		category: .currency,
-		title: "British Pound",
-		abbreviatedTitle: "GBP",
-		prefix: "£",
-		suffix: nil,
+		title: .progressUnitCurrencyGbpTitle,
+		abbreviatedTitle: .progressUnitCurrencyGbpAbbreviation,
+		prefix: .progressUnitCurrencyGbpPrefix,
 	)
 
 	static let minutes = GoalProgressUnit(
 		id: "time.minutes",
 		category: .time,
-		title: "Minutes",
-		abbreviatedTitle: "min",
-		prefix: nil,
-		suffix: "min",
+		title: .progressUnitTimeMinutesTitle,
+		abbreviatedTitle: .progressUnitTimeMinutesAbbreviation,
+		suffix: .progressUnitTimeMinutesSuffix,
 	)
 
 	static let hours = GoalProgressUnit(
 		id: "time.hours",
 		category: .time,
-		title: "Hours",
-		abbreviatedTitle: "hours",
-		prefix: nil,
-		suffix: "hours",
+		title: .progressUnitTimeHoursTitle,
+		abbreviatedTitle: .progressUnitTimeHoursAbbreviation,
+		suffix: .progressUnitTimeHoursSuffix,
 	)
 
 	static let days = GoalProgressUnit(
 		id: "time.days",
 		category: .time,
-		title: "Days",
-		abbreviatedTitle: "days",
-		prefix: nil,
-		suffix: "days",
+		title: .progressUnitTimeDaysTitle,
+		abbreviatedTitle: .progressUnitTimeDaysAbbreviation,
+		suffix: .progressUnitTimeDaysSuffix,
 	)
 
 	static let weeks = GoalProgressUnit(
 		id: "time.weeks",
 		category: .time,
-		title: "Weeks",
-		abbreviatedTitle: "weeks",
-		prefix: nil,
-		suffix: "weeks",
+		title: .progressUnitTimeWeeksTitle,
+		abbreviatedTitle: .progressUnitTimeWeeksAbbreviation,
+		suffix: .progressUnitTimeWeeksSuffix,
 	)
 
 	static let months = GoalProgressUnit(
 		id: "time.months",
 		category: .time,
-		title: "Months",
-		abbreviatedTitle: "months",
-		prefix: nil,
-		suffix: "months",
+		title: .progressUnitTimeMonthsTitle,
+		abbreviatedTitle: .progressUnitTimeMonthsAbbreviation,
+		suffix: .progressUnitTimeMonthsSuffix,
 	)
 
 	static let years = GoalProgressUnit(
 		id: "time.years",
 		category: .time,
-		title: "Years",
-		abbreviatedTitle: "years",
-		prefix: nil,
-		suffix: "years",
+		title: .progressUnitTimeYearsTitle,
+		abbreviatedTitle: .progressUnitTimeYearsAbbreviation,
+		suffix: .progressUnitTimeYearsSuffix,
 	)
 
 	static let pounds = GoalProgressUnit(
 		id: "weight.pounds",
 		category: .weight,
-		title: "Pounds",
-		abbreviatedTitle: "lb",
-		prefix: nil,
-		suffix: "lb",
+		title: .progressUnitWeightPoundsTitle,
+		abbreviatedTitle: .progressUnitWeightPoundsAbbreviation,
+		suffix: .progressUnitWeightPoundsSuffix,
 	)
 
 	static let kilograms = GoalProgressUnit(
 		id: "weight.kilograms",
 		category: .weight,
-		title: "Kilograms",
-		abbreviatedTitle: "kg",
-		prefix: nil,
-		suffix: "kg",
+		title: .progressUnitWeightKilogramsTitle,
+		abbreviatedTitle: .progressUnitWeightKilogramsAbbreviation,
+		suffix: .progressUnitWeightKilogramsSuffix,
 	)
 
 	static let miles = GoalProgressUnit(
 		id: "distance.miles",
 		category: .distance,
-		title: "Miles",
-		abbreviatedTitle: "mi",
-		prefix: nil,
-		suffix: "mi",
+		title: .progressUnitDistanceMilesTitle,
+		abbreviatedTitle: .progressUnitDistanceMilesAbbreviation,
+		suffix: .progressUnitDistanceMilesSuffix,
 	)
 
 	static let kilometers = GoalProgressUnit(
 		id: "distance.kilometers",
 		category: .distance,
-		title: "Kilometers",
-		abbreviatedTitle: "km",
-		prefix: nil,
-		suffix: "km",
+		title: .progressUnitDistanceKilometersTitle,
+		abbreviatedTitle: .progressUnitDistanceKilometersAbbreviation,
+		suffix: .progressUnitDistanceKilometersSuffix,
 	)
 
 	static let presetSections: [PresetSection] = [
 		PresetSection(
-			title: Category.currency.title,
+			category: .currency,
 			units: [.dollars, .euros, .poundsSterling],
 		),
 		PresetSection(
-			title: Category.time.title,
+			category: .time,
 			units: [.minutes, .hours, .days, .weeks, .months, .years],
 		),
 		PresetSection(
-			title: Category.weight.title,
+			category: .weight,
 			units: [.pounds, .kilograms],
 		),
 		PresetSection(
-			title: Category.distance.title,
+			category: .distance,
 			units: [.miles, .kilometers],
 		)
 	]
@@ -251,11 +256,15 @@ nonisolated extension GoalProgressUnit {
 	}
 
 	struct PresetSection: Identifiable {
-		let title: String
+		let category: Category
 		let units: [GoalProgressUnit]
 
-		var id: String {
-			title
+		var id: Category {
+			category
+		}
+
+		var title: LocalizedStringResource {
+			category.title
 		}
 	}
 }

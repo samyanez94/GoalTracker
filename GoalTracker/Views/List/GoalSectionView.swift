@@ -13,6 +13,28 @@ struct GoalSectionView: View {
 
 	@Binding var isExpanded: Bool
 
+	init(
+		title: String,
+		goals: [Goal],
+		isExpanded: Binding<Bool>,
+	) {
+		self.title = title
+		self.goals = goals
+		_isExpanded = isExpanded
+	}
+
+	init(
+		title: LocalizedStringResource,
+		goals: [Goal],
+		isExpanded: Binding<Bool>,
+	) {
+		self.init(
+			title: String(localized: title),
+			goals: goals,
+			isExpanded: isExpanded,
+		)
+	}
+
 	var body: some View {
 		if !goals.isEmpty {
 			Section(isExpanded: $isExpanded) {
