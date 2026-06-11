@@ -849,6 +849,28 @@
         }
       }
     },
+    "goal.form.dismissConfirmation.message.create" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to discard this new goal?"
+          }
+        }
+      }
+    },
+    "goal.form.dismissConfirmation.message.edit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to discard your changes?"
+          }
+        }
+      }
+    },
     "goal.form.tagSelection.summary" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -270,12 +270,12 @@ struct GoalFormView: View {
 		return .goalFormTagSelectionSummary(selectedTagCount)
 	}
 
-	private var discardConfirmationMessage: String {
+	private var discardConfirmationMessage: LocalizedStringResource {
 		switch mode {
 		case .create:
-			"Are you sure you want to discard this new goal?"
+			.goalFormDismissConfirmationMessageCreate
 		case .edit:
-			"Are you sure you want to discard your changes?"
+			.goalFormDismissConfirmationMessageEdit
 		}
 	}
 }
