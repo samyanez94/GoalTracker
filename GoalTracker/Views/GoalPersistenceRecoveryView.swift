@@ -40,24 +40,24 @@ struct GoalPersistenceRecoveryView: View {
 	}
 }
 
-// MARK: - Previews
-
-#Preview {
-	GoalPersistenceRecoveryView(
-		failure: GoalTrackerPersistenceFailure(error: PreviewError.failed),
-		retry: {},
-	)
-}
-
 #if DEBUG
 
-// periphery:ignore
-private enum PreviewError: LocalizedError {
-	case failed
+	// MARK: - Previews
 
-	var errorDescription: String? {
-		"The model container could not be loaded."
+	#Preview {
+		GoalPersistenceRecoveryView(
+			failure: GoalTrackerPersistenceFailure(error: PreviewError.failed),
+			retry: {},
+		)
 	}
-}
+
+	// periphery:ignore
+	private enum PreviewError: LocalizedError {
+		case failed
+
+		var errorDescription: String? {
+			"The model container could not be loaded."
+		}
+	}
 
 #endif
