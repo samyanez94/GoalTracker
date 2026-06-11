@@ -221,7 +221,8 @@ struct GoalListView: View {
 
 	private func navigateToGoalIfPossible(_ goalId: UUID?) {
 		guard let goalId,
-			goal(with: goalId) != nil else {
+			goal(with: goalId) != nil
+		else {
 			return
 		}
 		exitEditMode()
@@ -240,11 +241,13 @@ struct GoalListView: View {
 
 // MARK: - Previews
 
+#if DEBUG
+
 #Preview("No goals") {
 	let container = GoalPreviewContainer.make(
 		goals: [],
 	)
-	GoalListView()
+GoalListView()
 		.modelContainer(container)
 }
 
@@ -271,3 +274,5 @@ struct GoalListView: View {
 	GoalListView()
 		.modelContainer(container)
 }
+
+#endif

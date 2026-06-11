@@ -119,6 +119,14 @@ private struct GoalFormSnapshot: Equatable {
 	var progress: GoalFormProgressState.Snapshot
 	var tagNames: Set<String>
 
+	static func == (lhs: GoalFormSnapshot, rhs: GoalFormSnapshot) -> Bool {
+		lhs.name == rhs.name
+			&& lhs.details == rhs.details
+			&& lhs.schedule == rhs.schedule
+			&& lhs.progress == rhs.progress
+			&& lhs.tagNames == rhs.tagNames
+	}
+
 	static let empty = GoalFormSnapshot(
 		name: "",
 		details: nil,

@@ -23,18 +23,4 @@ extension UNMutableNotificationContent {
 		self.sound = sound
 		self.userInfo = userInfo
 	}
-
-	convenience init(
-		title: LocalizedStringResource,
-		body: LocalizedStringResource,
-		sound: UNNotificationSound? = .default,
-		userInfo: [AnyHashable: Any] = [:],
-	) {
-		self.init(
-			title: String(localized: title),
-			body: body,
-			sound: sound,
-			userInfo: userInfo,
-		)
-	}
 }

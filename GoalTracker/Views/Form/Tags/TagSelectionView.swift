@@ -113,9 +113,13 @@ struct TagSelectionView: View {
 
 // MARK: - Previews
 
+#if DEBUG
+
 #Preview {
 	NavigationStack {
 		TagSelectionView(tagSelections: .constant([]))
 	}
 	.modelContainer(GoalPreviewContainer.make(goals: []))
 }
+
+#endif

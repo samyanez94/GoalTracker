@@ -89,5 +89,11 @@ struct GoalFormScheduleState {
 		var targetDate: Date?
 		var reminder: GoalReminder?
 		var recurrence: GoalRecurrence?
+
+		static func == (lhs: Snapshot, rhs: Snapshot) -> Bool {
+			lhs.targetDate == rhs.targetDate
+				&& lhs.reminder == rhs.reminder
+				&& lhs.recurrence == rhs.recurrence
+		}
 	}
 }

@@ -49,6 +49,9 @@ struct GoalPersistenceRecoveryView: View {
 	)
 }
 
+#if DEBUG
+
+// periphery:ignore
 private enum PreviewError: LocalizedError {
 	case failed
 
@@ -56,3 +59,5 @@ private enum PreviewError: LocalizedError {
 		"The model container could not be loaded."
 	}
 }
+
+#endif

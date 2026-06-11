@@ -5,8 +5,11 @@
 //  Created by Samuel Yanez on 5/14/26.
 //
 
+#if DEBUG
+
 import SwiftData
 
+// periphery:ignore
 @MainActor
 enum GoalPreviewContainer {
 	static func make(goals: [Goal]) -> ModelContainer {
@@ -22,3 +25,5 @@ enum GoalPreviewContainer {
 		}
 	}
 }
+
+#endif

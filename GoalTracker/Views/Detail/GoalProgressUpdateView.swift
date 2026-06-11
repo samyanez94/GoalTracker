@@ -139,13 +139,13 @@ extension View {
 				systemImage: "plus.forwardslash.minus",
 				action: action
 			)
-				.fontWeight(.semibold)
-				.labelStyle(.iconOnly)
-				.accessibilityHint(Text(.detailProgressUpdateToggleSignAccessibilityHint))
-				.controlSize(.large)
-				.padding(8)
-				.buttonBorderShape(.circle)
-				.buttonStyle(.glass)
+			.fontWeight(.semibold)
+			.labelStyle(.iconOnly)
+			.accessibilityHint(Text(.detailProgressUpdateToggleSignAccessibilityHint))
+			.controlSize(.large)
+			.padding(8)
+			.buttonBorderShape(.circle)
+			.buttonStyle(.glass)
 		}
 	}
 }

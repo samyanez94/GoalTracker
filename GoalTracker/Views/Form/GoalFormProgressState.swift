@@ -87,5 +87,12 @@ struct GoalFormProgressState {
 		var targetValue: Double?
 		var step: Double?
 		var progressUnitId: String?
+
+		static func == (lhs: Snapshot, rhs: Snapshot) -> Bool {
+			lhs.isProgressBased == rhs.isProgressBased
+				&& lhs.targetValue == rhs.targetValue
+				&& lhs.step == rhs.step
+				&& lhs.progressUnitId == rhs.progressUnitId
+		}
 	}
 }
