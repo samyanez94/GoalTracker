@@ -18,7 +18,7 @@ struct GoalTrackerApp: App {
 
 	init() {
 		_persistence = State(
-			initialValue: GoalTrackerPersistence(isStoredInMemoryOnly: Self.isRunningTests)
+			initialValue: Self.makePersistence()
 		)
 		let notificationRouter = GoalNotificationRouter()
 		UNUserNotificationCenter.current().delegate = notificationRouter
@@ -42,5 +42,17 @@ struct GoalTrackerApp: App {
 
 	private static var isRunningTests: Bool {
 		ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+	}
+
+	private static func makePersistence() -> GoalTrackerPersistence {
+		#if DEBUG
+			if DebugLaunchArguments.isUsingScreenshotData {
+				return GoalTrackerPersistence {
+					try DebugModelContainerFactory.appStoreScreenshotsContainer()
+				}
+			}
+		#endif
+
+		return GoalTrackerPersistence(isStoredInMemoryOnly: isRunningTests)
 	}
 }
