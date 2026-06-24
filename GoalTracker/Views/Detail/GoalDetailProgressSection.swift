@@ -21,39 +21,36 @@ struct GoalDetailProgressSection: View {
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
+			GoalDetailSectionHeader(title: .commonProgress)
+				.padding(.horizontal)
 			NavigationLink(value: GoalNavigationDestination.progressEvents(goalId)) {
-				HStack(alignment: .center, spacing: 4) {
-					GoalDetailSectionHeader(title: .commonProgress)
-					Image(systemName: "chevron.right")
-						.font(.caption.bold())
-						.foregroundStyle(.secondary)
-						.accessibilityHidden(true)
-					Spacer()
+				GoalDetailCard {
+					HStack(spacing: 16) {
+						GoalDetailCircularProgressView(
+							progress: fractionCompleted
+						)
+						VStack(alignment: .leading, spacing: 4) {
+							Text(progressTitle)
+								.font(.title2.bold())
+								.foregroundStyle(.primary)
+								.contentTransition(.numericText(value: fractionCompleted))
+							Text(progressSubtitle)
+								.font(.body)
+								.foregroundStyle(.secondary)
+						}
+						Spacer()
+						Image(systemName: "chevron.right")
+							.font(.body.bold())
+							.foregroundStyle(.tertiary)
+							.accessibilityHidden(true)
+					}
 				}
-				.frame(maxWidth: .infinity, alignment: .leading)
-				.contentShape(.rect)
 			}
 			.buttonStyle(.plain)
-			GoalDetailCard {
-				HStack {
-					VStack(alignment: .leading, spacing: 4) {
-						Text(progressTitle)
-							.font(.title2.bold())
-							.foregroundStyle(.primary)
-							.contentTransition(.numericText(value: fractionCompleted))
-						Text(progressSubtitle)
-							.font(.body)
-							.foregroundStyle(.secondary)
-					}
-					Spacer(minLength: 8)
-					GoalDetailCircularProgressView(
-						progress: fractionCompleted
-					)
-				}
-			}
 			.accessibilityElement(children: .ignore)
 			.accessibilityLabel(Text(.commonProgress))
 			.accessibilityValue(progressAccessibilityValue)
+			.accessibilityHint(Text(.detailProgressEventsAccessibilityHint))
 			if isCompleted,
 				let completedFooterText
 			{

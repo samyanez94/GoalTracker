@@ -16,6 +16,7 @@ struct GoalDetailStreakSection: View {
 		if let streakDetails {
 			VStack(alignment: .leading, spacing: 8) {
 				GoalDetailSectionHeader(title: .detailStreak)
+					.padding(.horizontal)
 				GoalDetailCard {
 					HStack {
 						Image(systemName: streakDetails.iconSystemName)

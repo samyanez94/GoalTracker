@@ -81,22 +81,32 @@ struct GoalListView: View {
 				} else {
 					List(selection: goalSelection) {
 						if isShowingCompletedGoals {
-							GoalSectionView(
-								title: .goalListSectionPending,
-								goals: pendingGoals,
-								isExpanded: $isPendingSectionExpanded,
-								onDelete: { offsets in
-									deleteGoals(pendingGoals, at: offsets)
-								},
-							)
-							GoalSectionView(
-								title: .goalListSectionCompleted,
-								goals: completedGoals,
-								isExpanded: $isCompletedSectionExpanded,
-								onDelete: { offsets in
-									deleteGoals(completedGoals, at: offsets)
-								},
-							)
+							if !pendingGoals.isEmpty {
+								Section(
+									String(localized: .goalListSectionPending),
+									isExpanded: $isPendingSectionExpanded
+								) {
+									ForEach(pendingGoals) { goal in
+										GoalRowView(goal: goal)
+									}
+									.onDelete { offsets in
+										deleteGoals(pendingGoals, at: offsets)
+									}
+								}
+							}
+							if !completedGoals.isEmpty {
+								Section(
+									String(localized: .goalListSectionCompleted),
+									isExpanded: $isCompletedSectionExpanded
+								) {
+									ForEach(completedGoals) { goal in
+										GoalRowView(goal: goal)
+									}
+									.onDelete { offsets in
+										deleteGoals(completedGoals, at: offsets)
+									}
+								}
+							}
 						} else {
 							ForEach(pendingGoals) { goal in
 								GoalRowView(goal: goal)
@@ -106,6 +116,7 @@ struct GoalListView: View {
 							}
 						}
 					}
+					.listStyle(.sidebar)
 				}
 			}
 			.navigationTitle(.goalListTitle)

@@ -1,39 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "accessibility.collapsibleSection.collapsed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Collapsed"
-          }
-        }
-      }
-    },
-    "accessibility.collapsibleSection.expanded" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Expanded"
-          }
-        }
-      }
-    },
-    "accessibility.collapsibleSection.hint" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Expands or collapses this section."
-          }
-        }
-      }
-    },
     "common.cancel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -415,6 +382,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ of %@ %@, %@, %@"
+          }
+        }
+      }
+    },
+    "detail.progress.events.accessibilityHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows progress history."
           }
         }
       }

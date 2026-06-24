@@ -32,7 +32,7 @@ struct GoalProgressEventListView: View {
 			} else {
 				List(selection: eventSelection) {
 					ForEach(eventSections) { section in
-						Section {
+						Section(section.title) {
 							ForEach(section.events) { event in
 								GoalProgressEventRowView(
 									event: event,
@@ -45,9 +45,6 @@ struct GoalProgressEventListView: View {
 									at: offsets
 								)
 							}
-						} header: {
-							Text(verbatim: section.title)
-								.font(.title3.bold())
 						}
 					}
 				}

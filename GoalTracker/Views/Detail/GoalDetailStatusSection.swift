@@ -16,6 +16,7 @@ struct GoalDetailStatusSection: View {
 		let status = goal.status()
 		VStack(alignment: .leading, spacing: 8) {
 			GoalDetailSectionHeader(title: .commonStatus)
+				.padding(.horizontal)
 			GoalDetailCard {
 				HStack {
 					Image(systemName: status.iconSystemName)

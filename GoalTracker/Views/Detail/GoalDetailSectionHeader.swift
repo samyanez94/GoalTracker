@@ -12,7 +12,7 @@ struct GoalDetailSectionHeader: View {
 
 	var body: some View {
 		Text(title)
-			.font(.title3.bold())
+			.font(.headline.bold())
 			.foregroundStyle(.secondary)
 			.accessibilityAddTraits(.isHeader)
 	}
