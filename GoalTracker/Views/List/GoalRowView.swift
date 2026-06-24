@@ -63,6 +63,7 @@ struct GoalRowView: View {
 			.accessibilityElement(children: .combine)
 			.accessibilityValue(goal.status().title)
 		}
+        .navigationLinkIndicatorVisibility(editMode?.wrappedValue.isEditing != true ? .automatic : .hidden)
 		.contextMenu {
 			GoalActionMenuContent(
 				isCompleted: isCompleted,

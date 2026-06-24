@@ -85,16 +85,24 @@ struct GoalListView: View {
 								title: .goalListSectionPending,
 								goals: pendingGoals,
 								isExpanded: $isPendingSectionExpanded,
+								onDelete: { offsets in
+									deleteGoals(pendingGoals, at: offsets)
+								},
 							)
 							GoalSectionView(
 								title: .goalListSectionCompleted,
 								goals: completedGoals,
 								isExpanded: $isCompletedSectionExpanded,
+								onDelete: { offsets in
+									deleteGoals(completedGoals, at: offsets)
+								},
 							)
 						} else {
 							ForEach(pendingGoals) { goal in
 								GoalRowView(goal: goal)
-									.tag(goal.id)
+							}
+							.onDelete { offsets in
+								deleteGoals(pendingGoals, at: offsets)
 							}
 						}
 					}
@@ -206,24 +214,49 @@ struct GoalListView: View {
 	}
 
 	private func enterEditMode() {
-		selectedGoalIds.removeAll()
-		editMode = .active
+		withAnimation {
+			selectedGoalIds.removeAll()
+			editMode = .active
+		}
 	}
 
 	private func exitEditMode() {
-		selectedGoalIds.removeAll()
-		editMode = .inactive
+		withAnimation {
+			selectedGoalIds.removeAll()
+			editMode = .inactive
+		}
 	}
 
 	private func deleteSelectedGoals() {
-		guard !selectedGoals.isEmpty else {
-			return
+		if deleteGoals(selectedGoals) {
+			exitEditMode()
+		}
+	}
+
+	private func deleteGoals(
+		_ goals: [Goal],
+		at offsets: IndexSet
+	) {
+		let goalsToDelete = offsets.compactMap { offset in
+			goals.indices.contains(offset) ? goals[offset] : nil
+		}
+		_ = deleteGoals(goalsToDelete)
+	}
+
+	@discardableResult
+	private func deleteGoals(_ goals: [Goal]) -> Bool {
+		guard !goals.isEmpty else {
+			return false
 		}
 		do {
-			try goalManager.deleteGoals(selectedGoals)
-			exitEditMode()
+			try withAnimation {
+				try goalManager.deleteGoals(goals)
+			}
+			selectedGoalIds.subtract(Set(goals.map(\.id)))
+			return true
 		} catch {
 			saveFailure = .deleteGoal
+			return false
 		}
 	}
 

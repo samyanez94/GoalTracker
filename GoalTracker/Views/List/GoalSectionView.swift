@@ -10,6 +10,7 @@ import SwiftUI
 struct GoalSectionView: View {
 	let title: String
 	let goals: [Goal]
+	let onDelete: ((IndexSet) -> Void)?
 
 	@Binding var isExpanded: Bool
 
@@ -17,9 +18,11 @@ struct GoalSectionView: View {
 		title: String,
 		goals: [Goal],
 		isExpanded: Binding<Bool>,
+		onDelete: ((IndexSet) -> Void)? = nil,
 	) {
 		self.title = title
 		self.goals = goals
+		self.onDelete = onDelete
 		_isExpanded = isExpanded
 	}
 
@@ -27,11 +30,13 @@ struct GoalSectionView: View {
 		title: LocalizedStringResource,
 		goals: [Goal],
 		isExpanded: Binding<Bool>,
+		onDelete: ((IndexSet) -> Void)? = nil,
 	) {
 		self.init(
 			title: String(localized: title),
 			goals: goals,
 			isExpanded: isExpanded,
+			onDelete: onDelete,
 		)
 	}
 
@@ -40,8 +45,8 @@ struct GoalSectionView: View {
 			Section(isExpanded: $isExpanded) {
 				ForEach(goals) { goal in
 					GoalRowView(goal: goal)
-						.tag(goal.id)
 				}
+				.onDelete(perform: onDelete)
 			} header: {
 				CollapsibleSectionHeader(
 					title: title,
