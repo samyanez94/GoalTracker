@@ -46,11 +46,11 @@ struct GoalTrackerApp: App {
 
 	private static func makePersistence() -> GoalTrackerPersistence {
 		#if DEBUG
-			if DebugLaunchArguments.isUsingScreenshotData {
-				return GoalTrackerPersistence {
-					try DebugModelContainerFactory.appStoreScreenshotsContainer()
-				}
+		if DebugLaunchArguments.isUsingScreenshotData {
+			return GoalTrackerPersistence {
+				try DebugModelContainerFactory.appStoreScreenshotsContainer()
 			}
+		}
 		#endif
 
 		return GoalTrackerPersistence(isStoredInMemoryOnly: isRunningTests)

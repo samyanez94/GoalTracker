@@ -33,32 +33,37 @@ struct GoalProgressEventListView: View {
 					.foregroundStyle(.secondary)
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
 					.background(Color(.systemGroupedBackground))
-				} else {
-					List(selection: eventSelection) {
-						ForEach(eventSections) { section in
-							Section {
-								ForEach(section.events) { event in
-									GoalProgressEventRowView(
-										event: event,
-										unit: progress?.unit,
-									)
-									.tag(event.id)
-									.swipeActions {
-										Button(role: .destructive) {
-											deleteEvent(id: event.id)
-										} label: {
-											Label(.commonDelete, systemImage: "trash")
-										}
+			} else {
+				List(selection: eventSelection) {
+					ForEach(eventSections) { section in
+						Section {
+							ForEach(section.events) { event in
+								GoalProgressEventRowView(
+									event: event,
+									unit: progress?.unit,
+								)
+								.swipeActions {
+									Button(role: .destructive) {
+										deleteEvent(id: event.id)
+									} label: {
+										Label(.commonDelete, systemImage: "trash")
 									}
 								}
-							} header: {
-								Text(verbatim: section.title)
-									.font(.title3.bold())
 							}
+							.onDelete { offsets in
+								deleteEvents(
+									section.events,
+									at: offsets
+								)
+							}
+						} header: {
+							Text(verbatim: section.title)
+								.font(.title3.bold())
 						}
 					}
 				}
 			}
+		}
 		.navigationTitle(.progressEventListTitle)
 		.navigationBarTitleDisplayMode(.large)
 		.environment(\.editMode, $editMode)
@@ -93,6 +98,7 @@ struct GoalProgressEventListView: View {
 					Menu {
 						Button {
 							withAnimation {
+								selectedEventIds.removeAll()
 								editMode = .active
 							}
 						} label: {
@@ -176,9 +182,9 @@ struct GoalProgressEventListView: View {
 	}
 
 	private func exitEditMode() {
-		selectedEventIds.removeAll()
 		isPresentingDeleteConfirmation = false
 		withAnimation {
+			selectedEventIds.removeAll()
 			editMode = .inactive
 		}
 	}
@@ -192,33 +198,59 @@ struct GoalProgressEventListView: View {
 	}
 
 	private func deleteEvent(id: GoalProgressEvent.ID) {
-		do {
-			let didDelete = try withAnimation {
-				try goalManager.deleteProgressEvent(id: id, from: goal)
+		deleteEvents(
+			[id],
+			blockedFailure: .blocked
+		)
+	}
+
+	private func deleteEvents(
+		_ events: [GoalProgressEvent],
+		at offsets: IndexSet
+	) {
+		let eventIdsToDelete = Set(
+			offsets.compactMap { offset in
+				events.indices.contains(offset) ? events[offset].id : nil
 			}
-			if !didDelete {
-				deletionFailure = .blocked
-			}
-		} catch {
-			deletionFailure = .saveFailed
-		}
+		)
+		deleteEvents(
+			eventIdsToDelete,
+			blockedFailure: eventIdsToDelete.count == 1 ? .blocked : .blockedBatch
+		)
 	}
 
 	private func deleteSelectedEvents() {
-		guard !selectedEventIds.isEmpty else {
-			return
+		let eventIdsToDelete = selectedEventIds
+		if deleteEvents(
+			eventIdsToDelete,
+			blockedFailure: .blockedBatch
+		) {
+			exitEditMode()
+		}
+	}
+
+	@discardableResult
+	private func deleteEvents(
+		_ eventIdsToDelete: Set<GoalProgressEvent.ID>,
+		blockedFailure: GoalProgressEventDeletionFailure
+	) -> Bool {
+		guard !eventIdsToDelete.isEmpty else {
+			return false
 		}
 		do {
 			let didDelete = try withAnimation {
-				try goalManager.deleteProgressEvents(ids: selectedEventIds, from: goal)
+				try goalManager.deleteProgressEvents(ids: eventIdsToDelete, from: goal)
 			}
 			if didDelete {
-				exitEditMode()
+				selectedEventIds.subtract(eventIdsToDelete)
+				return true
 			} else {
-				deletionFailure = .blockedBatch
+				deletionFailure = blockedFailure
+				return false
 			}
 		} catch {
 			deletionFailure = .saveFailed
+			return false
 		}
 	}
 }

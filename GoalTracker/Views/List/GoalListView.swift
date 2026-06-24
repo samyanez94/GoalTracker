@@ -302,34 +302,34 @@ struct GoalListView: View {
 
 #if DEBUG
 
-	#Preview("No goals") {
-		let container = GoalPreviewContainer.make(
-			goals: [],
-		)
-		GoalListView().modelContainer(container)
-	}
+#Preview("No goals") {
+	let container = GoalPreviewContainer.make(
+		goals: [],
+	)
+	GoalListView().modelContainer(container)
+}
 
-	#Preview("Three goals") {
-		let container = GoalPreviewContainer.make(
-			goals: [
-				Goal(
-					name: "Travel to Switzerland",
-					progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
+#Preview("Three goals") {
+	let container = GoalPreviewContainer.make(
+		goals: [
+			Goal(
+				name: "Travel to Switzerland",
+				progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
+			),
+			Goal(
+				name: "Climb Mount Kilimanjaro",
+				progress: .outcome(OutcomeProgress()),
+			),
+			Goal(
+				name: "Run 10 marathons",
+				progress: .measurable(
+					currentValue: 2,
+					targetValue: 10
 				),
-				Goal(
-					name: "Climb Mount Kilimanjaro",
-					progress: .outcome(OutcomeProgress()),
-				),
-				Goal(
-					name: "Run 10 marathons",
-					progress: .measurable(
-						currentValue: 2,
-						targetValue: 10
-					),
-				)
-			],
-		)
-		GoalListView().modelContainer(container)
-	}
+			)
+		],
+	)
+	GoalListView().modelContainer(container)
+}
 
 #endif

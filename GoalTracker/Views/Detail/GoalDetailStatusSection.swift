@@ -13,7 +13,7 @@ struct GoalDetailStatusSection: View {
 	let goal: Goal
 
 	var body: some View {
-        let status = goal.status()
+		let status = goal.status()
 		VStack(alignment: .leading, spacing: 8) {
 			GoalDetailSectionHeader(title: .commonStatus)
 			GoalDetailCard {

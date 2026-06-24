@@ -30,8 +30,8 @@ extension Goal {
 	}
 }
 
-private extension GoalProgress {
-	nonisolated func detailCompletionFooterText(
+extension GoalProgress {
+	fileprivate nonisolated func detailCompletionFooterText(
 		calendar: Calendar,
 		locale: Locale,
 	) -> LocalizedStringResource? {
@@ -46,7 +46,7 @@ private extension GoalProgress {
 		)
 	}
 
-	nonisolated var completionDate: Date? {
+	fileprivate nonisolated var completionDate: Date? {
 		switch self {
 		case .outcome:
 			completionDate(targetValue: 1)
@@ -56,8 +56,8 @@ private extension GoalProgress {
 	}
 }
 
-private extension GoalRecurrence {
-	nonisolated func detailCompletionFooterText(
+extension GoalRecurrence {
+	fileprivate nonisolated func detailCompletionFooterText(
 		date: Date,
 		calendar: Calendar,
 	) -> LocalizedStringResource? {
@@ -75,8 +75,8 @@ private extension GoalRecurrence {
 	}
 }
 
-private extension GoalProgress {
-	nonisolated func completionDate(targetValue: Double) -> Date? {
+extension GoalProgress {
+	fileprivate nonisolated func completionDate(targetValue: Double) -> Date? {
 		var currentValue = 0.0
 		var completionDate: Date?
 		for event in chronologicalEvents {
@@ -93,7 +93,7 @@ private extension GoalProgress {
 		return currentValue.reachesTarget(targetValue) ? completionDate : nil
 	}
 
-	nonisolated var chronologicalEvents: [GoalProgressEvent] {
+	fileprivate nonisolated var chronologicalEvents: [GoalProgressEvent] {
 		events
 			.enumerated()
 			.sorted { lhs, rhs in
@@ -106,24 +106,25 @@ private extension GoalProgress {
 	}
 }
 
-private extension Calendar {
-	nonisolated func daysUntilReset(from date: Date, in period: DateInterval) -> Int {
+extension Calendar {
+	fileprivate nonisolated func daysUntilReset(from date: Date, in period: DateInterval) -> Int {
 		max(1, dayCount(from: date, to: period.end))
 	}
 
-	nonisolated func dayCount(from startDate: Date, to endDate: Date) -> Int {
+	fileprivate nonisolated func dayCount(from startDate: Date, to endDate: Date) -> Int {
 		let startOfStartDate = startOfDay(for: startDate)
 		let startOfEndDate = startOfDay(for: endDate)
 		return dateComponents(
 			[.day],
 			from: startOfStartDate,
 			to: startOfEndDate,
-		).day ?? 0
+		)
+		.day ?? 0
 	}
 }
 
-private extension Date {
-	nonisolated func formattedDetailCompletionDate(
+extension Date {
+	fileprivate nonisolated func formattedDetailCompletionDate(
 		calendar: Calendar,
 		locale: Locale,
 	) -> String {
@@ -139,14 +140,14 @@ private extension Date {
 	}
 }
 
-private extension Double {
-	nonisolated func reachesTarget(_ targetValue: Double) -> Bool {
+extension Double {
+	fileprivate nonisolated func reachesTarget(_ targetValue: Double) -> Bool {
 		min(max(self, 0), targetValue) >= targetValue
 	}
 }
 
-private extension LocalizedStringResource {
-	nonisolated static func detailCompletedResetText(
+extension LocalizedStringResource {
+	fileprivate nonisolated static func detailCompletedResetText(
 		completedText: String,
 		daysUntilReset: Int,
 	) -> LocalizedStringResource {
@@ -157,8 +158,8 @@ private extension LocalizedStringResource {
 	}
 }
 
-private extension GoalRecurrenceCadence {
-	nonisolated var completedPeriodText: LocalizedStringResource {
+extension GoalRecurrenceCadence {
+	fileprivate nonisolated var completedPeriodText: LocalizedStringResource {
 		switch self {
 		case .daily:
 			.detailCompletedToday
