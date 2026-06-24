@@ -28,11 +28,7 @@ struct GoalProgressEventListView: View {
 	var body: some View {
 		Group {
 			if events.isEmpty {
-				Text(.progressEventListNoProgress)
-					.font(.body)
-					.foregroundStyle(.secondary)
-					.frame(maxWidth: .infinity, maxHeight: .infinity)
-					.background(Color(.systemGroupedBackground))
+				GoalUnavailableView.emptyProgressEvents()
 			} else {
 				List(selection: eventSelection) {
 					ForEach(eventSections) { section in

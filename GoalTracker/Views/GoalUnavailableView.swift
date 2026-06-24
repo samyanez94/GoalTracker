@@ -78,6 +78,14 @@ extension GoalUnavailableView {
 		)
 	}
 
+	static func emptyProgressEvents(backgroundStyle: AnyShapeStyle? = groupedBackgroundStyle) -> Self {
+		Self(
+			.progressEventListNoProgress,
+			systemImage: "chart.line.uptrend.xyaxis",
+			backgroundStyle: backgroundStyle
+		)
+	}
+
 	static func goalNotFound(backgroundStyle: AnyShapeStyle? = nil) -> Self {
 		Self(
 			.goalUnavailableGoalNotFoundTitle,
