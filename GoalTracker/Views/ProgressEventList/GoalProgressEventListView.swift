@@ -42,13 +42,6 @@ struct GoalProgressEventListView: View {
 									event: event,
 									unit: progress?.unit,
 								)
-								.swipeActions {
-									Button(role: .destructive) {
-										deleteEvent(id: event.id)
-									} label: {
-										Label(.commonDelete, systemImage: "trash")
-									}
-								}
 							}
 							.onDelete { offsets in
 								deleteEvents(
@@ -195,13 +188,6 @@ struct GoalProgressEventListView: View {
 		} else {
 			selectedEventIds = eventIds
 		}
-	}
-
-	private func deleteEvent(id: GoalProgressEvent.ID) {
-		deleteEvents(
-			[id],
-			blockedFailure: .blocked
-		)
 	}
 
 	private func deleteEvents(

@@ -85,13 +85,6 @@ struct GoalRowView: View {
 				}
 			}
 		}
-		.swipeActions {
-			Button(role: .destructive) {
-				deleteGoal()
-			} label: {
-				Label(.commonDelete, systemImage: "trash")
-			}
-		}
 		.goalDeleteConfirmationDialog(
 			isPresented: $isPresentingDeleteConfirmation,
 			goalCount: 1,
