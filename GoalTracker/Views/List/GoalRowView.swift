@@ -64,6 +64,9 @@ struct GoalRowView: View {
 			.accessibilityValue(goal.status().title)
 		}
 		.navigationLinkIndicatorVisibility(editMode?.wrappedValue.isEditing != true ? .automatic : .hidden)
+		.swipeActions {
+			Button(.commonDelete, systemImage: "trash", role: .destructive, action: deleteGoal)
+		}
 		.contextMenu {
 			GoalActionMenuContent(
 				isCompleted: isCompleted,

@@ -38,12 +38,11 @@ struct GoalProgressEventListView: View {
 									event: event,
 									unit: progress?.unit,
 								)
-							}
-							.onDelete { offsets in
-								deleteEvents(
-									section.events,
-									at: offsets
-								)
+								.swipeActions {
+									Button(.commonDelete, systemImage: "trash", role: .destructive) {
+										deleteEvent(event)
+									}
+								}
 							}
 						}
 					}
@@ -183,36 +182,18 @@ struct GoalProgressEventListView: View {
 		}
 	}
 
-	private func deleteEvents(
-		_ events: [GoalProgressEvent],
-		at offsets: IndexSet
-	) {
-		let eventIdsToDelete = Set(
-			offsets.compactMap { offset in
-				events.indices.contains(offset) ? events[offset].id : nil
-			}
-		)
-		deleteEvents(
-			eventIdsToDelete,
-			blockedFailure: eventIdsToDelete.count == 1 ? .blocked : .blockedBatch
-		)
+	private func deleteEvent(_ event: GoalProgressEvent) {
+		deleteEvents([event.id])
 	}
 
 	private func deleteSelectedEvents() {
-		let eventIdsToDelete = selectedEventIds
-		if deleteEvents(
-			eventIdsToDelete,
-			blockedFailure: .blockedBatch
-		) {
+		if deleteEvents(selectedEventIds) {
 			exitEditMode()
 		}
 	}
 
 	@discardableResult
-	private func deleteEvents(
-		_ eventIdsToDelete: Set<GoalProgressEvent.ID>,
-		blockedFailure: GoalProgressEventDeletionFailure
-	) -> Bool {
+	private func deleteEvents(_ eventIdsToDelete: Set<GoalProgressEvent.ID>) -> Bool {
 		guard !eventIdsToDelete.isEmpty else {
 			return false
 		}
@@ -224,13 +205,19 @@ struct GoalProgressEventListView: View {
 				selectedEventIds.subtract(eventIdsToDelete)
 				return true
 			} else {
-				deletionFailure = blockedFailure
+				deletionFailure = blockedDeletionFailure(for: eventIdsToDelete)
 				return false
 			}
 		} catch {
 			deletionFailure = .saveFailed
 			return false
 		}
+	}
+
+	private func blockedDeletionFailure(
+		for eventIdsToDelete: Set<GoalProgressEvent.ID>
+	) -> GoalProgressEventDeletionFailure {
+		eventIdsToDelete.count == 1 ? .blocked : .blockedBatch
 	}
 }
 

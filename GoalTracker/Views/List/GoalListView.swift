@@ -89,9 +89,6 @@ struct GoalListView: View {
 									ForEach(pendingGoals) { goal in
 										GoalRowView(goal: goal)
 									}
-									.onDelete { offsets in
-										deleteGoals(pendingGoals, at: offsets)
-									}
 								}
 							}
 							if !completedGoals.isEmpty {
@@ -102,17 +99,11 @@ struct GoalListView: View {
 									ForEach(completedGoals) { goal in
 										GoalRowView(goal: goal)
 									}
-									.onDelete { offsets in
-										deleteGoals(completedGoals, at: offsets)
-									}
 								}
 							}
 						} else {
 							ForEach(pendingGoals) { goal in
 								GoalRowView(goal: goal)
-							}
-							.onDelete { offsets in
-								deleteGoals(pendingGoals, at: offsets)
 							}
 						}
 					}
@@ -239,35 +230,16 @@ struct GoalListView: View {
 	}
 
 	private func deleteSelectedGoals() {
-		if deleteGoals(selectedGoals) {
-			exitEditMode()
-		}
-	}
-
-	private func deleteGoals(
-		_ goals: [Goal],
-		at offsets: IndexSet
-	) {
-		let goalsToDelete = offsets.compactMap { offset in
-			goals.indices.contains(offset) ? goals[offset] : nil
-		}
-		_ = deleteGoals(goalsToDelete)
-	}
-
-	@discardableResult
-	private func deleteGoals(_ goals: [Goal]) -> Bool {
-		guard !goals.isEmpty else {
-			return false
+		guard !selectedGoals.isEmpty else {
+			return
 		}
 		do {
 			try withAnimation {
-				try goalManager.deleteGoals(goals)
+				try goalManager.deleteGoals(selectedGoals)
 			}
-			selectedGoalIds.subtract(Set(goals.map(\.id)))
-			return true
+			exitEditMode()
 		} catch {
 			saveFailure = .deleteGoal
-			return false
 		}
 	}
 
