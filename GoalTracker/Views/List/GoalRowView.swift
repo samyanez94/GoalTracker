@@ -8,6 +8,8 @@ struct GoalRowView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
+	@Environment(\.goalReminderFeedback) private var reminderFeedback
+
 	@State private var isPresentingEditForm = false
 
 	@State private var isPresentingDeleteConfirmation = false
@@ -59,6 +61,12 @@ struct GoalRowView: View {
 					}
 					GoalTagSummaryText(tags: goal.tags ?? [])
 				}
+				if reminderFeedback?.issue?.goalId == goal.id {
+					Spacer()
+					Image(systemName: "exclamationmark.triangle.fill")
+						.foregroundStyle(.orange)
+						.accessibilityLabel(Text(.reminderFeedbackTitle))
+				}
 			}
 			.accessibilityElement(children: .combine)
 			.accessibilityValue(goal.status().title)
@@ -97,7 +105,7 @@ struct GoalRowView: View {
 	}
 
 	private var goalManager: GoalManager {
-		GoalManager(modelContext: modelContext)
+		GoalManager(modelContext: modelContext, reminderFeedback: reminderFeedback)
 	}
 
 	private var statusImageStyle: AnyShapeStyle {

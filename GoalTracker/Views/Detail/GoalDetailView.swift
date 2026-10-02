@@ -13,7 +13,11 @@ import SwiftUI
 struct GoalDetailView: View {
 	@Environment(\.dismiss) private var dismiss
 
+	@Environment(\.accessibilityReduceMotion) private var reduceMotion
+
 	@Environment(\.modelContext) private var modelContext
+
+	@Environment(\.goalReminderFeedback) private var reminderFeedback
 
 	@State private var isPresentingEditForm = false
 
@@ -28,6 +32,21 @@ struct GoalDetailView: View {
 	var body: some View {
 		ScrollView {
 			VStack(alignment: .leading, spacing: 24) {
+				if let reminderFeedback,
+					let issue = reminderFeedback.issue,
+					issue.goalId == goal.id
+				{
+					GoalReminderFeedbackView(
+						feedback: reminderFeedback,
+						issue: issue,
+						modelContext: modelContext,
+					)
+					.transition(
+						reduceMotion
+							? .opacity.animation(.easeInOut(duration: 0.15))
+							: .move(edge: .top).combined(with: .opacity)
+					)
+				}
 				GoalDetailHeaderSection(goal: goal)
 				if goal.isRecurring {
 					GoalDetailStreakSection(goal: goal)
@@ -44,6 +63,7 @@ struct GoalDetailView: View {
 					)
 				}
 			}
+			.animation(reduceMotion ? nil : .smooth(duration: 0.25), value: isShowingReminderIssue)
 		}
 		.safeAreaPadding(.horizontal)
 		.background(Color(.systemGroupedBackground).ignoresSafeArea())
@@ -94,8 +114,12 @@ struct GoalDetailView: View {
 		.goalSaveFailureAlert(failure: $saveFailure)
 	}
 
+	private var isShowingReminderIssue: Bool {
+		reminderFeedback?.issue?.goalId == goal.id
+	}
+
 	private var goalManager: GoalManager {
-		GoalManager(modelContext: modelContext)
+		GoalManager(modelContext: modelContext, reminderFeedback: reminderFeedback)
 	}
 
 	private func toggleCompletion() {

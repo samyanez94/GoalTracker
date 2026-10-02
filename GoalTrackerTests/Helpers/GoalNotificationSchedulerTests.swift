@@ -53,7 +53,7 @@ struct GoalNotificationSchedulerTests {
 			requestsAuthorization: true,
 		)
 
-		#expect(didSchedule)
+		#expect(didSchedule == .scheduled)
 		#expect(notificationCenter.requestedAuthorizationOptions == [.alert, .sound])
 		#expect(notificationCenter.addedRequests.count == 1)
 		#expect(notificationCenter.removedIdentifiers.isEmpty)
@@ -73,7 +73,7 @@ struct GoalNotificationSchedulerTests {
 			requestsAuthorization: true,
 		)
 
-		#expect(didSchedule == false)
+		#expect(didSchedule == .notNeeded)
 		#expect(notificationCenter.requestedAuthorizationOptions == nil)
 		#expect(notificationCenter.addedRequests.isEmpty)
 		#expect(
@@ -97,7 +97,7 @@ struct GoalNotificationSchedulerTests {
 			requestsAuthorization: true,
 		)
 
-		#expect(didSchedule == false)
+		#expect(didSchedule == .notNeeded)
 		#expect(notificationCenter.requestedAuthorizationOptions == nil)
 		#expect(notificationCenter.addedRequests.isEmpty)
 		#expect(
@@ -107,8 +107,8 @@ struct GoalNotificationSchedulerTests {
 		)
 	}
 
-	@Test
-	func `Syncing denied reminder authorization skips scheduling`() async throws {
+	@Test(arguments: [true, false])
+	func `Syncing denied reminder authorization skips scheduling`(requestsAuthorization: Bool) async throws {
 		let notificationCenter = FakeNotificationCenter(status: .denied)
 		let scheduler = makeScheduler(notificationCenter: notificationCenter)
 		let goal = makeGoal(
@@ -118,10 +118,10 @@ struct GoalNotificationSchedulerTests {
 
 		let didSchedule = try await scheduler.syncReminder(
 			for: GoalReminderSyncState(goal: goal),
-			requestsAuthorization: true,
+			requestsAuthorization: requestsAuthorization,
 		)
 
-		#expect(didSchedule == false)
+		#expect(didSchedule == .permissionDenied)
 		#expect(notificationCenter.addedRequests.isEmpty)
 		#expect(
 			notificationCenter.removedIdentifiers == [
@@ -157,7 +157,7 @@ struct GoalNotificationSchedulerTests {
 			requestsAuthorization: true,
 		)
 
-		#expect(didSchedule == false)
+		#expect(didSchedule == .notNeeded)
 		#expect(notificationCenter.requestedAuthorizationOptions == [.alert, .sound])
 		#expect(notificationCenter.addedRequests.isEmpty)
 		#expect(
@@ -185,7 +185,7 @@ struct GoalNotificationSchedulerTests {
 
 		let request = try #require(notificationCenter.addedRequests.first)
 		let trigger = try #require(request.trigger as? UNCalendarNotificationTrigger)
-		#expect(didSchedule)
+		#expect(didSchedule == .scheduled)
 		#expect(notificationCenter.addedRequests.count == 1)
 		#expect(notificationCenter.removedIdentifiers.isEmpty)
 		#expect(request.identifier == scheduler.reminderNotificationIdentifier(for: goalID))
@@ -223,7 +223,7 @@ struct GoalNotificationSchedulerTests {
 		)
 
 		let request = try #require(notificationCenter.addedRequests.first)
-		#expect(didSchedule)
+		#expect(didSchedule == .scheduled)
 		#expect(request.content.title == "File taxes")
 		#expect(request.content.body == "Don't forget to complete today")
 	}
@@ -247,7 +247,7 @@ struct GoalNotificationSchedulerTests {
 
 		let request = try #require(notificationCenter.addedRequests.first)
 		let trigger = try #require(request.trigger as? UNCalendarNotificationTrigger)
-		#expect(didSchedule)
+		#expect(didSchedule == .scheduled)
 		#expect(request.content.body == "Don't forget to complete today")
 		#expect(trigger.repeats)
 		#expect(trigger.dateComponents.year == nil)
@@ -273,7 +273,7 @@ struct GoalNotificationSchedulerTests {
 			requestsAuthorization: true,
 		)
 
-		#expect(didSchedule == false)
+		#expect(didSchedule == .notNeeded)
 		#expect(notificationCenter.requestedAuthorizationOptions == nil)
 		#expect(notificationCenter.addedRequests.isEmpty)
 		#expect(

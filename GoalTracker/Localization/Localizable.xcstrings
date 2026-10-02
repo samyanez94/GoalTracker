@@ -2880,6 +2880,105 @@
         }
       }
     },
+    "reminderFeedback.disableReminder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable Reminder"
+          }
+        }
+      }
+    },
+    "reminderFeedback.goalSavedFailure" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your goal was saved, but its reminder couldn’t be scheduled."
+          }
+        }
+      }
+    },
+    "reminderFeedback.goalSavedPermission" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your goal was saved, but notifications are disabled for Moku."
+          }
+        }
+      }
+    },
+    "reminderFeedback.openSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "reminderFeedback.progressSavedFailure" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your progress was saved, but its reminder couldn’t be updated."
+          }
+        }
+      }
+    },
+    "reminderFeedback.progressSavedPermission" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your progress was saved, but notifications are disabled for Moku."
+          }
+        }
+      }
+    },
+    "reminderFeedback.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try Again"
+          }
+        }
+      }
+    },
+    "reminderFeedback.retrying" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trying again…"
+          }
+        }
+      }
+    },
+    "reminderFeedback.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminder needs attention"
+          }
+        }
+      }
+    },
     "tag.selection.addNewTagField" : {
       "extractionState" : "manual",
       "localizations" : {

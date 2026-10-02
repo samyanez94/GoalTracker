@@ -44,12 +44,12 @@ enum GoalNotificationAuthorizationStatus {
 protocol GoalReminderScheduling {
 	/// Reconciles the pending reminder notification with the goal's current reminder state.
 	///
-	/// - Returns: `true` when a notification request was scheduled.
+	/// Returns an explicit scheduling outcome; notification-center failures throw.
 	@discardableResult
 	func syncReminder(
 		for state: GoalReminderSyncState,
 		requestsAuthorization: Bool,
-	) async throws -> Bool
+	) async throws -> GoalReminderSchedulingOutcome
 
 	/// Cancels pending reminder notifications for multiple goals.
 	func cancelReminders(for goalIds: [UUID])
@@ -114,12 +114,12 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 	/// Reconciles the pending reminder notification with the goal's current reminder state.
 	///
 	/// Existing pending reminders are replaced when a new request can be scheduled, or cancelled when the goal cannot produce a future reminder.
-	/// - Returns: `true` when a notification request was scheduled.
+	/// Returns an explicit scheduling outcome; notification-center failures throw.
 	@discardableResult
 	func syncReminder(
 		for state: GoalReminderSyncState,
 		requestsAuthorization: Bool,
-	) async throws -> Bool {
+	) async throws -> GoalReminderSchedulingOutcome {
 		let initialDate = now()
 		guard
 			reminderSchedule(
@@ -128,14 +128,17 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 			) != nil
 		else {
 			cancelReminder(for: state.goalId)
-			return false
+			return .notNeeded
 		}
 
 		if requestsAuthorization {
 			guard try await requestAuthorizationIfNeeded() else {
 				cancelReminder(for: state.goalId)
-				return false
+				return .permissionDenied
 			}
+		} else if await notificationCenter.authorizationStatus() != .authorized {
+			cancelReminder(for: state.goalId)
+			return .permissionDenied
 		}
 
 		let currentDate = now()
@@ -146,11 +149,11 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 			)
 		else {
 			cancelReminder(for: state.goalId)
-			return false
+			return .notNeeded
 		}
 
 		try await scheduleReminder(schedule)
-		return true
+		return .scheduled
 	}
 
 	private func reminderSchedule(

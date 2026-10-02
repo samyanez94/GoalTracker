@@ -18,6 +18,8 @@ struct GoalDetailBottomView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
+	@Environment(\.goalReminderFeedback) private var reminderFeedback
+
 	@State private var feedbackTrigger = false
 
 	@State private var saveFailure: GoalSaveFailure?
@@ -49,7 +51,7 @@ struct GoalDetailBottomView: View {
 	}
 
 	private var goalManager: GoalManager {
-		GoalManager(modelContext: modelContext)
+		GoalManager(modelContext: modelContext, reminderFeedback: reminderFeedback)
 	}
 
 	private func completeGoal() {

@@ -842,8 +842,10 @@ struct GoalManagerTests {
 	@Test
 	func `Adding a goal with draft form tags rolls back draft tags on save failure`() async throws {
 		let container = try makeContainer()
+		let scheduler = FakeGoalReminderScheduler()
 		let manager = GoalManager(
 			modelContext: container.mainContext,
+			notificationScheduler: scheduler,
 			saveContext: {
 				throw TestSaveError.failed
 			},
@@ -864,6 +866,8 @@ struct GoalManagerTests {
 
 		#expect(try fetchGoals(in: container).isEmpty)
 		#expect(try fetchTags(in: container).isEmpty)
+		await waitForReminderSync()
+		#expect(scheduler.syncedGoalIds.isEmpty)
 	}
 
 	@Test
@@ -1015,6 +1019,48 @@ struct GoalManagerTests {
 		#expect(scheduler.syncRequestsAuthorizationFlags == [false])
 	}
 
+	@Test(arguments: [true, false])
+	func `Disabling a reminder cancels and clears feedback only after a successful save`(
+		saveSucceeds: Bool,
+	) async throws {
+		let container = try makeContainer()
+		let goal = makeGoal(reminder: GoalReminder(), progress: .outcome(OutcomeProgress()))
+		insert(goal, into: container)
+		let originalReminder = goal.reminder
+		let scheduler = FakeGoalReminderScheduler()
+		scheduler.syncResult = .permissionDenied
+		let feedback = GoalReminderFeedback()
+		await feedback.sync(
+			state: GoalReminderSyncState(goal: goal),
+			context: .goalSaved,
+			scheduler: scheduler,
+			requestsAuthorization: true,
+		)
+		let issueId = try #require(feedback.issue?.id)
+		let manager = GoalManager(
+			modelContext: container.mainContext,
+			notificationScheduler: scheduler,
+			reminderFeedback: feedback,
+			saveContext: {
+				if !saveSucceeds { throw TestSaveError.failed }
+				try container.mainContext.save()
+			},
+		)
+
+		if saveSucceeds {
+			try manager.disableReminder(goal)
+			#expect(goal.reminder == nil)
+			#expect(feedback.issue == nil)
+			#expect(scheduler.canceledGoalIds == [goal.id])
+			#expect(!container.mainContext.hasChanges)
+		} else {
+			#expect(throws: GoalManager.SaveError.self) { try manager.disableReminder(goal) }
+			#expect(goal.reminder == originalReminder)
+			#expect(feedback.issue?.id == issueId)
+			#expect(scheduler.canceledGoalIds.isEmpty)
+		}
+	}
+
 	@Test
 	func `Deleting goals cancels notification reminders`() async throws {
 		let container = try makeContainer()
@@ -1119,7 +1165,7 @@ struct GoalManagerTests {
 
 @MainActor
 private final class FakeGoalReminderScheduler: GoalReminderScheduling {
-	var syncResult = true
+	var syncResult = GoalReminderSchedulingOutcome.scheduled
 
 	var syncedGoalIds: [UUID] = []
 
@@ -1130,7 +1176,7 @@ private final class FakeGoalReminderScheduler: GoalReminderScheduling {
 	func syncReminder(
 		for state: GoalReminderSyncState,
 		requestsAuthorization: Bool,
-	) async throws -> Bool {
+	) async throws -> GoalReminderSchedulingOutcome {
 		syncedGoalIds.append(state.goalId)
 		syncRequestsAuthorizationFlags.append(requestsAuthorization)
 		return syncResult

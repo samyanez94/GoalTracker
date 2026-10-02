@@ -17,6 +17,8 @@ struct GoalManager {
 
 	private let notificationScheduler: any GoalReminderScheduling
 
+	private let reminderFeedback: GoalReminderFeedback?
+
 	private let saveContext: () throws -> Void
 
 	private let rollbackContext: () -> Void
@@ -27,12 +29,14 @@ struct GoalManager {
 	init(
 		modelContext: ModelContext,
 		notificationScheduler: any GoalReminderScheduling = GoalNotificationScheduler(),
+		reminderFeedback: GoalReminderFeedback? = nil,
 		saveContext: (() throws -> Void)? = nil,
 		rollbackContext: (() -> Void)? = nil,
 		now: @escaping () -> Date = Date.init,
 	) {
 		self.modelContext = modelContext
 		self.notificationScheduler = notificationScheduler
+		self.reminderFeedback = reminderFeedback
 		self.saveContext =
 			saveContext ?? {
 				try modelContext.save()
@@ -133,6 +137,17 @@ struct GoalManager {
 			recurrence: data.recurrence,
 			tags: tags,
 		)
+	}
+
+	/// Disables a reminder, cancelling notifications only after the preference is saved.
+	func disableReminder(_ goal: Goal) throws {
+		let previousReminder = goal.reminder
+		try saveChanges(
+			performing: { goal.reminder = nil },
+			restoreOnFailure: { goal.reminder = previousReminder },
+		)
+		notificationScheduler.cancelReminders(for: [goal.id])
+		reminderFeedback?.clearIssue(for: goal.id)
 	}
 
 	/// Toggles a goal between completed and incomplete states, then saves the change.
@@ -253,6 +268,7 @@ struct GoalManager {
 			)
 		}
 		notificationScheduler.cancelReminders(for: Array(deletedGoalIds))
+		for goalId in deletedGoalIds { reminderFeedback?.clearIssue(for: goalId) }
 	}
 
 	private func saveChanges(
@@ -281,20 +297,29 @@ struct GoalManager {
 		try saveChanges(restoreOnFailure: {
 			snapshot.restore(goal)
 		})
-		syncReminder(for: goal)
+		syncReminder(for: goal, context: .progressSaved)
 		return true
 	}
 
 	private func syncReminder(
 		for goal: Goal,
 		requestsAuthorization: Bool = false,
+		context: GoalReminderFeedbackContext = .goalSaved,
 	) {
 		let reminderState = GoalReminderSyncState(goal: goal)
+		let modelContainer = modelContext.container
 		Task { @MainActor in
-			try? await notificationScheduler.syncReminder(
-				for: reminderState,
-				requestsAuthorization: requestsAuthorization,
-			)
+			// SwiftData contexts require their container to outlive asynchronous fetches.
+			defer { withExtendedLifetime(modelContainer) {} }
+			// Complete post-save scheduling even when its originating sheet disappears.
+			await (reminderFeedback ?? GoalReminderFeedback())
+				.sync(
+					state: reminderState,
+					context: context,
+					scheduler: notificationScheduler,
+					requestsAuthorization: requestsAuthorization,
+					modelContext: modelContext,
+				)
 		}
 	}
 

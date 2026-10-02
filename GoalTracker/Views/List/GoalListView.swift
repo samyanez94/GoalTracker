@@ -13,6 +13,8 @@ import SwiftUI
 struct GoalListView: View {
 	@Environment(\.modelContext) private var modelContext
 
+	@State private var reminderFeedback = GoalReminderFeedback()
+
 	@Query private var goals: [Goal]
 
 	@State private var navigationPath: [GoalNavigationDestination] = []
@@ -160,10 +162,11 @@ struct GoalListView: View {
 			}
 			.goalSaveFailureAlert(failure: $saveFailure)
 		}
+		.environment(\.goalReminderFeedback, reminderFeedback)
 	}
 
 	private var goalManager: GoalManager {
-		GoalManager(modelContext: modelContext)
+		GoalManager(modelContext: modelContext, reminderFeedback: reminderFeedback)
 	}
 
 	private var isSearching: Bool {

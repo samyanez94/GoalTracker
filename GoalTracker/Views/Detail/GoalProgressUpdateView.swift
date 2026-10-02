@@ -15,6 +15,8 @@ struct GoalProgressUpdateView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
+	@Environment(\.goalReminderFeedback) private var reminderFeedback
+
 	let goal: Goal
 
 	@FocusState private var isProgressFieldFocused: Bool
@@ -98,7 +100,7 @@ struct GoalProgressUpdateView: View {
 	}
 
 	private var goalManager: GoalManager {
-		GoalManager(modelContext: modelContext)
+		GoalManager(modelContext: modelContext, reminderFeedback: reminderFeedback)
 	}
 
 	private func toggleSign() {
