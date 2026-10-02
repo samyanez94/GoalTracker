@@ -17,7 +17,7 @@ struct GoalManager {
 
 	private let notificationScheduler: any GoalReminderScheduling
 
-	private let reminderFeedback: GoalReminderFeedback?
+	private let reminderCoordinator: GoalReminderCoordinator?
 
 	private let saveContext: () throws -> Void
 
@@ -29,14 +29,14 @@ struct GoalManager {
 	init(
 		modelContext: ModelContext,
 		notificationScheduler: any GoalReminderScheduling = GoalNotificationScheduler(),
-		reminderFeedback: GoalReminderFeedback? = nil,
+		reminderCoordinator: GoalReminderCoordinator? = nil,
 		saveContext: (() throws -> Void)? = nil,
 		rollbackContext: (() -> Void)? = nil,
 		now: @escaping () -> Date = Date.init,
 	) {
 		self.modelContext = modelContext
 		self.notificationScheduler = notificationScheduler
-		self.reminderFeedback = reminderFeedback
+		self.reminderCoordinator = reminderCoordinator
 		self.saveContext =
 			saveContext ?? {
 				try modelContext.save()
@@ -147,7 +147,7 @@ struct GoalManager {
 			restoreOnFailure: { goal.reminder = previousReminder },
 		)
 		notificationScheduler.cancelReminders(for: [goal.id])
-		reminderFeedback?.clearIssue(for: goal.id)
+		reminderCoordinator?.clearIssue(for: goal.id)
 	}
 
 	/// Toggles a goal between completed and incomplete states, then saves the change.
@@ -268,7 +268,7 @@ struct GoalManager {
 			)
 		}
 		notificationScheduler.cancelReminders(for: Array(deletedGoalIds))
-		for goalId in deletedGoalIds { reminderFeedback?.clearIssue(for: goalId) }
+		for goalId in deletedGoalIds { reminderCoordinator?.clearIssue(for: goalId) }
 	}
 
 	private func saveChanges(
@@ -312,7 +312,7 @@ struct GoalManager {
 			// SwiftData contexts require their container to outlive asynchronous fetches.
 			defer { withExtendedLifetime(modelContainer) {} }
 			// Complete post-save scheduling even when its originating sheet disappears.
-			await (reminderFeedback ?? GoalReminderFeedback())
+			await (reminderCoordinator ?? GoalReminderCoordinator())
 				.sync(
 					state: reminderState,
 					context: context,

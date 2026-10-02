@@ -15,7 +15,7 @@ struct GoalListView: View {
 
 	@Environment(\.scenePhase) private var scenePhase
 
-	@State private var reminderFeedback = GoalReminderFeedback()
+	@State private var reminderCoordinator = GoalReminderCoordinator()
 
 	@Query private var goals: [Goal]
 
@@ -164,17 +164,17 @@ struct GoalListView: View {
 			}
 			.goalSaveFailureAlert(failure: $saveFailure)
 		}
-		.environment(\.goalReminderFeedback, reminderFeedback)
-		.task(id: scenePhase) {
+		.environment(\.goalReminderCoordinator, reminderCoordinator)
+		.task(id: GoalReminderRefreshTrigger(isActive: scenePhase == .active, states: goals.map { GoalReminderSyncState(goal: $0) })) {
 			guard scenePhase == .active else {
 				return
 			}
-			await reminderFeedback.refreshPermissions(modelContext: modelContext)
+			await reminderCoordinator.reconcileReminders(modelContext: modelContext)
 		}
 	}
 
 	private var goalManager: GoalManager {
-		GoalManager(modelContext: modelContext, reminderFeedback: reminderFeedback)
+		GoalManager(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
 	}
 
 	private var isSearching: Bool {

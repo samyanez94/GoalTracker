@@ -403,6 +403,8 @@ private final class FakeNotificationCenter: GoalNotificationCenterClient {
 		return requestAuthorizationResult
 	}
 
+	func pendingNotificationRequests() async -> [UNNotificationRequest] { addedRequests }
+
 	func add(_ request: UNNotificationRequest) async throws {
 		if let addError {
 			throw addError

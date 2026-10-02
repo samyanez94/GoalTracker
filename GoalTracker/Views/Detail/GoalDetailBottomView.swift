@@ -18,7 +18,7 @@ struct GoalDetailBottomView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
-	@Environment(\.goalReminderFeedback) private var reminderFeedback
+	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
 
 	@State private var feedbackTrigger = false
 
@@ -51,7 +51,7 @@ struct GoalDetailBottomView: View {
 	}
 
 	private var goalManager: GoalManager {
-		GoalManager(modelContext: modelContext, reminderFeedback: reminderFeedback)
+		GoalManager(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
 	}
 
 	private func completeGoal() {

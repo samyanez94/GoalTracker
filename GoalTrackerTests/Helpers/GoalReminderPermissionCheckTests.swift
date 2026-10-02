@@ -22,21 +22,21 @@ struct GoalReminderPermissionCheckTests {
 		try container.mainContext.save()
 		let defaults = try makeDefaults()
 		defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
-		let feedback = GoalReminderFeedback(permissionDefaults: defaults)
+		let coordinator = GoalReminderCoordinator(permissionDefaults: defaults)
 		let notificationCenter = PermissionNotificationCenterStub(status: .denied)
 		let scheduler = ReminderSchedulingStub()
 
-		await feedback.refreshPermissions(
+		await coordinator.refreshPermissions(
 			modelContext: container.mainContext,
 			notificationCenter: notificationCenter,
 			scheduler: scheduler,
 			now: { now },
 		)
 
-		#expect(Set(feedback.issues.keys) == [first.id, second.id])
-		let allPermissionDenied = feedback.issues.values.allSatisfy(\.isPermissionDenied)
+		#expect(Set(coordinator.issues.keys) == [first.id, second.id])
+		let allPermissionDenied = coordinator.issues.values.allSatisfy(\.isPermissionDenied)
 		#expect(allPermissionDenied)
-		#expect(feedback.issue(for: first.id)?.message == .reminderFeedbackPermissionRequired)
+		#expect(coordinator.issue(for: first.id)?.message == .reminderFeedbackPermissionRequired)
 		#expect(defaults.bool(forKey: AppStorageKey.wereGoalRemindersDenied))
 		#expect(notificationCenter.authorizationRequestCount == 0)
 		#expect(notificationCenter.addedRequestCount == 0)
@@ -45,14 +45,14 @@ struct GoalReminderPermissionCheckTests {
 		let firstId = first.id
 		if deletesGoal { container.mainContext.delete(first) } else { first.reminder = nil }
 		try container.mainContext.save()
-		await feedback.refreshPermissions(
+		await coordinator.refreshPermissions(
 			modelContext: container.mainContext,
 			notificationCenter: notificationCenter,
 			scheduler: scheduler,
 			now: { now },
 		)
-		#expect(feedback.issue(for: firstId) == nil)
-		#expect(feedback.issue(for: second.id)?.isPermissionDenied == true)
+		#expect(coordinator.issue(for: firstId) == nil)
+		#expect(coordinator.issue(for: second.id)?.isPermissionDenied == true)
 		#expect(scheduler.canceledGoalIds == [firstId])
 	}
 
@@ -68,21 +68,21 @@ struct GoalReminderPermissionCheckTests {
 		try container.mainContext.save()
 		let defaults = try makeDefaults()
 		defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
-		var feedback = GoalReminderFeedback(permissionDefaults: defaults)
+		var coordinator = GoalReminderCoordinator(permissionDefaults: defaults)
 		let notificationCenter = PermissionNotificationCenterStub(status: .denied)
 		let scheduler = ReminderSchedulingStub()
-		await feedback.refreshPermissions(
+		await coordinator.refreshPermissions(
 			modelContext: container.mainContext,
 			notificationCenter: notificationCenter,
 			scheduler: scheduler,
 			now: { now },
 		)
-		if relaunches { feedback = GoalReminderFeedback(permissionDefaults: defaults) }
+		if relaunches { coordinator = GoalReminderCoordinator(permissionDefaults: defaults) }
 		notificationCenter.status = .authorized
 		scheduler.error = Failure.scheduling
 		scheduler.failingGoalIds = [second.id]
 
-		await feedback.refreshPermissions(
+		await coordinator.refreshPermissions(
 			modelContext: container.mainContext,
 			notificationCenter: notificationCenter,
 			scheduler: scheduler,
@@ -92,19 +92,19 @@ struct GoalReminderPermissionCheckTests {
 		#expect(Set(scheduler.states.map(\.goalId)) == [first.id, second.id])
 		#expect(scheduler.authorizationRequests == [false, false])
 		#expect(notificationCenter.authorizationRequestCount == 0)
-		#expect(feedback.issue(for: first.id) == nil)
-		#expect(feedback.issue(for: second.id)?.error is Failure)
-		#expect(feedback.issue(for: second.id)?.message == .reminderFeedbackSchedulingFailure)
+		#expect(coordinator.issue(for: first.id) == nil)
+		#expect(coordinator.issue(for: second.id)?.error is Failure)
+		#expect(coordinator.issue(for: second.id)?.message == .reminderFeedbackSchedulingFailure)
 		#expect(!defaults.bool(forKey: AppStorageKey.wereGoalRemindersDenied))
 		// Ordinary foreground checks do not continually retry scheduling errors.
-		await feedback.refreshPermissions(
+		await coordinator.refreshPermissions(
 			modelContext: container.mainContext,
 			notificationCenter: notificationCenter,
 			scheduler: scheduler,
 			now: { now },
 		)
 		#expect(scheduler.states.count == 2)
-		#expect(feedback.issue(for: second.id)?.error is Failure)
+		#expect(coordinator.issue(for: second.id)?.error is Failure)
 	}
 
 	@Test(arguments: [GoalNotificationAuthorizationStatus.notDetermined, .authorized])
@@ -116,16 +116,16 @@ struct GoalReminderPermissionCheckTests {
 		try container.mainContext.save()
 		let defaults = try makeDefaults()
 		defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
-		let feedback = GoalReminderFeedback(permissionDefaults: defaults)
+		let coordinator = GoalReminderCoordinator(permissionDefaults: defaults)
 		let notificationCenter = PermissionNotificationCenterStub(status: status)
 		let scheduler = ReminderSchedulingStub()
-		await feedback.refreshPermissions(
+		await coordinator.refreshPermissions(
 			modelContext: container.mainContext,
 			notificationCenter: notificationCenter,
 			scheduler: scheduler,
 			now: { now },
 		)
-		#expect(feedback.issues.isEmpty)
+		#expect(coordinator.issues.isEmpty)
 		#expect(notificationCenter.authorizationRequestCount == 0)
 		#expect(notificationCenter.addedRequestCount == 0)
 		#expect(scheduler.states.isEmpty)

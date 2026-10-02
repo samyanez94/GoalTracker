@@ -9,7 +9,7 @@ struct GoalReminderFeedbackView: View {
 
 	@State private var saveFailure: GoalSaveFailure?
 
-	let feedback: GoalReminderFeedback
+	let coordinator: GoalReminderCoordinator
 	let issue: GoalReminderIssue
 	let modelContext: ModelContext
 
@@ -27,7 +27,7 @@ struct GoalReminderFeedbackView: View {
 				(dynamicTypeSize.isAccessibilitySize
 					? AnyLayout(VStackLayout(alignment: .leading))
 					: AnyLayout(HStackLayout())) {
-						if feedback.isRetrying(for: issue.goalId) {
+						if coordinator.isRetrying(for: issue.goalId) {
 							ProgressView(.reminderFeedbackRetrying)
 						} else {
 							if issue.isPermissionDenied {
@@ -38,12 +38,12 @@ struct GoalReminderFeedbackView: View {
 								}
 							} else {
 								Button(.reminderFeedbackRetry) {
-									Task { await feedback.retry(for: issue.goalId, modelContext: modelContext) }
+									Task { await coordinator.retry(for: issue.goalId, modelContext: modelContext) }
 								}
 							}
 						}
 						Button(.reminderFeedbackDisableReminder, action: disableReminder)
-							.disabled(feedback.isRetrying(for: issue.goalId))
+							.disabled(coordinator.isRetrying(for: issue.goalId))
 					}
 					.buttonStyle(.bordered)
 			}
@@ -53,7 +53,7 @@ struct GoalReminderFeedbackView: View {
 
 	private func disableReminder() {
 		do {
-			try feedback.disableReminder(for: issue.goalId, modelContext: modelContext)
+			try coordinator.disableReminder(for: issue.goalId, modelContext: modelContext)
 		} catch {
 			saveFailure = .updateGoal
 		}

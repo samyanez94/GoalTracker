@@ -4,15 +4,16 @@ import Observation
 import SwiftData
 import UserNotifications
 
-/// Tracks reminder problems by goal without changing persistence success.
+/// Coordinates local reminder scheduling, reconciliation, and issue state by goal.
 @MainActor
 @Observable
-final class GoalReminderFeedback {
+final class GoalReminderCoordinator {
 	private(set) var issues: [UUID: GoalReminderIssue] = [:]
 	private var retryingGoalIds: Set<UUID> = []
 
 	@ObservationIgnored private let permissionDefaults: UserDefaults
 	@ObservationIgnored private var permissionCheckId: UUID?
+	@ObservationIgnored private let operationQueue = GoalReminderOperationQueue()
 
 	init(permissionDefaults: UserDefaults = .standard) {
 		self.permissionDefaults = permissionDefaults
@@ -35,6 +36,9 @@ final class GoalReminderFeedback {
 		requestsAuthorization: Bool,
 		modelContext: ModelContext? = nil,
 	) async {
+		await operationQueue.acquire(for: state.goalId)
+		defer { operationQueue.release(for: state.goalId) }
+		guard !Task.isCancelled else { return }
 		do {
 			// A queued post-save task should read the latest goal, not an old snapshot.
 			let currentState: GoalReminderSyncState
@@ -60,6 +64,7 @@ final class GoalReminderFeedback {
 			{
 				return
 			}
+			guard !Task.isCancelled else { return }
 			issues[state.goalId] = nextIssue
 		} catch is CancellationError {
 			// Cancellation is not a notification-center failure.
@@ -81,7 +86,7 @@ final class GoalReminderFeedback {
 			clearIssue(for: goalId)
 			return
 		}
-		try GoalManager(modelContext: modelContext, reminderFeedback: self).disableReminder(goal)
+		try GoalManager(modelContext: modelContext, reminderCoordinator: self).disableReminder(goal)
 	}
 
 	/// Resolve the latest saved goal; retries never repeat a save or progress change.
@@ -91,9 +96,12 @@ final class GoalReminderFeedback {
 		scheduler: any GoalReminderScheduling = GoalNotificationScheduler(),
 		requestsAuthorization: Bool = true,
 	) async {
-		guard let originalIssue = issues[goalId], !isRetrying(for: goalId) else { return }
+		guard issues[goalId] != nil, !isRetrying(for: goalId) else { return }
 		retryingGoalIds.insert(goalId)
 		defer { retryingGoalIds.remove(goalId) }
+		await operationQueue.acquire(for: goalId)
+		defer { operationQueue.release(for: goalId) }
+		guard !Task.isCancelled, let originalIssue = issues[goalId] else { return }
 
 		do {
 			if try cancelIfUnavailable(goalId: goalId, modelContext: modelContext, scheduler: scheduler) {
@@ -126,17 +134,37 @@ final class GoalReminderFeedback {
 		}
 	}
 
-	/// Check existing permission without prompting or comparing pending requests.
+	/// Repair this device's pending reminders without requesting notification permission.
+	func reconcileReminders(
+		modelContext: ModelContext,
+		notificationCenter: any GoalNotificationCenterClient = UNUserNotificationCenter.current(),
+		calendar: Calendar = .current,
+		now: @escaping () -> Date = Date.init,
+	) async {
+		await refreshPermissions(
+			modelContext: modelContext,
+			notificationCenter: notificationCenter,
+			scheduler: GoalNotificationScheduler(notificationCenter: notificationCenter, calendar: calendar, now: now),
+			calendar: calendar,
+			now: now,
+			reconcilesPendingRequests: true
+		)
+	}
+
+	/// Check existing permission without prompting; optionally repair pending requests.
 	/// Remember denial so permission restored while the app was closed can recover reminders.
 	func refreshPermissions(
 		modelContext: ModelContext,
 		notificationCenter: any GoalNotificationCenterClient = UNUserNotificationCenter.current(),
 		scheduler: any GoalReminderScheduling = GoalNotificationScheduler(),
 		calendar: Calendar = .current,
-		now: () -> Date = Date.init,
+		now: @escaping () -> Date = Date.init,
+		reconcilesPendingRequests: Bool = false,
 	) async {
 		let checkId = UUID()
 		permissionCheckId = checkId
+		let pendingRequests = reconcilesPendingRequests ? await notificationCenter.pendingNotificationRequests() : []
+		guard permissionCheckId == checkId, !Task.isCancelled else { return }
 		let status = await notificationCenter.authorizationStatus()
 		guard permissionCheckId == checkId, !Task.isCancelled else { return }
 
@@ -155,6 +183,14 @@ final class GoalReminderFeedback {
 			let removedIds = issues.keys.filter { !eligibleIds.contains($0) }
 			for goalId in removedIds { clearIssue(for: goalId) }
 			scheduler.cancelReminders(for: removedIds)
+			let matcher = GoalNotificationScheduler(notificationCenter: notificationCenter, calendar: calendar, now: now)
+			if reconcilesPendingRequests {
+				let obsoleteIds = pendingRequests.compactMap { request -> UUID? in
+					guard let goalId = matcher.reminderGoalId(for: request.identifier) else { return nil }
+					return !eligibleIds.contains(goalId) || status != .authorized ? goalId : nil
+				}
+				scheduler.cancelReminders(for: obsoleteIds)
+			}
 
 			switch status {
 			case .denied:
@@ -177,6 +213,22 @@ final class GoalReminderFeedback {
 				let wasDenied = permissionDefaults.bool(forKey: AppStorageKey.wereGoalRemindersDenied)
 				for goal in eligibleGoals {
 					guard permissionCheckId == checkId, !Task.isCancelled else { return }
+					if reconcilesPendingRequests {
+						guard !isRetrying(for: goal.goalId) else { continue }
+						guard let currentGoal = try fetchGoal(id: goal.goalId, modelContext: modelContext) else {
+							scheduler.cancelReminders(for: [goal.goalId])
+							clearIssue(for: goal.goalId)
+							continue
+						}
+						let currentState = GoalReminderSyncState(goal: currentGoal)
+						let request = pendingRequests.first { $0.identifier == matcher.reminderNotificationIdentifier(for: goal.goalId) }
+						if matcher.isReminderCurrent(for: currentState, request: request) {
+							clearIssue(for: goal.goalId)
+						} else {
+							await sync(state: currentState, context: .permissionCheck, scheduler: scheduler, requestsAuthorization: false, modelContext: modelContext)
+						}
+						continue
+					}
 					guard wasDenied || issues[goal.goalId]?.isPermissionDenied == true else { continue }
 					if issues[goal.goalId] == nil {
 						issues[goal.goalId] = GoalReminderIssue(

@@ -21,6 +21,9 @@ protocol GoalNotificationCenterClient {
 	/// Asks the user for notification authorization with the requested options.
 	func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool
 
+	/// Returns requests scheduled on this device.
+	func pendingNotificationRequests() async -> [UNNotificationRequest]
+
 	/// Adds a pending notification request.
 	func add(_ request: UNNotificationRequest) async throws
 
@@ -120,6 +123,7 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 		for state: GoalReminderSyncState,
 		requestsAuthorization: Bool,
 	) async throws -> GoalReminderSchedulingOutcome {
+		try Task.checkCancellation()
 		let initialDate = now()
 		guard
 			reminderSchedule(
@@ -141,6 +145,7 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 			return .permissionDenied
 		}
 
+		try Task.checkCancellation()
 		let currentDate = now()
 		guard
 			let schedule = reminderSchedule(
@@ -165,6 +170,29 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 			calendar: calendar,
 			currentDate: currentDate,
 		)
+	}
+
+	/// Compare the saved schedule and content with a pending request before replacing it.
+	func isReminderCurrent(for state: GoalReminderSyncState, request: UNNotificationRequest?) -> Bool {
+		guard let request,
+			let schedule = reminderSchedule(state: state, currentDate: now()),
+			let trigger = request.trigger as? UNCalendarNotificationTrigger
+		else { return false }
+		let content = notificationContent(for: schedule)
+		return request.identifier == reminderNotificationIdentifier(for: state.goalId)
+			&& trigger.dateComponents == schedule.triggerDateComponents
+			&& trigger.repeats == schedule.repeats
+			&& request.content.title == content.title
+			&& request.content.body == content.body
+			&& request.content.sound == content.sound
+			&& request.content.userInfo[GoalNotificationPayload.goalIdUserInfoKey] as? String == state.goalId.uuidString
+	}
+
+	/// Only identifiers owned by goal reminders participate in reconciliation.
+	func reminderGoalId(for identifier: String) -> UUID? {
+		let prefix = "\(Self.notificationIdentifierPrefix)-"
+		guard identifier.hasPrefix(prefix) else { return nil }
+		return UUID(uuidString: String(identifier.dropFirst(prefix.count)))
 	}
 
 	private func scheduleReminder(_ schedule: GoalReminderSchedule) async throws {
@@ -232,7 +260,7 @@ struct GoalNotificationScheduler: GoalReminderScheduling {
 // MARK: - GoalReminderSyncState
 
 /// Immutable goal reminder state safe to pass across asynchronous scheduling work.
-struct GoalReminderSyncState {
+struct GoalReminderSyncState: Equatable {
 	let goalId: UUID
 	let goalName: String
 	let targetDate: Date?

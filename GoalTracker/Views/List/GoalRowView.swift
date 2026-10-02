@@ -8,7 +8,7 @@ struct GoalRowView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
-	@Environment(\.goalReminderFeedback) private var reminderFeedback
+	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
 
 	@State private var isPresentingEditForm = false
 
@@ -61,7 +61,7 @@ struct GoalRowView: View {
 					}
 					GoalTagSummaryText(tags: goal.tags ?? [])
 				}
-				if reminderFeedback?.issue(for: goal.id) != nil {
+				if reminderCoordinator?.issue(for: goal.id) != nil {
 					Spacer()
 					Image(systemName: "exclamationmark.triangle.fill")
 						.foregroundStyle(.orange)
@@ -105,7 +105,7 @@ struct GoalRowView: View {
 	}
 
 	private var goalManager: GoalManager {
-		GoalManager(modelContext: modelContext, reminderFeedback: reminderFeedback)
+		GoalManager(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
 	}
 
 	private var statusImageStyle: AnyShapeStyle {

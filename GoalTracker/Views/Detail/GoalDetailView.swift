@@ -17,7 +17,7 @@ struct GoalDetailView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
-	@Environment(\.goalReminderFeedback) private var reminderFeedback
+	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
 
 	@State private var isPresentingEditForm = false
 
@@ -32,11 +32,11 @@ struct GoalDetailView: View {
 	var body: some View {
 		ScrollView {
 			VStack(alignment: .leading, spacing: 24) {
-				if let reminderFeedback,
-					let issue = reminderFeedback.issue(for: goal.id)
+				if let reminderCoordinator,
+					let issue = reminderCoordinator.issue(for: goal.id)
 				{
 					GoalReminderFeedbackView(
-						feedback: reminderFeedback,
+						coordinator: reminderCoordinator,
 						issue: issue,
 						modelContext: modelContext,
 					)
@@ -114,11 +114,11 @@ struct GoalDetailView: View {
 	}
 
 	private var isShowingReminderIssue: Bool {
-		reminderFeedback?.issue(for: goal.id) != nil
+		reminderCoordinator?.issue(for: goal.id) != nil
 	}
 
 	private var goalManager: GoalManager {
-		GoalManager(modelContext: modelContext, reminderFeedback: reminderFeedback)
+		GoalManager(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
 	}
 
 	private func toggleCompletion() {
