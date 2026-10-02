@@ -1036,7 +1036,7 @@ struct GoalManagerTests {
 			scheduler: scheduler,
 			requestsAuthorization: true,
 		)
-		let issueId = try #require(feedback.issue?.id)
+		let issueId = try #require(feedback.issue(for: goal.id)?.id)
 		let manager = GoalManager(
 			modelContext: container.mainContext,
 			notificationScheduler: scheduler,
@@ -1050,13 +1050,13 @@ struct GoalManagerTests {
 		if saveSucceeds {
 			try manager.disableReminder(goal)
 			#expect(goal.reminder == nil)
-			#expect(feedback.issue == nil)
+			#expect(feedback.issue(for: goal.id) == nil)
 			#expect(scheduler.canceledGoalIds == [goal.id])
 			#expect(!container.mainContext.hasChanges)
 		} else {
 			#expect(throws: GoalManager.SaveError.self) { try manager.disableReminder(goal) }
 			#expect(goal.reminder == originalReminder)
-			#expect(feedback.issue?.id == issueId)
+			#expect(feedback.issue(for: goal.id)?.id == issueId)
 			#expect(scheduler.canceledGoalIds.isEmpty)
 		}
 	}

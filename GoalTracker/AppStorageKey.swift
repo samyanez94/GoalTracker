@@ -5,7 +5,7 @@
 //  Created by Samuel Yanez on 5/14/26.
 //
 
-/// UserDefaults keys used with SwiftUI's `@AppStorage`.
+/// UserDefaults keys used for app preferences and reminder permission recovery.
 enum AppStorageKey {
 	/// Stores the selected goal list sort mode.
 	static let goalSortMode = "goalSortMode"
@@ -21,4 +21,7 @@ enum AppStorageKey {
 
 	/// Stores whether the completed goals section is expanded.
 	static let isCompletedSectionExpanded = "isCompletedSectionExpanded"
+
+	/// Whether the last permission check found notifications denied.
+	static let wereGoalRemindersDenied = "wereGoalRemindersDenied"
 }

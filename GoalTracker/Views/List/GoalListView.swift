@@ -13,6 +13,8 @@ import SwiftUI
 struct GoalListView: View {
 	@Environment(\.modelContext) private var modelContext
 
+	@Environment(\.scenePhase) private var scenePhase
+
 	@State private var reminderFeedback = GoalReminderFeedback()
 
 	@Query private var goals: [Goal]
@@ -163,6 +165,12 @@ struct GoalListView: View {
 			.goalSaveFailureAlert(failure: $saveFailure)
 		}
 		.environment(\.goalReminderFeedback, reminderFeedback)
+		.task(id: scenePhase) {
+			guard scenePhase == .active else {
+				return
+			}
+			await reminderFeedback.refreshPermissions(modelContext: modelContext)
+		}
 	}
 
 	private var goalManager: GoalManager {

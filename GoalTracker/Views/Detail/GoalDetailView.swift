@@ -33,8 +33,7 @@ struct GoalDetailView: View {
 		ScrollView {
 			VStack(alignment: .leading, spacing: 24) {
 				if let reminderFeedback,
-					let issue = reminderFeedback.issue,
-					issue.goalId == goal.id
+					let issue = reminderFeedback.issue(for: goal.id)
 				{
 					GoalReminderFeedbackView(
 						feedback: reminderFeedback,
@@ -115,7 +114,7 @@ struct GoalDetailView: View {
 	}
 
 	private var isShowingReminderIssue: Bool {
-		reminderFeedback?.issue?.goalId == goal.id
+		reminderFeedback?.issue(for: goal.id) != nil
 	}
 
 	private var goalManager: GoalManager {

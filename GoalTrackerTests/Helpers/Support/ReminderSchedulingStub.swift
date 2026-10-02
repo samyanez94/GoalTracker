@@ -6,6 +6,8 @@ import Foundation
 final class ReminderSchedulingStub: GoalReminderScheduling {
 	var outcome: GoalReminderSchedulingOutcome = .scheduled
 	var error: (any Error)?
+	var failingGoalIds: Set<UUID> = []
+	var authorizationRequests: [Bool] = []
 	var states: [GoalReminderSyncState] = []
 	var canceledGoalIds: [UUID] = []
 	var beforeSync: (() async -> Void)?
@@ -15,8 +17,9 @@ final class ReminderSchedulingStub: GoalReminderScheduling {
 		requestsAuthorization: Bool,
 	) async throws -> GoalReminderSchedulingOutcome {
 		states.append(state)
+		authorizationRequests.append(requestsAuthorization)
 		await beforeSync?()
-		if let error { throw error }
+		if let error, failingGoalIds.isEmpty || failingGoalIds.contains(state.goalId) { throw error }
 		return outcome
 	}
 

@@ -2,18 +2,30 @@ import Foundation
 import OSLog
 import Observation
 import SwiftData
+import UserNotifications
 
-/// Reports post-save reminder problems without changing persistence success.
+/// Tracks reminder problems by goal without changing persistence success.
 @MainActor
 @Observable
 final class GoalReminderFeedback {
-	private(set) var issue: GoalReminderIssue?
-	private(set) var isRetrying = false
+	private(set) var issues: [UUID: GoalReminderIssue] = [:]
+	private var retryingGoalIds: Set<UUID> = []
+
+	@ObservationIgnored private let permissionDefaults: UserDefaults
+	@ObservationIgnored private var permissionCheckId: UUID?
+
+	init(permissionDefaults: UserDefaults = .standard) {
+		self.permissionDefaults = permissionDefaults
+	}
+
+	func issue(for goalId: UUID) -> GoalReminderIssue? { issues[goalId] }
+
+	func isRetrying(for goalId: UUID) -> Bool { retryingGoalIds.contains(goalId) }
 
 	private static let logger = Logger(subsystem: "com.samuel.Moku", category: "Reminders")
 
 	func clearIssue(for goalId: UUID) {
-		if issue?.goalId == goalId { issue = nil }
+		issues[goalId] = nil
 	}
 
 	func sync(
@@ -48,14 +60,12 @@ final class GoalReminderFeedback {
 			{
 				return
 			}
-			if nextIssue != nil || issue?.goalId == state.goalId {
-				issue = nextIssue
-			}
+			issues[state.goalId] = nextIssue
 		} catch is CancellationError {
 			// Cancellation is not a notification-center failure.
 		} catch {
 			report(error)
-			issue = GoalReminderIssue(
+			issues[state.goalId] = GoalReminderIssue(
 				goalId: state.goalId,
 				goalName: state.goalName,
 				context: context,
@@ -66,7 +76,7 @@ final class GoalReminderFeedback {
 
 	/// Disable the selected goal's reminder without clearing feedback on a save failure.
 	func disableReminder(for goalId: UUID, modelContext: ModelContext) throws {
-		guard issue?.goalId == goalId, !isRetrying else { return }
+		guard issues[goalId] != nil, !isRetrying(for: goalId) else { return }
 		guard let goal = try fetchGoal(id: goalId, modelContext: modelContext) else {
 			clearIssue(for: goalId)
 			return
@@ -76,15 +86,16 @@ final class GoalReminderFeedback {
 
 	/// Resolve the latest saved goal; retries never repeat a save or progress change.
 	func retry(
+		for goalId: UUID,
 		modelContext: ModelContext,
 		scheduler: any GoalReminderScheduling = GoalNotificationScheduler(),
+		requestsAuthorization: Bool = true,
 	) async {
-		guard let originalIssue = issue, !isRetrying else { return }
-		isRetrying = true
-		defer { isRetrying = false }
+		guard let originalIssue = issues[goalId], !isRetrying(for: goalId) else { return }
+		retryingGoalIds.insert(goalId)
+		defer { retryingGoalIds.remove(goalId) }
 
 		do {
-			let goalId = originalIssue.goalId
 			if try cancelIfUnavailable(goalId: goalId, modelContext: modelContext, scheduler: scheduler) {
 				return
 			}
@@ -93,25 +104,100 @@ final class GoalReminderFeedback {
 				state: GoalReminderSyncState(goal: goal),
 				context: originalIssue.context,
 				scheduler: scheduler,
-				requestsAuthorization: true,
+				requestsAuthorization: requestsAuthorization,
 			)
 			if try cancelIfUnavailable(goalId: goalId, modelContext: modelContext, scheduler: scheduler) {
 				return
 			}
 			// An unrelated failure may have arrived while the retry was suspended.
-			if issue?.id == originalIssue.id { issue = nextIssue }
+			if issues[goalId]?.id == originalIssue.id { issues[goalId] = nextIssue }
 		} catch is CancellationError {
 			return
 		} catch {
 			report(error)
-			if issue?.id == originalIssue.id {
-				issue = GoalReminderIssue(
+			if issues[goalId]?.id == originalIssue.id {
+				issues[goalId] = GoalReminderIssue(
 					goalId: originalIssue.goalId,
 					goalName: originalIssue.goalName,
 					context: originalIssue.context,
 					error: error,
 				)
 			}
+		}
+	}
+
+	/// Check existing permission without prompting or comparing pending requests.
+	/// Remember denial so permission restored while the app was closed can recover reminders.
+	func refreshPermissions(
+		modelContext: ModelContext,
+		notificationCenter: any GoalNotificationCenterClient = UNUserNotificationCenter.current(),
+		scheduler: any GoalReminderScheduling = GoalNotificationScheduler(),
+		calendar: Calendar = .current,
+		now: () -> Date = Date.init,
+	) async {
+		let checkId = UUID()
+		permissionCheckId = checkId
+		let status = await notificationCenter.authorizationStatus()
+		guard permissionCheckId == checkId, !Task.isCancelled else { return }
+
+		do {
+			let currentDate = now()
+			let goals = try modelContext.fetch(FetchDescriptor<Goal>())
+			let eligibleGoals = goals.map { GoalReminderSyncState(goal: $0) }
+				.filter {
+					GoalReminderSchedule.reminder(
+						state: $0,
+						calendar: calendar,
+						currentDate: currentDate,
+					) != nil
+				}
+			let eligibleIds = Set(eligibleGoals.map(\.goalId))
+			let removedIds = issues.keys.filter { !eligibleIds.contains($0) }
+			for goalId in removedIds { clearIssue(for: goalId) }
+			scheduler.cancelReminders(for: removedIds)
+
+			switch status {
+			case .denied:
+				permissionDefaults.set(true, forKey: AppStorageKey.wereGoalRemindersDenied)
+				for goal in eligibleGoals where issues[goal.goalId]?.isPermissionDenied != true {
+					issues[goal.goalId] = GoalReminderIssue(
+						goalId: goal.goalId,
+						goalName: goal.goalName,
+						context: .permissionCheck,
+						error: nil,
+					)
+				}
+			case .notDetermined:
+				// A first launch must not produce a warning or a permission prompt.
+				for goal in eligibleGoals where issues[goal.goalId]?.isPermissionDenied == true {
+					clearIssue(for: goal.goalId)
+				}
+				permissionDefaults.set(false, forKey: AppStorageKey.wereGoalRemindersDenied)
+			case .authorized:
+				let wasDenied = permissionDefaults.bool(forKey: AppStorageKey.wereGoalRemindersDenied)
+				for goal in eligibleGoals {
+					guard permissionCheckId == checkId, !Task.isCancelled else { return }
+					guard wasDenied || issues[goal.goalId]?.isPermissionDenied == true else { continue }
+					if issues[goal.goalId] == nil {
+						issues[goal.goalId] = GoalReminderIssue(
+							goalId: goal.goalId,
+							goalName: goal.goalName,
+							context: .permissionCheck,
+							error: nil,
+						)
+					}
+					await retry(
+						for: goal.goalId,
+						modelContext: modelContext,
+						scheduler: scheduler,
+						requestsAuthorization: false,
+					)
+				}
+				guard permissionCheckId == checkId, !Task.isCancelled else { return }
+				permissionDefaults.set(false, forKey: AppStorageKey.wereGoalRemindersDenied)
+			}
+		} catch {
+			report(error)
 		}
 	}
 

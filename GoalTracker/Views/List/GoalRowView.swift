@@ -61,7 +61,7 @@ struct GoalRowView: View {
 					}
 					GoalTagSummaryText(tags: goal.tags ?? [])
 				}
-				if reminderFeedback?.issue?.goalId == goal.id {
+				if reminderFeedback?.issue(for: goal.id) != nil {
 					Spacer()
 					Image(systemName: "exclamationmark.triangle.fill")
 						.foregroundStyle(.orange)

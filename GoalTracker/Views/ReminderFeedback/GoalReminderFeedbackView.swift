@@ -5,13 +5,9 @@ import SwiftUI
 struct GoalReminderFeedbackView: View {
 	@Environment(\.openURL) private var openURL
 
-	@Environment(\.scenePhase) private var scenePhase
-
 	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
 	@State private var saveFailure: GoalSaveFailure?
-
-	@State private var isReturningFromSettings = false
 
 	let feedback: GoalReminderFeedback
 	let issue: GoalReminderIssue
@@ -31,32 +27,26 @@ struct GoalReminderFeedbackView: View {
 				(dynamicTypeSize.isAccessibilitySize
 					? AnyLayout(VStackLayout(alignment: .leading))
 					: AnyLayout(HStackLayout())) {
-						if feedback.isRetrying {
+						if feedback.isRetrying(for: issue.goalId) {
 							ProgressView(.reminderFeedbackRetrying)
 						} else {
 							if issue.isPermissionDenied {
 								Button(.reminderFeedbackOpenSettings) {
 									if let url = URL(string: "app-settings:") {
-										isReturningFromSettings = true
 										openURL(url)
 									}
 								}
 							} else {
 								Button(.reminderFeedbackRetry) {
-									Task { await feedback.retry(modelContext: modelContext) }
+									Task { await feedback.retry(for: issue.goalId, modelContext: modelContext) }
 								}
 							}
 						}
 						Button(.reminderFeedbackDisableReminder, action: disableReminder)
-							.disabled(feedback.isRetrying)
+							.disabled(feedback.isRetrying(for: issue.goalId))
 					}
 					.buttonStyle(.bordered)
 			}
-		}
-		.onChange(of: scenePhase) { _, phase in
-			guard phase == .active, isReturningFromSettings else { return }
-			isReturningFromSettings = false
-			Task { await feedback.retry(modelContext: modelContext) }
 		}
 		.goalSaveFailureAlert(failure: $saveFailure)
 	}

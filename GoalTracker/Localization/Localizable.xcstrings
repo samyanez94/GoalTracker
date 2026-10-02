@@ -2924,6 +2924,17 @@
         }
       }
     },
+    "reminderFeedback.permissionRequired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are disabled for Moku. Enable notifications in Settings or disable this goal’s reminder."
+          }
+        }
+      }
+    },
     "reminderFeedback.progressSavedFailure" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2964,6 +2975,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trying again…"
+          }
+        }
+      }
+    },
+    "reminderFeedback.schedulingFailure" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This goal’s reminder couldn’t be scheduled. Try again or disable the reminder."
           }
         }
       }
