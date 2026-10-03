@@ -18,7 +18,6 @@ struct CompleteGoalButton: View {
 			.buttonSizing(.flexible)
 			.buttonStyle(.glassProminent)
 			.disabled(isCompleted)
-			.padding(.horizontal)
 	}
 
 	private var title: LocalizedStringResource {

@@ -11,6 +11,9 @@ import SwiftUI
 // MARK: - GoalDetailView
 
 struct GoalDetailView: View {
+
+	private static let maximumContentWidth: CGFloat = 640
+
 	@Environment(\.dismiss) private var dismiss
 
 	@Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -62,6 +65,8 @@ struct GoalDetailView: View {
 					)
 				}
 			}
+			.frame(maxWidth: Self.maximumContentWidth)
+			.frame(maxWidth: .infinity)
 			.animation(reduceMotion ? nil : .smooth(duration: 0.25), value: isShowingReminderIssue)
 		}
 		.safeAreaPadding(.horizontal)
@@ -109,6 +114,9 @@ struct GoalDetailView: View {
 					isPresentingProgressUpdateSheet = true
 				},
 			)
+			.frame(maxWidth: Self.maximumContentWidth)
+			.frame(maxWidth: .infinity)
+			.safeAreaPadding(.horizontal)
 		}
 		.goalSaveFailureAlert(failure: $saveFailure)
 	}

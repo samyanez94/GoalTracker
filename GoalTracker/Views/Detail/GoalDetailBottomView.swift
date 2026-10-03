@@ -43,7 +43,6 @@ struct GoalDetailBottomView: View {
 					UpdateProgressButton(action: openProgressUpdateView)
 				}
 				.frame(maxWidth: .infinity)
-				.padding(.horizontal)
 			}
 		}
 		.sensoryFeedback(.impact(weight: .light), trigger: feedbackTrigger)
