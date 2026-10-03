@@ -92,6 +92,8 @@ struct GoalRowView: View {
 
 // MARK: - Previews
 
+#if DEBUG
+
 #Preview {
 	let goals = [
 		Goal(
@@ -123,3 +125,5 @@ struct GoalRowView: View {
 	]
 	GoalNavigationView().modelContainer(GoalPreviewContainer.make(goals: goals))
 }
+
+#endif
