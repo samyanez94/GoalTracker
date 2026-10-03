@@ -53,6 +53,7 @@ struct GoalRowView: View {
 					try goalManager.updateGoal(goal, with: data)
 				}
 			}
+			.presentationSizing(.form)
 		}
 		.goalDeleteConfirmationDialog(
 			isPresented: $isPresentingDeleteConfirmation,

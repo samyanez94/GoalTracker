@@ -101,11 +101,13 @@ struct GoalDetailView: View {
 					try goalManager.updateGoal(goal, with: data)
 				}
 			}
+			.presentationSizing(.form)
 		}
 		.sheet(isPresented: $isPresentingProgressUpdateSheet) {
 			NavigationStack {
 				GoalProgressUpdateView(goal: goal)
 			}
+			.presentationSizing(.form)
 		}
 		.safeAreaBar(edge: .bottom) {
 			GoalDetailBottomView(

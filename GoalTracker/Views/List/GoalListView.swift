@@ -139,6 +139,7 @@ struct GoalListView: View {
 					try goalManager.addGoal(with: data)
 				}
 			}
+			.presentationSizing(.form)
 		}
 		.onChange(of: notificationRouter.pendingGoalId) { _, goalId in
 			navigateToGoalIfPossible(goalId)
