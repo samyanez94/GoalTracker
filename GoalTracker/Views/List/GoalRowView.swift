@@ -54,6 +54,7 @@ struct GoalRowView: View {
 				}
 			}
 			.presentationSizing(.form)
+			.goalFormKeyboardScope()
 		}
 		.goalDeleteConfirmationDialog(
 			isPresented: $isPresentingDeleteConfirmation,

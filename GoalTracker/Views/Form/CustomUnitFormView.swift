@@ -56,6 +56,7 @@ struct CustomUnitFormView: View {
 		.toolbar {
 			ToolbarItem(placement: .confirmationAction) {
 				Button(.commonSave, systemImage: "checkmark", action: save)
+					.keyboardShortcut("s", modifiers: .command)
 					.labelStyle(.iconOnly)
 					.buttonStyle(.glassProminent)
 					.disabled(isSaveDisabled)

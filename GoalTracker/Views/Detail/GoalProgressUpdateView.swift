@@ -57,12 +57,14 @@ struct GoalProgressUpdateView: View {
 				Button(.commonCancel, systemImage: "xmark") {
 					dismiss()
 				}
+				.keyboardShortcut(.cancelAction)
 			}
 			ToolbarItem(placement: .confirmationAction) {
 				Button(.commonSave, systemImage: "checkmark") {
 					saveProgressUpdate()
 				}
 				.buttonStyle(.glassProminent)
+				.keyboardShortcut("s", modifiers: .command)
 				.disabled(isSaveDisabled)
 			}
 		}

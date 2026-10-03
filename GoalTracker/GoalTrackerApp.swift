@@ -38,6 +38,9 @@ struct GoalTrackerApp: App {
 				)
 			}
 		}
+		.commands {
+			GoalKeyboardCommands()
+		}
 	}
 
 	private static var isRunningTests: Bool {

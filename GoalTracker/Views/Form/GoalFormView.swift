@@ -214,6 +214,7 @@ struct GoalFormView: View {
 						dismiss()
 					}
 				}
+				.keyboardShortcut(.cancelAction)
 				.confirmationDialog(
 					.goalFormDismissConfirmationTitle,
 					isPresented: $isShowingConfirmation
@@ -227,6 +228,7 @@ struct GoalFormView: View {
 			}
 			ToolbarItem(placement: .confirmationAction) {
 				Button(.commonSave, systemImage: "checkmark", action: save)
+					.keyboardShortcut("s", modifiers: .command)
 					.buttonStyle(.glassProminent)
 					.disabled(formState.isSaveDisabled)
 			}

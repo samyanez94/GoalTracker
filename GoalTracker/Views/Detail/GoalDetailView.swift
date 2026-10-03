@@ -102,12 +102,14 @@ struct GoalDetailView: View {
 				}
 			}
 			.presentationSizing(.form)
+			.goalFormKeyboardScope()
 		}
 		.sheet(isPresented: $isPresentingProgressUpdateSheet) {
 			NavigationStack {
 				GoalProgressUpdateView(goal: goal)
 			}
 			.presentationSizing(.form)
+			.goalFormKeyboardScope()
 		}
 		.safeAreaBar(edge: .bottom) {
 			GoalDetailBottomView(

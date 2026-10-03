@@ -15,6 +15,8 @@ struct GoalListView: View {
 
 	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
 
+	@Environment(\.goalKeyboardState) private var keyboardState
+
 	@Query private var goals: [Goal]
 
 	@Bindable private var navigation: GoalNavigationState
@@ -28,6 +30,8 @@ struct GoalListView: View {
 	@State private var saveFailure: GoalSaveFailure?
 
 	@State private var searchText = ""
+
+	@FocusState private var isSearchFocused: Bool
 
 	@State private var selectedGoalIds = Set<UUID>()
 
@@ -53,12 +57,16 @@ struct GoalListView: View {
 
 	private let notificationRouter: GoalNotificationRouter
 
+	private let onRevealSidebar: () -> Void
+
 	init(
 		navigation: GoalNavigationState,
-		notificationRouter: GoalNotificationRouter
+		notificationRouter: GoalNotificationRouter,
+		onRevealSidebar: @escaping () -> Void
 	) {
 		self.navigation = navigation
 		self.notificationRouter = notificationRouter
+		self.onRevealSidebar = onRevealSidebar
 		_isPendingSectionExpanded = State(
 			initialValue: Self.storedBool(
 				for: AppStorageKey.isPendingSectionExpanded,
@@ -113,13 +121,13 @@ struct GoalListView: View {
 		.navigationTitle(.goalListTitle)
 		.environment(\.editMode, $editMode)
 		.searchable(text: $searchText, prompt: Text(.goalListSearchPrompt))
+		.searchFocused($isSearchFocused)
+		.focusedSceneValue(\.goalKeyboardActions, keyboardActions)
 		.toolbar {
 			GoalListBottomToolbar(
 				isSelectingGoals: editMode.isEditing,
 				selectedGoalCount: selectedGoals.count,
-				onAddGoal: {
-					isPresentingGoalFormView = true
-				},
+				onAddGoal: presentGoalForm,
 				isPresentingDeleteConfirmation: $isPresentingDeleteConfirmation,
 				deleteSelectedGoals: deleteSelectedGoals
 			)
@@ -140,6 +148,7 @@ struct GoalListView: View {
 				}
 			}
 			.presentationSizing(.form)
+			.goalFormKeyboardScope()
 		}
 		.onChange(of: notificationRouter.pendingGoalId) { _, goalId in
 			navigateToGoalIfPossible(goalId)
@@ -161,6 +170,33 @@ struct GoalListView: View {
 
 	private var goalManager: GoalManager {
 		GoalManager(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
+	}
+
+	private var canRunMainCommands: Bool {
+		!isPresentingGoalFormView && keyboardState?.isPresentingForm != true
+	}
+
+	private var keyboardActions: GoalKeyboardActions {
+		guard canRunMainCommands else {
+			return GoalKeyboardActions()
+		}
+		return GoalKeyboardActions(addGoal: presentGoalForm, searchGoals: searchGoalsFromKeyboard)
+	}
+
+	private func presentGoalForm() {
+		guard canRunMainCommands else {
+			return
+		}
+		isPresentingGoalFormView = true
+	}
+
+	private func searchGoalsFromKeyboard() {
+		guard canRunMainCommands else {
+			return
+		}
+		exitEditMode()
+		onRevealSidebar()
+		isSearchFocused = true
 	}
 
 	private var isSearching: Bool {

@@ -15,11 +15,17 @@ struct GoalNavigationView: View {
 
 	@Environment(\.scenePhase) private var scenePhase
 
+	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
 	@Query private var goals: [Goal]
 
 	@State private var navigation = GoalNavigationState()
 
 	@State private var reminderCoordinator = GoalReminderCoordinator()
+
+	@State private var keyboardState = GoalKeyboardState()
+
+	@State private var columnVisibility = NavigationSplitViewVisibility.automatic
 
 	private let notificationRouter: GoalNotificationRouter
 
@@ -28,8 +34,12 @@ struct GoalNavigationView: View {
 	}
 
 	var body: some View {
-		NavigationSplitView {
-			GoalListView(navigation: navigation, notificationRouter: notificationRouter)
+		NavigationSplitView(columnVisibility: $columnVisibility) {
+			GoalListView(
+				navigation: navigation,
+				notificationRouter: notificationRouter,
+				onRevealSidebar: revealSidebar
+			)
 		} detail: {
 			NavigationStack(path: $navigation.detailPath) {
 				Group {
@@ -62,6 +72,7 @@ struct GoalNavigationView: View {
 		}
 		.navigationSplitViewStyle(.balanced)
 		.environment(\.goalReminderCoordinator, reminderCoordinator)
+		.environment(\.goalKeyboardState, keyboardState)
 		.task(
 			id: GoalReminderRefreshTrigger(
 				isActive: scenePhase == .active,
@@ -72,6 +83,13 @@ struct GoalNavigationView: View {
 				return
 			}
 			await reminderCoordinator.reconcileReminders(modelContext: modelContext)
+		}
+	}
+
+	private func revealSidebar() {
+		columnVisibility = .all
+		if horizontalSizeClass == .compact {
+			navigation.selectedGoalID = nil
 		}
 	}
 }
