@@ -107,7 +107,7 @@ struct GoalDetailView: View {
 				GoalProgressUpdateView(goal: goal)
 			}
 		}
-		.safeAreaInset(edge: .bottom) {
+		.safeAreaBar(edge: .bottom) {
 			GoalDetailBottomView(
 				goal: goal,
 				openProgressUpdateView: {
