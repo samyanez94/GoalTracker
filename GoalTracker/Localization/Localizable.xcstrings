@@ -1313,6 +1313,28 @@
         }
       }
     },
+    "goalNavigation.selectGoal.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a goal from the list to view its details."
+          }
+        }
+      }
+    },
+    "goalNavigation.selectGoal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a goal"
+          }
+        }
+      }
+    },
     "notification.reminder.cadence.body" : {
       "extractionState" : "manual",
       "localizations" : {

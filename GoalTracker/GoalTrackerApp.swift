@@ -29,7 +29,7 @@ struct GoalTrackerApp: App {
 		WindowGroup {
 			switch persistence.state {
 			case .ready(let modelContainer):
-				GoalListView(notificationRouter: notificationRouter)
+				GoalNavigationView(notificationRouter: notificationRouter)
 					.modelContainer(modelContainer)
 			case .failed(let failure):
 				GoalPersistenceRecoveryView(

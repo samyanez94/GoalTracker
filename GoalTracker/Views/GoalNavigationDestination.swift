@@ -10,6 +10,5 @@ import Foundation
 // MARK: - GoalNavigationDestination
 
 enum GoalNavigationDestination: Hashable {
-	case goal(UUID)
 	case progressEvents(UUID)
 }

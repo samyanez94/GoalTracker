@@ -13,13 +13,11 @@ import SwiftUI
 struct GoalListView: View {
 	@Environment(\.modelContext) private var modelContext
 
-	@Environment(\.scenePhase) private var scenePhase
-
-	@State private var reminderCoordinator = GoalReminderCoordinator()
+	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
 
 	@Query private var goals: [Goal]
 
-	@State private var navigationPath: [GoalNavigationDestination] = []
+	@Bindable private var navigation: GoalNavigationState
 
 	@State private var editMode = EditMode.inactive
 
@@ -55,7 +53,11 @@ struct GoalListView: View {
 
 	private let notificationRouter: GoalNotificationRouter
 
-	init(notificationRouter: GoalNotificationRouter = GoalNotificationRouter()) {
+	init(
+		navigation: GoalNavigationState,
+		notificationRouter: GoalNotificationRouter
+	) {
+		self.navigation = navigation
 		self.notificationRouter = notificationRouter
 		_isPendingSectionExpanded = State(
 			initialValue: Self.storedBool(
@@ -72,105 +74,88 @@ struct GoalListView: View {
 	}
 
 	var body: some View {
-		NavigationStack(path: $navigationPath) {
-			Group {
-				if goals.isEmpty {
-					GoalUnavailableView.emptyGoals()
-				} else if isSearching,
-					visibleSearchResultsAreEmpty
-				{
-					GoalUnavailableView.emptySearch()
-				} else if pendingGoalsAreHiddenByCompletedFilter {
-					GoalUnavailableView.emptyPendingGoals()
-				} else {
-					List(selection: goalSelection) {
-						if isShowingCompletedGoals {
-							if !pendingGoals.isEmpty {
-								Section(
-									String(localized: .goalListSectionPending),
-									isExpanded: $isPendingSectionExpanded
-								) {
-									ForEach(pendingGoals) { goal in
-										GoalRowView(goal: goal)
-									}
-								}
-							}
-							if !completedGoals.isEmpty {
-								Section(
-									String(localized: .goalListSectionCompleted),
-									isExpanded: $isCompletedSectionExpanded
-								) {
-									ForEach(completedGoals) { goal in
-										GoalRowView(goal: goal)
-									}
-								}
-							}
-						} else {
-							ForEach(pendingGoals) { goal in
-								GoalRowView(goal: goal)
-							}
+		Group {
+			if goals.isEmpty {
+				GoalUnavailableView.emptyGoals()
+			} else if isSearching,
+				visibleSearchResultsAreEmpty
+			{
+				GoalUnavailableView.emptySearch()
+			} else if pendingGoalsAreHiddenByCompletedFilter {
+				GoalUnavailableView.emptyPendingGoals()
+			} else {
+				Group {
+					if editMode.isEditing {
+						List(selection: $selectedGoalIds) {
+							GoalListSectionsView(
+								pendingGoals: pendingGoals,
+								completedGoals: completedGoals,
+								isShowingCompletedGoals: isShowingCompletedGoals,
+								isPendingSectionExpanded: $isPendingSectionExpanded,
+								isCompletedSectionExpanded: $isCompletedSectionExpanded
+							)
+						}
+					} else {
+						List(selection: navigationSelection) {
+							GoalListSectionsView(
+								pendingGoals: pendingGoals,
+								completedGoals: completedGoals,
+								isShowingCompletedGoals: isShowingCompletedGoals,
+								isPendingSectionExpanded: $isPendingSectionExpanded,
+								isCompletedSectionExpanded: $isCompletedSectionExpanded
+							)
 						}
 					}
-					.listStyle(.sidebar)
+				}
+				.listStyle(.sidebar)
+			}
+		}
+		.navigationTitle(.goalListTitle)
+		.environment(\.editMode, $editMode)
+		.searchable(text: $searchText, prompt: Text(.goalListSearchPrompt))
+		.toolbar {
+			GoalListBottomToolbar(
+				isSelectingGoals: editMode.isEditing,
+				selectedGoalCount: selectedGoals.count,
+				onAddGoal: {
+					isPresentingGoalFormView = true
+				},
+				isPresentingDeleteConfirmation: $isPresentingDeleteConfirmation,
+				deleteSelectedGoals: deleteSelectedGoals
+			)
+			GoalListTopToolbar(
+				sortMode: $sortMode,
+				sortDirection: $sortDirection,
+				isShowingCompletedGoals: $isShowingCompletedGoals,
+				isEditing: editMode.isEditing,
+				isEditModeEnabled: !goals.isEmpty,
+				enterEditMode: enterEditMode,
+				exitEditMode: exitEditMode
+			)
+		}
+		.sheet(isPresented: $isPresentingGoalFormView) {
+			NavigationStack {
+				GoalFormView(mode: .create) { data in
+					try goalManager.addGoal(with: data)
 				}
 			}
-			.navigationTitle(.goalListTitle)
-			.environment(\.editMode, $editMode)
-			.searchable(text: $searchText, prompt: Text(.goalListSearchPrompt))
-			.toolbar {
-				GoalListBottomToolbar(
-					isSelectingGoals: editMode.isEditing,
-					selectedGoalCount: selectedGoals.count,
-					onAddGoal: {
-						isPresentingGoalFormView = true
-					},
-					isPresentingDeleteConfirmation: $isPresentingDeleteConfirmation,
-					deleteSelectedGoals: deleteSelectedGoals
-				)
-				GoalListTopToolbar(
-					sortMode: $sortMode,
-					sortDirection: $sortDirection,
-					isShowingCompletedGoals: $isShowingCompletedGoals,
-					isEditing: editMode.isEditing,
-					isEditModeEnabled: !goals.isEmpty,
-					enterEditMode: enterEditMode,
-					exitEditMode: exitEditMode
-				)
-			}
-			.sheet(isPresented: $isPresentingGoalFormView) {
-				NavigationStack {
-					GoalFormView(mode: .create) { data in
-						try goalManager.addGoal(with: data)
-					}
-				}
-			}
-			.navigationDestination(for: GoalNavigationDestination.self) { destination in
-				destinationView(for: destination)
-			}
-			.onChange(of: notificationRouter.pendingGoalId) { _, goalId in
-				navigateToGoalIfPossible(goalId)
-			}
-			.onChange(of: isPendingSectionExpanded) { _, isExpanded in
-				storedPendingSectionExpanded = isExpanded
-			}
-			.onChange(of: isCompletedSectionExpanded) { _, isExpanded in
-				storedCompletedSectionExpanded = isExpanded
-			}
-			.onChange(of: goals.map(\.id)) { _, _ in
-				navigateToGoalIfPossible(notificationRouter.pendingGoalId)
-			}
-			.onAppear {
-				navigateToGoalIfPossible(notificationRouter.pendingGoalId)
-			}
-			.goalSaveFailureAlert(failure: $saveFailure)
 		}
-		.environment(\.goalReminderCoordinator, reminderCoordinator)
-		.task(id: GoalReminderRefreshTrigger(isActive: scenePhase == .active, states: goals.map { GoalReminderSyncState(goal: $0) })) {
-			guard scenePhase == .active else {
-				return
-			}
-			await reminderCoordinator.reconcileReminders(modelContext: modelContext)
+		.onChange(of: notificationRouter.pendingGoalId) { _, goalId in
+			navigateToGoalIfPossible(goalId)
 		}
+		.onChange(of: isPendingSectionExpanded) { _, isExpanded in
+			storedPendingSectionExpanded = isExpanded
+		}
+		.onChange(of: isCompletedSectionExpanded) { _, isExpanded in
+			storedCompletedSectionExpanded = isExpanded
+		}
+		.onChange(of: goals.map(\.id)) { _, _ in
+			navigateToGoalIfPossible(notificationRouter.pendingGoalId)
+		}
+		.onAppear {
+			navigateToGoalIfPossible(notificationRouter.pendingGoalId)
+		}
+		.goalSaveFailureAlert(failure: $saveFailure)
 	}
 
 	private var goalManager: GoalManager {
@@ -218,8 +203,13 @@ struct GoalListView: View {
 		}
 	}
 
-	private var goalSelection: Binding<Set<UUID>>? {
-		editMode.isEditing ? $selectedGoalIds : nil
+	private var navigationSelection: Binding<UUID?> {
+		Binding {
+			navigation.selectedGoalID
+		} set: { goalID in
+			// Removing the single-selection list can clear its binding as edit mode starts.
+			navigation.updateSidebarSelection(goalID, isEditing: editMode.isEditing)
+		}
 	}
 
 	private static func storedBool(for key: String, defaultValue: Bool) -> Bool {
@@ -254,24 +244,6 @@ struct GoalListView: View {
 		}
 	}
 
-	@ViewBuilder
-	private func destinationView(for destination: GoalNavigationDestination) -> some View {
-		switch destination {
-		case .goal(let goalId):
-			if let goal = goal(with: goalId) {
-				GoalDetailView(goal: goal)
-			} else {
-				GoalUnavailableView.goalNotFound()
-			}
-		case .progressEvents(let goalId):
-			if let goal = goal(with: goalId) {
-				GoalProgressEventListView(goal: goal)
-			} else {
-				GoalUnavailableView.goalNotFound()
-			}
-		}
-	}
-
 	private func navigateToGoalIfPossible(_ goalId: UUID?) {
 		guard let goalId,
 			goal(with: goalId) != nil
@@ -281,7 +253,8 @@ struct GoalListView: View {
 		exitEditMode()
 		isPresentingGoalFormView = false
 		isPresentingDeleteConfirmation = false
-		navigationPath = [.goal(goalId)]
+		navigation.selectedGoalID = goalId
+		navigation.detailPath.removeAll()
 		notificationRouter.pendingGoalId = nil
 	}
 
@@ -291,39 +264,3 @@ struct GoalListView: View {
 		}
 	}
 }
-
-// MARK: - Previews
-
-#if DEBUG
-
-#Preview("No goals") {
-	let container = GoalPreviewContainer.make(
-		goals: [],
-	)
-	GoalListView().modelContainer(container)
-}
-
-#Preview("Three goals") {
-	let container = GoalPreviewContainer.make(
-		goals: [
-			Goal(
-				name: "Travel to Switzerland",
-				progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
-			),
-			Goal(
-				name: "Climb Mount Kilimanjaro",
-				progress: .outcome(OutcomeProgress()),
-			),
-			Goal(
-				name: "Run 10 marathons",
-				progress: .measurable(
-					currentValue: 2,
-					targetValue: 10
-				),
-			)
-		],
-	)
-	GoalListView().modelContainer(container)
-}
-
-#endif
