@@ -42,7 +42,7 @@ enum GoalNotificationAuthorizationStatus {
 
 // MARK: - GoalReminderScheduling
 
-/// The reminder scheduling behavior `GoalService` needs when goal state changes.
+/// The notification scheduling behavior used by `GoalReminderCoordinator`.
 @MainActor
 protocol GoalReminderScheduling {
 	/// Reconciles the pending reminder notification with the goal's current reminder state.

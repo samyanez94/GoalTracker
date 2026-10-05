@@ -1,3 +1,11 @@
+//
+//  GoalReminderPermissionCheckTests.swift
+//  GoalTrackerTests
+//
+//  Created by Samuel Yanez on 10/2/26.
+//  Copyright © 2026 Samuel Yanez. All rights reserved.
+//
+
 import Foundation
 import SwiftData
 import Testing
@@ -22,16 +30,11 @@ struct GoalReminderPermissionCheckTests {
 		try container.mainContext.save()
 		let defaults = try makeDefaults()
 		defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
-		let coordinator = GoalReminderCoordinator(permissionDefaults: defaults)
 		let notificationCenter = PermissionNotificationCenterStub(status: .denied)
 		let scheduler = ReminderSchedulingStub()
+		let coordinator = GoalReminderCoordinator(modelContext: container.mainContext, notificationCenter: notificationCenter, scheduler: scheduler, now: { now }, permissionDefaults: defaults)
 
-		await coordinator.refreshPermissions(
-			modelContext: container.mainContext,
-			notificationCenter: notificationCenter,
-			scheduler: scheduler,
-			now: { now },
-		)
+		await coordinator.refreshPermissions()
 
 		#expect(Set(coordinator.issues.keys) == [first.id, second.id])
 		let allPermissionDenied = coordinator.issues.values.allSatisfy(\.isPermissionDenied)
@@ -45,12 +48,7 @@ struct GoalReminderPermissionCheckTests {
 		let firstId = first.id
 		if deletesGoal { container.mainContext.delete(first) } else { first.reminder = nil }
 		try container.mainContext.save()
-		await coordinator.refreshPermissions(
-			modelContext: container.mainContext,
-			notificationCenter: notificationCenter,
-			scheduler: scheduler,
-			now: { now },
-		)
+		await coordinator.refreshPermissions()
 		#expect(coordinator.issue(for: firstId) == nil)
 		#expect(coordinator.issue(for: second.id)?.isPermissionDenied == true)
 		#expect(scheduler.canceledGoalIds == [firstId])
@@ -68,26 +66,16 @@ struct GoalReminderPermissionCheckTests {
 		try container.mainContext.save()
 		let defaults = try makeDefaults()
 		defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
-		var coordinator = GoalReminderCoordinator(permissionDefaults: defaults)
 		let notificationCenter = PermissionNotificationCenterStub(status: .denied)
 		let scheduler = ReminderSchedulingStub()
-		await coordinator.refreshPermissions(
-			modelContext: container.mainContext,
-			notificationCenter: notificationCenter,
-			scheduler: scheduler,
-			now: { now },
-		)
-		if relaunches { coordinator = GoalReminderCoordinator(permissionDefaults: defaults) }
+		var coordinator = GoalReminderCoordinator(modelContext: container.mainContext, notificationCenter: notificationCenter, scheduler: scheduler, now: { now }, permissionDefaults: defaults)
+		await coordinator.refreshPermissions()
+		if relaunches { coordinator = GoalReminderCoordinator(modelContext: container.mainContext, notificationCenter: notificationCenter, scheduler: scheduler, now: { now }, permissionDefaults: defaults) }
 		notificationCenter.status = .authorized
 		scheduler.error = Failure.scheduling
 		scheduler.failingGoalIds = [second.id]
 
-		await coordinator.refreshPermissions(
-			modelContext: container.mainContext,
-			notificationCenter: notificationCenter,
-			scheduler: scheduler,
-			now: { now },
-		)
+		await coordinator.refreshPermissions()
 
 		#expect(Set(scheduler.states.map(\.goalId)) == [first.id, second.id])
 		#expect(scheduler.authorizationRequests == [false, false])
@@ -97,12 +85,7 @@ struct GoalReminderPermissionCheckTests {
 		#expect(coordinator.issue(for: second.id)?.message == .reminderFeedbackSchedulingFailure)
 		#expect(!defaults.bool(forKey: AppStorageKey.wereGoalRemindersDenied))
 		// Ordinary foreground checks do not continually retry scheduling errors.
-		await coordinator.refreshPermissions(
-			modelContext: container.mainContext,
-			notificationCenter: notificationCenter,
-			scheduler: scheduler,
-			now: { now },
-		)
+		await coordinator.refreshPermissions()
 		#expect(scheduler.states.count == 2)
 		#expect(coordinator.issue(for: second.id)?.error is Failure)
 	}
@@ -116,15 +99,10 @@ struct GoalReminderPermissionCheckTests {
 		try container.mainContext.save()
 		let defaults = try makeDefaults()
 		defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
-		let coordinator = GoalReminderCoordinator(permissionDefaults: defaults)
 		let notificationCenter = PermissionNotificationCenterStub(status: status)
 		let scheduler = ReminderSchedulingStub()
-		await coordinator.refreshPermissions(
-			modelContext: container.mainContext,
-			notificationCenter: notificationCenter,
-			scheduler: scheduler,
-			now: { now },
-		)
+		let coordinator = GoalReminderCoordinator(modelContext: container.mainContext, notificationCenter: notificationCenter, scheduler: scheduler, now: { now }, permissionDefaults: defaults)
+		await coordinator.refreshPermissions()
 		#expect(coordinator.issues.isEmpty)
 		#expect(notificationCenter.authorizationRequestCount == 0)
 		#expect(notificationCenter.addedRequestCount == 0)

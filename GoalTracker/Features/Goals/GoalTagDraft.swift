@@ -2,6 +2,9 @@
 //  GoalTagDraft.swift
 //  GoalTracker
 //
+//  Created by Samuel Yanez on 10/5/26.
+//  Copyright © 2026 Samuel Yanez. All rights reserved.
+//
 
 /// A tag to associate with a saved goal, including tags that do not exist yet.
 /// Selection and other picker state belong to the form rather than service input.

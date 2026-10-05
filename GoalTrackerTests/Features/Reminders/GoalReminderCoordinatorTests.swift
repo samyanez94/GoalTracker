@@ -1,3 +1,11 @@
+//
+//  GoalReminderCoordinatorTests.swift
+//  GoalTrackerTests
+//
+//  Created by Samuel Yanez on 10/2/26.
+//  Copyright © 2026 Samuel Yanez. All rights reserved.
+//
+
 import Foundation
 import Observation
 import SwiftData
@@ -13,11 +21,10 @@ struct GoalReminderCoordinatorTests {
 		let goal = makeGoal()
 		let scheduler = ReminderSchedulingStub()
 		scheduler.error = Failure.scheduling
-		let coordinator = GoalReminderCoordinator()
+		let coordinator = GoalReminderCoordinator(modelContext: container.mainContext, scheduler: scheduler)
 		let service = GoalService(
 			modelContext: container.mainContext,
-			notificationScheduler: scheduler,
-			reminderCoordinator: coordinator,
+			reminderUpdates: coordinator,
 		)
 		// Wait for feedback itself, not merely the start of notification work.
 		await withCheckedContinuation { continuation in
@@ -48,15 +55,17 @@ struct GoalReminderCoordinatorTests {
 	])
 	func `Only denied permission needs feedback for nonthrowing outcomes`(
 		outcome: GoalReminderSchedulingOutcome,
-	) async {
+	) async throws {
+		let container = try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
 		let scheduler = ReminderSchedulingStub()
 		scheduler.outcome = outcome
-		let coordinator = GoalReminderCoordinator()
+		let coordinator = GoalReminderCoordinator(modelContext: container.mainContext, scheduler: scheduler)
 		let goal = makeGoal()
+		container.mainContext.insert(goal)
+		try container.mainContext.save()
 		await coordinator.sync(
 			state: GoalReminderSyncState(goal: goal),
 			context: .progressSaved,
-			scheduler: scheduler,
 			requestsAuthorization: false,
 		)
 		#expect((coordinator.issue(for: goal.id) != nil) == (outcome == .permissionDenied))
@@ -74,11 +83,10 @@ struct GoalReminderCoordinatorTests {
 		try container.mainContext.save()
 		let scheduler = ReminderSchedulingStub()
 		scheduler.error = Failure.scheduling
-		let coordinator = GoalReminderCoordinator()
+		let coordinator = GoalReminderCoordinator(modelContext: container.mainContext, scheduler: scheduler)
 		await coordinator.sync(
 			state: GoalReminderSyncState(goal: goal),
 			context: .goalSaved,
-			scheduler: scheduler,
 			requestsAuthorization: true,
 		)
 		scheduler.states.removeAll()
@@ -96,7 +104,7 @@ struct GoalReminderCoordinatorTests {
 				do { try container.mainContext.save() } catch { Issue.record(error) }
 			}
 		}
-		await coordinator.retry(for: goal.id, modelContext: container.mainContext, scheduler: scheduler)
+		await coordinator.retry(for: goal.id)
 
 		#expect(!container.mainContext.hasChanges)
 		#expect(!coordinator.isRetrying(for: goal.id))
@@ -126,19 +134,17 @@ struct GoalReminderCoordinatorTests {
 		try container.mainContext.save()
 		let scheduler = ReminderSchedulingStub()
 		scheduler.outcome = .permissionDenied
-		let coordinator = GoalReminderCoordinator()
+		let coordinator = GoalReminderCoordinator(modelContext: container.mainContext, scheduler: scheduler)
 		await coordinator.sync(
 			state: GoalReminderSyncState(goal: goal),
 			context: .goalSaved,
-			scheduler: scheduler,
 			requestsAuthorization: true,
 		)
 		scheduler.error = Failure.scheduling
 		scheduler.beforeSync = {
 			let service = GoalService(
 				modelContext: container.mainContext,
-				notificationScheduler: scheduler,
-				reminderCoordinator: coordinator,
+				reminderUpdates: coordinator,
 			)
 			do {
 				if deletesGoal { try service.deleteGoal(goal) } else { try service.disableReminder(goal) }
@@ -149,9 +155,7 @@ struct GoalReminderCoordinatorTests {
 		await coordinator.sync(
 			state: GoalReminderSyncState(goal: goal),
 			context: .progressSaved,
-			scheduler: scheduler,
 			requestsAuthorization: false,
-			modelContext: container.mainContext,
 		)
 		#expect(coordinator.issue(for: goal.id) == nil)
 		#expect(scheduler.canceledGoalIds == [goal.id, goal.id])
@@ -165,11 +169,10 @@ struct GoalReminderCoordinatorTests {
 		try container.mainContext.save()
 		let scheduler = ReminderSchedulingStub()
 		scheduler.error = Failure.scheduling
-		let coordinator = GoalReminderCoordinator()
+		let coordinator = GoalReminderCoordinator(modelContext: container.mainContext, scheduler: scheduler)
 		await coordinator.sync(
 			state: GoalReminderSyncState(goal: goal),
 			context: .goalSaved,
-			scheduler: scheduler,
 			requestsAuthorization: true,
 		)
 		scheduler.error = nil
@@ -184,28 +187,66 @@ struct GoalReminderCoordinatorTests {
 				}
 			}
 			retryTask = Task {
-				await coordinator.retry(for: goal.id, modelContext: container.mainContext, scheduler: scheduler)
+				await coordinator.retry(for: goal.id)
 			}
 		}
 		#expect(coordinator.isRetrying(for: goal.id))
-		await coordinator.retry(for: goal.id, modelContext: container.mainContext, scheduler: scheduler)
+		await coordinator.retry(for: goal.id)
 		#expect(scheduler.states.count == 1)
 		let otherGoal = makeGoal()
-		let deniedScheduler = ReminderSchedulingStub()
-		deniedScheduler.outcome = .permissionDenied
+		container.mainContext.insert(otherGoal)
+		try container.mainContext.save()
+		scheduler.beforeSync = nil
+		scheduler.outcome = .permissionDenied
 		await coordinator.sync(
 			state: GoalReminderSyncState(goal: otherGoal),
 			context: .goalSaved,
-			scheduler: deniedScheduler,
 			requestsAuthorization: true,
 		)
 		#expect(coordinator.issues.count == 2)
 		#expect(!coordinator.isRetrying(for: otherGoal.id))
+		scheduler.outcome = .scheduled
 		release?.resume()
 		await retryTask?.value
 		#expect(!coordinator.isRetrying(for: goal.id))
 		#expect(coordinator.issue(for: goal.id) == nil)
 		#expect(coordinator.issue(for: otherGoal.id)?.goalId == otherGoal.id)
+	}
+
+	@Test
+	func `Saving retrying and reconciling share the injected scheduler`() async throws {
+		let container = try GoalTrackerModelContainer.make(isStoredInMemoryOnly: true)
+		let center = PermissionNotificationCenterStub(status: .authorized)
+		let scheduler = ReminderSchedulingStub()
+		scheduler.error = Failure.scheduling
+		let coordinator = GoalReminderCoordinator(
+			modelContext: container.mainContext,
+			notificationCenter: center,
+			scheduler: scheduler
+		)
+		let service = GoalService(modelContext: container.mainContext, reminderUpdates: coordinator)
+		let goal = makeGoal()
+		await withCheckedContinuation { continuation in
+			withObservationTracking {
+				_ = coordinator.issue(for: goal.id)
+			} onChange: {
+				continuation.resume()
+			}
+			do { try service.addGoal(goal) } catch {
+				Issue.record(error)
+				continuation.resume()
+			}
+		}
+		scheduler.error = nil
+		await coordinator.retry(for: goal.id)
+		await coordinator.reconcileReminders()
+
+		#expect(scheduler.states.map(\.goalId) == [goal.id, goal.id, goal.id])
+		#expect(scheduler.authorizationRequests == [true, true, false])
+		#expect(coordinator.issue(for: goal.id) == nil)
+		#expect(center.addedRequestCount == 0)
+		try service.disableReminder(goal)
+		#expect(scheduler.canceledGoalIds.contains(goal.id))
 	}
 
 	private func makeGoal() -> Goal {

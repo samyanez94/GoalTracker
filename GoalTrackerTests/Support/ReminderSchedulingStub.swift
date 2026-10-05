@@ -1,3 +1,11 @@
+//
+//  ReminderSchedulingStub.swift
+//  GoalTrackerTests
+//
+//  Created by Samuel Yanez on 10/2/26.
+//  Copyright © 2026 Samuel Yanez. All rights reserved.
+//
+
 import Foundation
 
 @testable import GoalTracker

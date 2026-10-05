@@ -13,7 +13,7 @@ import SwiftUI
 struct GoalListView: View {
 	@Environment(\.modelContext) private var modelContext
 
-	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
+	@Environment(GoalReminderCoordinator.self) private var reminderUpdates
 
 	@Environment(\.goalKeyboardState) private var keyboardState
 
@@ -169,7 +169,7 @@ struct GoalListView: View {
 	}
 
 	private var goalService: GoalService {
-		GoalService(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
+		GoalService(modelContext: modelContext, reminderUpdates: reminderUpdates)
 	}
 
 	private var canRunMainCommands: Bool {

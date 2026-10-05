@@ -13,7 +13,7 @@ import SwiftUI
 struct GoalProgressEventListView: View {
 	@Environment(\.modelContext) private var modelContext
 
-	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
+	@Environment(GoalReminderCoordinator.self) private var reminderUpdates
 
 	let goal: Goal
 
@@ -165,7 +165,7 @@ struct GoalProgressEventListView: View {
 	}
 
 	private var goalService: GoalService {
-		GoalService(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
+		GoalService(modelContext: modelContext, reminderUpdates: reminderUpdates)
 	}
 
 	private func exitEditMode() {
@@ -256,6 +256,7 @@ struct GoalProgressEventListView: View {
 			)
 		)
 	}
+	.previewGoalReminders()
 }
 
 #Preview("Empty") {
@@ -269,4 +270,5 @@ struct GoalProgressEventListView: View {
 			)
 		)
 	}
+	.previewGoalReminders()
 }

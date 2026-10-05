@@ -11,8 +11,6 @@ import SwiftUI
 
 /// Owns adaptive navigation and services shared by the list and detail columns.
 struct GoalNavigationView: View {
-	@Environment(\.modelContext) private var modelContext
-
 	@Environment(\.scenePhase) private var scenePhase
 
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -21,7 +19,7 @@ struct GoalNavigationView: View {
 
 	@State private var navigation = GoalNavigationState()
 
-	@State private var reminderCoordinator = GoalReminderCoordinator()
+	@State private var reminderCoordinator: GoalReminderCoordinator
 
 	@State private var keyboardState = GoalKeyboardState()
 
@@ -29,8 +27,13 @@ struct GoalNavigationView: View {
 
 	private let notificationRouter: GoalNotificationRouter
 
-	init(notificationRouter: GoalNotificationRouter = GoalNotificationRouter()) {
+	init(
+		modelContext: ModelContext,
+		notificationRouter: GoalNotificationRouter = GoalNotificationRouter()
+	) {
 		self.notificationRouter = notificationRouter
+		let coordinator = GoalReminderCoordinator(modelContext: modelContext)
+		_reminderCoordinator = State(initialValue: coordinator)
 	}
 
 	var body: some View {
@@ -71,7 +74,7 @@ struct GoalNavigationView: View {
 			}
 		}
 		.navigationSplitViewStyle(.balanced)
-		.environment(\.goalReminderCoordinator, reminderCoordinator)
+		.environment(reminderCoordinator)
 		.environment(\.goalKeyboardState, keyboardState)
 		.task(
 			id: GoalReminderRefreshTrigger(
@@ -82,7 +85,7 @@ struct GoalNavigationView: View {
 			guard scenePhase == .active else {
 				return
 			}
-			await reminderCoordinator.reconcileReminders(modelContext: modelContext)
+			await reminderCoordinator.reconcileReminders()
 		}
 	}
 
@@ -102,7 +105,7 @@ struct GoalNavigationView: View {
 	let container = GoalPreviewContainer.make(
 		goals: [],
 	)
-	GoalNavigationView().modelContainer(container)
+	GoalNavigationView(modelContext: container.mainContext).modelContainer(container)
 }
 
 #Preview("Three goals") {
@@ -125,7 +128,7 @@ struct GoalNavigationView: View {
 			)
 		],
 	)
-	GoalNavigationView().modelContainer(container)
+	GoalNavigationView(modelContext: container.mainContext).modelContainer(container)
 }
 
 #endif

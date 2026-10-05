@@ -18,7 +18,7 @@ struct GoalDetailBottomView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
-	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
+	@Environment(GoalReminderCoordinator.self) private var reminderUpdates
 
 	@State private var feedbackTrigger = false
 
@@ -50,7 +50,7 @@ struct GoalDetailBottomView: View {
 	}
 
 	private var goalService: GoalService {
-		GoalService(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
+		GoalService(modelContext: modelContext, reminderUpdates: reminderUpdates)
 	}
 
 	private func completeGoal() {
@@ -99,6 +99,7 @@ struct GoalDetailBottomView: View {
 		),
 		openProgressUpdateView: {},
 	)
+	.previewGoalReminders()
 }
 
 #Preview("Measurable") {
@@ -118,4 +119,5 @@ struct GoalDetailBottomView: View {
 		),
 		openProgressUpdateView: {},
 	)
+	.previewGoalReminders()
 }

@@ -15,9 +15,7 @@ import SwiftData
 struct GoalService {
 	private let modelContext: ModelContext
 
-	private let notificationScheduler: any GoalReminderScheduling
-
-	private let reminderCoordinator: GoalReminderCoordinator?
+	private let reminderUpdates: any GoalReminderUpdating
 
 	private let saveContext: () throws -> Void
 
@@ -28,15 +26,13 @@ struct GoalService {
 	/// Initializes a `GoalService`.
 	init(
 		modelContext: ModelContext,
-		notificationScheduler: any GoalReminderScheduling = GoalNotificationScheduler(),
-		reminderCoordinator: GoalReminderCoordinator? = nil,
+		reminderUpdates: any GoalReminderUpdating,
 		saveContext: (() throws -> Void)? = nil,
 		rollbackContext: (() -> Void)? = nil,
 		now: @escaping () -> Date = Date.init,
 	) {
 		self.modelContext = modelContext
-		self.notificationScheduler = notificationScheduler
-		self.reminderCoordinator = reminderCoordinator
+		self.reminderUpdates = reminderUpdates
 		self.saveContext =
 			saveContext ?? {
 				try modelContext.save()
@@ -54,7 +50,7 @@ struct GoalService {
 	) throws {
 		modelContext.insert(goal)
 		try saveChanges()
-		syncReminder(for: goal, requestsAuthorization: true)
+		reminderUpdates.goalDidChange(goal, reason: .detailsSaved)
 	}
 
 	/// Inserts a new goal into the model context using a goal draft.
@@ -117,7 +113,7 @@ struct GoalService {
 				snapshot.restore(goal)
 			},
 		)
-		syncReminder(for: goal, requestsAuthorization: true)
+		reminderUpdates.goalDidChange(goal, reason: .detailsSaved)
 	}
 
 	/// Updates a goal using a goal draft.
@@ -146,8 +142,7 @@ struct GoalService {
 			performing: { goal.reminder = nil },
 			restoreOnFailure: { goal.reminder = previousReminder },
 		)
-		notificationScheduler.cancelReminders(for: [goal.id])
-		reminderCoordinator?.clearIssue(for: goal.id)
+		reminderUpdates.goalDidChange(goal, reason: .reminderDisabled)
 	}
 
 	/// Toggles a goal between completed and incomplete states, then saves the change.
@@ -267,8 +262,7 @@ struct GoalService {
 				ignoringGoalsWithIds: deletedGoalIds,
 			)
 		}
-		notificationScheduler.cancelReminders(for: Array(deletedGoalIds))
-		for goalId in deletedGoalIds { reminderCoordinator?.clearIssue(for: goalId) }
+		reminderUpdates.goalsWereDeleted(deletedGoalIds)
 	}
 
 	private func saveChanges(
@@ -297,30 +291,8 @@ struct GoalService {
 		try saveChanges(restoreOnFailure: {
 			snapshot.restore(goal)
 		})
-		syncReminder(for: goal, context: .progressSaved)
+		reminderUpdates.goalDidChange(goal, reason: .progressSaved)
 		return true
-	}
-
-	private func syncReminder(
-		for goal: Goal,
-		requestsAuthorization: Bool = false,
-		context: GoalReminderFeedbackContext = .goalSaved,
-	) {
-		let reminderState = GoalReminderSyncState(goal: goal)
-		let modelContainer = modelContext.container
-		Task { @MainActor in
-			// SwiftData contexts require their container to outlive asynchronous fetches.
-			defer { withExtendedLifetime(modelContainer) {} }
-			// Complete post-save scheduling even when its originating sheet disappears.
-			await (reminderCoordinator ?? GoalReminderCoordinator())
-				.sync(
-					state: reminderState,
-					context: context,
-					scheduler: notificationScheduler,
-					requestsAuthorization: requestsAuthorization,
-					modelContext: modelContext,
-				)
-		}
 	}
 
 	private func deleteUnusedTags(

@@ -20,7 +20,7 @@ struct GoalDetailView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
-	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
+	@Environment(GoalReminderCoordinator.self) private var reminderCoordinator
 
 	@State private var isPresentingEditForm = false
 
@@ -35,13 +35,11 @@ struct GoalDetailView: View {
 	var body: some View {
 		ScrollView {
 			VStack(alignment: .leading, spacing: 24) {
-				if let reminderCoordinator,
-					let issue = reminderCoordinator.issue(for: goal.id)
-				{
+				if let issue = reminderCoordinator.issue(for: goal.id) {
 					GoalReminderFeedbackView(
 						coordinator: reminderCoordinator,
 						issue: issue,
-						modelContext: modelContext,
+						onDisableReminder: { try goalService.disableReminder(goal) },
 					)
 					.transition(
 						reduceMotion
@@ -126,11 +124,11 @@ struct GoalDetailView: View {
 	}
 
 	private var isShowingReminderIssue: Bool {
-		reminderCoordinator?.issue(for: goal.id) != nil
+		reminderCoordinator.issue(for: goal.id) != nil
 	}
 
 	private var goalService: GoalService {
-		GoalService(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
+		GoalService(modelContext: modelContext, reminderUpdates: reminderCoordinator)
 	}
 
 	private func toggleCompletion() {
@@ -167,6 +165,7 @@ struct GoalDetailView: View {
 			)
 		)
 	}
+	.previewGoalReminders()
 }
 
 #Preview("Measurable") {
@@ -179,4 +178,5 @@ struct GoalDetailView: View {
 			)
 		)
 	}
+	.previewGoalReminders()
 }

@@ -1,3 +1,11 @@
+//
+//  GoalReminderReconciliationTests.swift
+//  GoalTrackerTests
+//
+//  Created by Samuel Yanez on 10/2/26.
+//  Copyright © 2026 Samuel Yanez. All rights reserved.
+//
+
 import Foundation
 import SwiftData
 import Testing
@@ -18,12 +26,12 @@ struct GoalReminderReconciliationTests {
 		container.mainContext.insert(goal)
 		try container.mainContext.save()
 		let center = PermissionNotificationCenterStub(status: .authorized)
-		let coordinator = try makeCoordinator()
+		let coordinator = try makeCoordinator(container: container, center: center)
 		defer { UserDefaults.standard.removePersistentDomain(forName: defaultsSuiteName) }
 
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		#expect(center.addedRequestCount == 1)
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		#expect(center.addedRequestCount == 1)
 
 		switch change {
@@ -32,7 +40,7 @@ struct GoalReminderReconciliationTests {
 		default: goal.targetDate = now.addingTimeInterval(172_800)
 		}
 		try container.mainContext.save()
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		#expect(center.addedRequestCount == 2)
 		let updated = try #require(center.pendingRequests.first)
 		#expect(updated.content.title == goal.name)
@@ -55,9 +63,9 @@ struct GoalReminderReconciliationTests {
 		container.mainContext.insert(goal)
 		try container.mainContext.save()
 		let center = PermissionNotificationCenterStub(status: .authorized)
-		let coordinator = try makeCoordinator()
+		let coordinator = try makeCoordinator(container: container, center: center)
 		defer { UserDefaults.standard.removePersistentDomain(forName: defaultsSuiteName) }
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		let identifier = try #require(center.pendingRequests.first?.identifier)
 		center.pendingRequests.append(UNNotificationRequest(identifier: "unrelated", content: UNMutableNotificationContent(), trigger: nil))
 
@@ -68,7 +76,7 @@ struct GoalReminderReconciliationTests {
 		default: container.mainContext.delete(goal)
 		}
 		try container.mainContext.save()
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		#expect(center.removedIdentifiers.contains(identifier))
 		#expect(center.pendingRequests.map(\.identifier) == ["unrelated"])
 		#expect(center.addedRequestCount == 1)
@@ -81,17 +89,17 @@ struct GoalReminderReconciliationTests {
 		container.mainContext.insert(goal)
 		try container.mainContext.save()
 		let center = PermissionNotificationCenterStub(status: .authorized)
-		let coordinator = try makeCoordinator()
+		let coordinator = try makeCoordinator(container: container, center: center)
 		defer { UserDefaults.standard.removePersistentDomain(forName: defaultsSuiteName) }
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		center.status = status
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		#expect(center.pendingRequests.isEmpty)
 		#expect(center.addedRequestCount == 1)
 		#expect(center.authorizationRequestCount == 0)
 		#expect((coordinator.issue(for: goal.id) != nil) == (status == .denied))
 		center.status = .authorized
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		#expect(center.pendingRequests.count == 1)
 		#expect(center.addedRequestCount == 2)
 		#expect(center.authorizationRequestCount == 0)
@@ -105,14 +113,14 @@ struct GoalReminderReconciliationTests {
 		container.mainContext.insert(goal)
 		try container.mainContext.save()
 		let center = PermissionNotificationCenterStub(status: .authorized)
-		let coordinator = try makeCoordinator()
+		let coordinator = try makeCoordinator(container: container, center: center)
 		defer { UserDefaults.standard.removePersistentDomain(forName: defaultsSuiteName) }
 		center.addError = Failure.scheduling
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		#expect(coordinator.issue(for: goal.id)?.error is Failure)
 		#expect(coordinator.issue(for: goal.id)?.message == .reminderFeedbackSchedulingFailure)
 		center.addError = nil
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		#expect(coordinator.issue(for: goal.id) == nil)
 		#expect(center.pendingRequests.count == 1)
 	}
@@ -125,9 +133,9 @@ struct GoalReminderReconciliationTests {
 		center.beforePendingRequests = {
 			container.mainContext.insert(goal)
 		}
-		let coordinator = try makeCoordinator()
+		let coordinator = try makeCoordinator(container: container, center: center)
 		defer { UserDefaults.standard.removePersistentDomain(forName: defaultsSuiteName) }
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		#expect(center.pendingRequests.first?.content.title == goal.name)
 	}
 
@@ -138,9 +146,9 @@ struct GoalReminderReconciliationTests {
 		container.mainContext.insert(makeGoal())
 		try container.mainContext.save()
 		let center = PermissionNotificationCenterStub(status: .authorized)
-		let coordinator = try makeCoordinator()
+		let coordinator = try makeCoordinator(container: container, center: center)
 		defer { UserDefaults.standard.removePersistentDomain(forName: defaultsSuiteName) }
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		let goals = try container.mainContext.fetch(FetchDescriptor<Goal>())
 		let first = try #require(goals.first)
 		let second = try #require(goals.last)
@@ -151,7 +159,7 @@ struct GoalReminderReconciliationTests {
 			second.name = "Synced update"
 			do { try container.mainContext.save() } catch { Issue.record(error) }
 		}
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		let scheduler = GoalNotificationScheduler(notificationCenter: center, now: { now })
 		let request = center.pendingRequests.first { $0.identifier == scheduler.reminderNotificationIdentifier(for: second.id) }
 		#expect(request?.content.title == "Synced update")
@@ -165,7 +173,7 @@ struct GoalReminderReconciliationTests {
 		container.mainContext.insert(goal)
 		try container.mainContext.save()
 		let center = PermissionNotificationCenterStub(status: .authorized)
-		let coordinator = try makeCoordinator()
+		let coordinator = try makeCoordinator(container: container, center: center)
 		defer { UserDefaults.standard.removePersistentDomain(forName: defaultsSuiteName) }
 		let (started, start) = AsyncStream<Void>.makeStream()
 		let (resume, continuation) = AsyncStream<Void>.makeStream()
@@ -175,12 +183,12 @@ struct GoalReminderReconciliationTests {
 			start.yield(())
 			for await _ in resume { break }
 		}
-		let first = Task { await reconcile(coordinator, container: container, center: center) }
+		let first = Task { await coordinator.reconcileReminders() }
 		for await _ in started { break }
 		goal.name = "Latest goal"
 		try container.mainContext.save()
 		center.beforePendingRequests = { check.yield(()) }
-		let second = Task { await reconcile(coordinator, container: container, center: center) }
+		let second = Task { await coordinator.reconcileReminders() }
 		for await _ in checked { break }
 		if cancelsOlderPass { first.cancel() }
 		continuation.yield(())
@@ -197,10 +205,10 @@ struct GoalReminderReconciliationTests {
 		container.mainContext.insert(makeGoal())
 		try container.mainContext.save()
 		let center = PermissionNotificationCenterStub(status: .denied)
-		let coordinator = try makeCoordinator()
+		let coordinator = try makeCoordinator(container: container, center: center)
 		defer { UserDefaults.standard.removePersistentDomain(forName: defaultsSuiteName) }
 		center.beforePendingRequests = { center.status = .authorized }
-		await reconcile(coordinator, container: container, center: center)
+		await coordinator.reconcileReminders()
 		#expect(center.pendingRequests.count == 1)
 		#expect(coordinator.issues.isEmpty)
 		#expect(center.authorizationRequestCount == 0)
@@ -212,30 +220,26 @@ struct GoalReminderReconciliationTests {
 		container.mainContext.insert(makeGoal())
 		try container.mainContext.save()
 		let center = PermissionNotificationCenterStub(status: .authorized)
-		let coordinator = try makeCoordinator()
+		let coordinator = try makeCoordinator(container: container, center: center)
 		defer { UserDefaults.standard.removePersistentDomain(forName: defaultsSuiteName) }
 		center.beforePendingRequests = {
 			withUnsafeCurrentTask { $0?.cancel() }
 		}
-		await Task { await reconcile(coordinator, container: container, center: center) }.value
+		await Task { await coordinator.reconcileReminders() }.value
 		#expect(center.pendingRequests.isEmpty)
 		#expect(coordinator.issues.isEmpty)
 	}
 
 	private let defaultsSuiteName = "GoalReminderReconciliationTests.\(UUID().uuidString)"
 
-	private func makeCoordinator() throws -> GoalReminderCoordinator {
-		GoalReminderCoordinator(permissionDefaults: try #require(UserDefaults(suiteName: defaultsSuiteName)))
+	private func makeCoordinator(container: ModelContainer, center: PermissionNotificationCenterStub) throws -> GoalReminderCoordinator {
+		GoalReminderCoordinator(modelContext: container.mainContext, notificationCenter: center, now: { now }, permissionDefaults: try #require(UserDefaults(suiteName: defaultsSuiteName)))
 	}
 
 	private let now = Date(timeIntervalSinceReferenceDate: 800_000_000)
 
 	private func makeGoal() -> Goal {
 		Goal(name: "Walk", reminder: GoalReminder(), progress: .outcome(OutcomeProgress()), recurrence: GoalRecurrence(cadence: .daily))
-	}
-
-	private func reconcile(_ coordinator: GoalReminderCoordinator, container: ModelContainer, center: PermissionNotificationCenterStub) async {
-		await coordinator.reconcileReminders(modelContext: container.mainContext, notificationCenter: center, now: { now })
 	}
 
 	private enum Failure: Error { case scheduling }

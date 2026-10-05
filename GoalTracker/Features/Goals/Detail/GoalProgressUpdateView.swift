@@ -15,7 +15,7 @@ struct GoalProgressUpdateView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
-	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
+	@Environment(GoalReminderCoordinator.self) private var reminderUpdates
 
 	let goal: Goal
 
@@ -102,7 +102,7 @@ struct GoalProgressUpdateView: View {
 	}
 
 	private var goalService: GoalService {
-		GoalService(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
+		GoalService(modelContext: modelContext, reminderUpdates: reminderUpdates)
 	}
 
 	private func toggleSign() {
@@ -174,4 +174,5 @@ extension View {
 			)
 		)
 	}
+	.previewGoalReminders()
 }

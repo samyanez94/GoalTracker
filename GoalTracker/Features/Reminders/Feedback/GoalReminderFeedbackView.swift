@@ -1,4 +1,3 @@
-import SwiftData
 import SwiftUI
 
 /// An actionable banner at the top of the affected goal’s detail content.
@@ -11,7 +10,7 @@ struct GoalReminderFeedbackView: View {
 
 	let coordinator: GoalReminderCoordinator
 	let issue: GoalReminderIssue
-	let modelContext: ModelContext
+	let onDisableReminder: () throws -> Void
 
 	var body: some View {
 		GoalDetailCard {
@@ -38,7 +37,7 @@ struct GoalReminderFeedbackView: View {
 								}
 							} else {
 								Button(.reminderFeedbackRetry) {
-									Task { await coordinator.retry(for: issue.goalId, modelContext: modelContext) }
+									Task { await coordinator.retry(for: issue.goalId) }
 								}
 							}
 						}
@@ -53,7 +52,7 @@ struct GoalReminderFeedbackView: View {
 
 	private func disableReminder() {
 		do {
-			try coordinator.disableReminder(for: issue.goalId, modelContext: modelContext)
+			try onDisableReminder()
 		} catch {
 			saveFailure = .updateGoal
 		}

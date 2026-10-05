@@ -11,7 +11,7 @@ import SwiftUI
 struct GoalRowLabelView: View {
 	@Environment(\.editMode) private var editMode
 
-	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
+	@Environment(GoalReminderCoordinator.self) private var reminderCoordinator
 
 	let goal: Goal
 
@@ -57,7 +57,7 @@ struct GoalRowLabelView: View {
 				}
 				GoalTagSummaryText(tags: goal.tags ?? [])
 			}
-			if reminderCoordinator?.issue(for: goal.id) != nil {
+			if reminderCoordinator.issue(for: goal.id) != nil {
 				Spacer()
 				Image(systemName: "exclamationmark.triangle.fill")
 					.foregroundStyle(.orange)

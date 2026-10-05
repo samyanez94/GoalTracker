@@ -3,6 +3,7 @@
 //  GoalTrackerTests
 //
 //  Created by Samuel Yanez on 5/14/26.
+//  Copyright © 2026 Samuel Yanez. All rights reserved.
 //
 
 import Foundation
@@ -167,6 +168,7 @@ struct GoalServiceTests {
 		insert(goal, into: container)
 		let service = GoalService(
 			modelContext: container.mainContext,
+			reminderUpdates: GoalReminderCoordinator(modelContext: container.mainContext, scheduler: ReminderSchedulingStub()),
 			saveContext: {
 				throw TestSaveError.failed
 			},
@@ -260,6 +262,7 @@ struct GoalServiceTests {
 		insert(goal, into: container)
 		let service = GoalService(
 			modelContext: container.mainContext,
+			reminderUpdates: GoalReminderCoordinator(modelContext: container.mainContext, scheduler: ReminderSchedulingStub()),
 			saveContext: {
 				throw TestSaveError.failed
 			},
@@ -665,6 +668,7 @@ struct GoalServiceTests {
 		insert(secondGoal, into: container)
 		let service = GoalService(
 			modelContext: container.mainContext,
+			reminderUpdates: GoalReminderCoordinator(modelContext: container.mainContext, scheduler: ReminderSchedulingStub()),
 			saveContext: {
 				throw TestSaveError.failed
 			},
@@ -693,6 +697,7 @@ struct GoalServiceTests {
 		try container.mainContext.save()
 		let service = GoalService(
 			modelContext: container.mainContext,
+			reminderUpdates: GoalReminderCoordinator(modelContext: container.mainContext, scheduler: ReminderSchedulingStub()),
 			saveContext: {
 				throw TestSaveError.failed
 			},
@@ -725,6 +730,7 @@ struct GoalServiceTests {
 		insert(goal, into: container)
 		let service = GoalService(
 			modelContext: container.mainContext,
+			reminderUpdates: GoalReminderCoordinator(modelContext: container.mainContext, scheduler: ReminderSchedulingStub()),
 			saveContext: {
 				throw TestSaveError.failed
 			},
@@ -845,7 +851,7 @@ struct GoalServiceTests {
 		let scheduler = FakeGoalReminderScheduler()
 		let service = GoalService(
 			modelContext: container.mainContext,
-			notificationScheduler: scheduler,
+			reminderUpdates: GoalReminderCoordinator(modelContext: container.mainContext, scheduler: scheduler),
 			saveContext: {
 				throw TestSaveError.failed
 			},
@@ -930,6 +936,7 @@ struct GoalServiceTests {
 		insert(goal, into: container)
 		let service = GoalService(
 			modelContext: container.mainContext,
+			reminderUpdates: GoalReminderCoordinator(modelContext: container.mainContext, scheduler: ReminderSchedulingStub()),
 			saveContext: {
 				throw TestSaveError.failed
 			},
@@ -1029,18 +1036,16 @@ struct GoalServiceTests {
 		let originalReminder = goal.reminder
 		let scheduler = FakeGoalReminderScheduler()
 		scheduler.syncResult = .permissionDenied
-		let coordinator = GoalReminderCoordinator()
+		let coordinator = GoalReminderCoordinator(modelContext: container.mainContext, scheduler: scheduler)
 		await coordinator.sync(
 			state: GoalReminderSyncState(goal: goal),
 			context: .goalSaved,
-			scheduler: scheduler,
 			requestsAuthorization: true,
 		)
 		let issueId = try #require(coordinator.issue(for: goal.id)?.id)
 		let service = GoalService(
 			modelContext: container.mainContext,
-			notificationScheduler: scheduler,
-			reminderCoordinator: coordinator,
+			reminderUpdates: coordinator,
 			saveContext: {
 				if !saveSucceeds { throw TestSaveError.failed }
 				try container.mainContext.save()
@@ -1110,7 +1115,7 @@ struct GoalServiceTests {
 	) -> GoalService {
 		GoalService(
 			modelContext: container.mainContext,
-			notificationScheduler: notificationScheduler,
+			reminderUpdates: GoalReminderCoordinator(modelContext: container.mainContext, scheduler: notificationScheduler),
 			now: now,
 		)
 	}

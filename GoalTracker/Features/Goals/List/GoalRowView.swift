@@ -8,7 +8,7 @@ struct GoalRowView: View {
 
 	@Environment(\.modelContext) private var modelContext
 
-	@Environment(\.goalReminderCoordinator) private var reminderCoordinator
+	@Environment(GoalReminderCoordinator.self) private var reminderUpdates
 
 	@State private var isPresentingEditForm = false
 
@@ -65,7 +65,7 @@ struct GoalRowView: View {
 	}
 
 	private var goalService: GoalService {
-		GoalService(modelContext: modelContext, reminderCoordinator: reminderCoordinator)
+		GoalService(modelContext: modelContext, reminderUpdates: reminderUpdates)
 	}
 
 	private func toggleCompletion() {
@@ -123,7 +123,8 @@ struct GoalRowView: View {
 			recurrence: GoalRecurrence(cadence: .monthly),
 		)
 	]
-	GoalNavigationView().modelContainer(GoalPreviewContainer.make(goals: goals))
+	let container = GoalPreviewContainer.make(goals: goals)
+	GoalNavigationView(modelContext: container.mainContext).modelContainer(container)
 }
 
 #endif

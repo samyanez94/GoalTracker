@@ -3,6 +3,7 @@
 //  GoalTrackerTests
 //
 //  Created by Codex on 6/11/26.
+//  Copyright © 2026 Samuel Yanez. All rights reserved.
 //
 
 import Foundation

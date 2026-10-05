@@ -3,6 +3,7 @@
 //  GoalTrackerTests
 //
 //  Created by Samuel Yanez on 6/9/26.
+//  Copyright © 2026 Samuel Yanez. All rights reserved.
 //
 
 import Testing
