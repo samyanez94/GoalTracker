@@ -377,25 +377,28 @@ struct GoalServiceTests {
 	}
 
 	@Test
-	func `Direct goal update preserves recurrence`() async throws {
+	func `Editing a draft initialized from a goal preserves unedited values`() async throws {
 		let container = try makeContainer()
 		let recurrence = GoalRecurrence(cadence: .weekly)
+		let reminder = GoalReminder()
+		let tag = Tag(name: "Health")
 		let goal = makeGoal(
+			reminder: reminder,
 			progress: .outcome(OutcomeProgress()),
 			recurrence: recurrence,
 		)
+		goal.tags = [tag]
 		insert(goal, into: container)
 		let service = makeService(in: container)
 
-		try service.updateGoal(
-			goal,
-			name: "Updated Goal",
-			details: goal.details,
-			targetDate: goal.targetDate,
-			progress: goal.progress,
-		)
+		var draft = GoalDraft(goal: goal)
+		draft.name = "Updated Goal"
+		try service.updateGoal(goal, with: draft)
 
+		#expect(goal.name == "Updated Goal")
 		#expect(goal.recurrence == recurrence)
+		#expect(goal.reminder == reminder)
+		#expect((goal.tags ?? []).map(\.id) == [tag.id])
 	}
 
 	@Test
@@ -416,13 +419,9 @@ struct GoalServiceTests {
 			now: { Date(timeIntervalSinceReferenceDate: 123) },
 		)
 
-		try service.updateGoal(
-			goal,
-			name: goal.name,
-			details: goal.details,
-			targetDate: goal.targetDate,
-			progress: .measurable(currentValue: .zero, targetValue: 12, step: 3),
-		)
+		var draft = GoalDraft(goal: goal)
+		draft.progress = .measurable(currentValue: .zero, targetValue: 12, step: 3)
+		try service.updateGoal(goal, with: draft)
 
 		let progress = try #require(goal.progress.measurableProgress)
 		#expect(progress.targetValue == 12)
@@ -451,13 +450,9 @@ struct GoalServiceTests {
 			now: { Date(timeIntervalSinceReferenceDate: 123) },
 		)
 
-		try service.updateGoal(
-			goal,
-			name: goal.name,
-			details: goal.details,
-			targetDate: goal.targetDate,
-			progress: .measurable(currentValue: 4, targetValue: 12, step: 3),
-		)
+		var draft = GoalDraft(goal: goal)
+		draft.progress = .measurable(currentValue: 4, targetValue: 12, step: 3)
+		try service.updateGoal(goal, with: draft)
 
 		let progress = try #require(goal.progress.measurableProgress)
 		#expect(progress.targetValue == 12)
@@ -490,18 +485,14 @@ struct GoalServiceTests {
 		insert(goal, into: container)
 		let service = makeService(in: container, now: { today })
 
-		try service.updateGoal(
-			goal,
-			name: goal.name,
-			details: goal.details,
-			targetDate: goal.targetDate,
-			reminder: reminder,
-			progress: .measurable(
-				currentValue: .zero,
-				targetValue: try #require(goal.progress.measurableProgress?.targetValue),
-				step: try #require(goal.progress.measurableProgress?.step),
-			),
+		var draft = GoalDraft(goal: goal)
+		draft.reminder = reminder
+		draft.progress = .measurable(
+			currentValue: .zero,
+			targetValue: try #require(goal.progress.measurableProgress?.targetValue),
+			step: try #require(goal.progress.measurableProgress?.step),
 		)
+		try service.updateGoal(goal, with: draft)
 
 		#expect(goal.reminder == reminder)
 		#expect(goal.progress.events.map(\.delta) == [10, 5])
@@ -520,14 +511,9 @@ struct GoalServiceTests {
 		insert(goal, into: container)
 		let service = makeService(in: container, notificationScheduler: scheduler)
 
-		try service.updateGoal(
-			goal,
-			name: goal.name,
-			details: goal.details,
-			targetDate: goal.targetDate,
-			reminder: reminder,
-			progress: goal.progress,
-		)
+		var draft = GoalDraft(goal: goal)
+		draft.reminder = reminder
+		try service.updateGoal(goal, with: draft)
 
 		#expect(goal.reminder == reminder)
 		await waitForReminderSync()
@@ -544,14 +530,9 @@ struct GoalServiceTests {
 		insert(goal, into: container)
 		let service = makeService(in: container)
 
-		try service.updateGoal(
-			goal,
-			name: goal.name,
-			details: goal.details,
-			targetDate: goal.targetDate,
-			progress: goal.progress,
-			tags: [healthTag, runningTag],
-		)
+		var draft = GoalDraft(goal: goal)
+		draft.tags = [healthTag, runningTag].map { GoalTagDraft(tag: $0) }
+		try service.updateGoal(goal, with: draft)
 
 		#expect(Set((goal.tags ?? []).map(\.name)) == ["Health", "Running"])
 	}
@@ -568,14 +549,9 @@ struct GoalServiceTests {
 		try container.mainContext.save()
 		let service = makeService(in: container)
 
-		try service.updateGoal(
-			goal,
-			name: goal.name,
-			details: goal.details,
-			targetDate: goal.targetDate,
-			progress: goal.progress,
-			tags: [newTag],
-		)
+		var draft = GoalDraft(goal: goal)
+		draft.tags = [newTag].map { GoalTagDraft(tag: $0) }
+		try service.updateGoal(goal, with: draft)
 
 		#expect(Set(try fetchTags(in: container).map(\.name)) == ["New"])
 	}
@@ -704,15 +680,11 @@ struct GoalServiceTests {
 		)
 
 		#expect(throws: GoalService.SaveError.self) {
-			try service.updateGoal(
-				goal,
-				name: "Updated Goal",
-				details: goal.details,
-				targetDate: goal.targetDate,
-				reminder: GoalReminder(),
-				progress: goal.progress,
-				tags: [newTag],
-			)
+			var draft = GoalDraft(goal: goal)
+			draft.name = "Updated Goal"
+			draft.reminder = GoalReminder()
+			draft.tags = [newTag].map { GoalTagDraft(tag: $0) }
+			try service.updateGoal(goal, with: draft)
 		}
 
 		#expect(goal.name == "Original Goal")
@@ -972,14 +944,10 @@ struct GoalServiceTests {
 		insert(goal, into: container)
 		let service = makeService(in: container, notificationScheduler: scheduler)
 
-		try service.updateGoal(
-			goal,
-			name: goal.name,
-			details: goal.details,
-			targetDate: nil,
-			reminder: nil,
-			progress: goal.progress,
-		)
+		var draft = GoalDraft(goal: goal)
+		draft.targetDate = nil
+		draft.reminder = nil
+		try service.updateGoal(goal, with: draft)
 
 		await waitForReminderSync()
 		#expect(scheduler.syncedGoalIds == [goal.id])

@@ -71,68 +71,37 @@ struct GoalService {
 		try addGoal(goal)
 	}
 
-	/// Updates a goal's editable fields, cleans up unused tags, and saves the change.
+	/// Replaces a goal's editable values with a draft and saves the change.
 	///
-	/// When `tags` is provided, the goal's tag relationship is replaced and any tags that are no longer attached to a goal are deleted.
+	/// Start with `GoalDraft(goal:)` to retain values that are not being edited.
+	/// Existing progress events are preserved when editing progress settings. Draft
+	/// tags are resolved to saved tags, and removed tags are deleted when unused.
+	/// A save failure restores the goal's previous values; reminder work starts only
+	/// after a successful save.
 	func updateGoal(
 		_ goal: Goal,
-		name: String,
-		details: String?,
-		targetDate: Date?,
-		reminder: GoalReminder? = nil,
-		progress: GoalProgress,
-		updatesRecurrence: Bool = false,
-		recurrence: GoalRecurrence? = nil,
-		tags: [Tag]? = nil,
+		with draft: GoalDraft,
 	) throws {
+		let tags = try resolveTags(for: draft.tags)
 		let snapshot = GoalSnapshot(goal: goal)
 		let previousTags = goal.tags ?? []
 		try saveChanges(
 			performing: {
-				goal.name = name
-				goal.details = details
-				goal.targetDate = targetDate
-				goal.reminder = reminder
-				goal.progress = progress.updated(preservingEventsFrom: goal.progress)
-				if updatesRecurrence {
-					goal.recurrence = recurrence
-				}
-				if let tags {
-					let removedTags = tagsRemoved(
-						from: previousTags,
-						afterSelecting: tags,
-					)
-					goal.tags = tags
-					deleteUnusedTags(
-						from: removedTags,
-						ignoringGoalsWithIds: [goal.id],
-					)
-				}
+				goal.name = draft.name
+				goal.details = draft.normalizedDetails
+				goal.targetDate = draft.targetDate
+				goal.reminder = draft.reminder
+				goal.progress = draft.progress.updated(preservingEventsFrom: goal.progress)
+				goal.recurrence = draft.recurrence
+				let removedTags = tagsRemoved(from: previousTags, afterSelecting: tags)
+				goal.tags = tags
+				deleteUnusedTags(from: removedTags, ignoringGoalsWithIds: [goal.id])
 			},
 			restoreOnFailure: {
 				snapshot.restore(goal)
 			},
 		)
 		reminderUpdates.goalDidChange(goal, reason: .detailsSaved)
-	}
-
-	/// Updates a goal using a goal draft.
-	func updateGoal(
-		_ goal: Goal,
-		with draft: GoalDraft,
-	) throws {
-		let tags = try resolveTags(for: draft.tags)
-		try updateGoal(
-			goal,
-			name: draft.name,
-			details: draft.normalizedDetails,
-			targetDate: draft.targetDate,
-			reminder: draft.reminder,
-			progress: draft.progress,
-			updatesRecurrence: true,
-			recurrence: draft.recurrence,
-			tags: tags,
-		)
 	}
 
 	/// Disables a reminder, cancelling notifications only after the preference is saved.

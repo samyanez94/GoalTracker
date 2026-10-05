@@ -28,10 +28,14 @@ struct GoalDetailBottomView: View {
 		Group {
 			switch goal.progress {
 			case .outcome:
-				CompleteGoalButton(
-					isCompleted: goal.isCompleted(),
-					action: completeGoal
-				)
+				let isCompleted = goal.isCompleted()
+				let title: LocalizedStringResource = isCompleted ? .detailCompleteGoalButtonCompleted : .detailCompleteGoalButtonComplete
+				Button(title, action: completeGoal)
+					.font(.headline)
+					.controlSize(.large)
+					.buttonSizing(.flexible)
+					.buttonStyle(.glassProminent)
+					.disabled(isCompleted)
 			case .measurable:
 				HStack(spacing: 6) {
 					ProgressStepperControl(
@@ -40,7 +44,16 @@ struct GoalDetailBottomView: View {
 						onDecrement: decrementProgress,
 						onIncrement: incrementProgress,
 					)
-					UpdateProgressButton(action: openProgressUpdateView)
+					Button(
+						.detailUpdateProgressButton,
+						systemImage: "plus.forwardslash.minus",
+						action: openProgressUpdateView
+					)
+					.font(.body.weight(.semibold))
+					.labelStyle(.iconOnly)
+					.controlSize(.large)
+					.buttonStyle(.glassProminent)
+					.buttonBorderShape(.circle)
 				}
 				.frame(maxWidth: .infinity)
 			}
