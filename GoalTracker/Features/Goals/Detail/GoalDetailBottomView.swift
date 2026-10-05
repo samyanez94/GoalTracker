@@ -102,6 +102,8 @@ struct GoalDetailBottomView: View {
 
 // MARK: - Previews
 
+#if DEBUG
+
 #Preview("Outcome") {
 	GoalDetailBottomView(
 		goal: Goal(
@@ -134,3 +136,5 @@ struct GoalDetailBottomView: View {
 	)
 	.previewGoalReminders()
 }
+
+#endif

@@ -156,6 +156,8 @@ extension View {
 
 // MARK: - Previews
 
+#if DEBUG
+
 #Preview("Update Progress") {
 	NavigationStack {
 		GoalProgressUpdateView(
@@ -176,3 +178,5 @@ extension View {
 	}
 	.previewGoalReminders()
 }
+
+#endif

@@ -155,6 +155,8 @@ struct GoalDetailView: View {
 
 // MARK: - Previews
 
+#if DEBUG
+
 #Preview("Outcome") {
 	NavigationStack {
 		GoalDetailView(
@@ -180,3 +182,5 @@ struct GoalDetailView: View {
 	}
 	.previewGoalReminders()
 }
+
+#endif

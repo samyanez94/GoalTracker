@@ -225,6 +225,8 @@ struct GoalProgressEventListView: View {
 
 // MARK: - Previews
 
+#if DEBUG
+
 #Preview("Progress Events") {
 	NavigationStack {
 		GoalProgressEventListView(
@@ -272,3 +274,5 @@ struct GoalProgressEventListView: View {
 	}
 	.previewGoalReminders()
 }
+
+#endif
