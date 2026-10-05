@@ -1,5 +1,5 @@
 //
-//  GoalFormData.swift
+//  GoalDraft.swift
 //  GoalTracker
 //
 //  Created by Samuel Yanez on 5/13/26.
@@ -7,23 +7,23 @@
 
 import Foundation
 
-struct GoalFormData {
+/// Editable goal values submitted to `GoalService`, independent of form presentation state.
+struct GoalDraft {
 	var name: String
 	var details: String
 	var targetDate: Date?
 	var reminder: GoalReminder?
 	var progress: GoalProgress
 	var recurrence: GoalRecurrence?
-	var tags: [GoalFormTagSelection]
+	var tags: [GoalTagDraft]
 
-	static let empty = GoalFormData(
+	static let empty = GoalDraft(
 		name: "",
 		details: "",
 		targetDate: nil,
 		reminder: nil,
 		progress: .outcome(OutcomeProgress()),
 		recurrence: nil,
-		tags: [GoalFormTagSelection](),
 	)
 
 	init(
@@ -33,7 +33,7 @@ struct GoalFormData {
 		reminder: GoalReminder? = nil,
 		progress: GoalProgress,
 		recurrence: GoalRecurrence? = nil,
-		tags: [GoalFormTagSelection] = [],
+		tags: [GoalTagDraft] = [],
 	) {
 		self.name = name
 		self.details = details
@@ -61,7 +61,7 @@ struct GoalFormData {
 			progress: progress,
 			recurrence: recurrence,
 			tags: tags.map { tag in
-				GoalFormTagSelection(tag: tag)
+				GoalTagDraft(tag: tag)
 			},
 		)
 	}
@@ -75,7 +75,7 @@ struct GoalFormData {
 		recurrence = goal.recurrence
 		tags = (goal.tags ?? [])
 			.map { tag in
-				GoalFormTagSelection(tag: tag)
+				GoalTagDraft(tag: tag)
 			}
 	}
 

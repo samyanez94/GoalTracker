@@ -33,7 +33,7 @@ final class GoalFormState {
 	) {
 		self.mode = mode
 		self.now = now
-		let data = mode.initialData
+		let data = mode.initialDraft
 		name = data.name
 		details = data.details
 		schedule = GoalFormScheduleState(
@@ -43,7 +43,7 @@ final class GoalFormState {
 			defaultTargetDate: now(),
 		)
 		progress = GoalFormProgressState(progress: data.progress)
-		tagSelections = data.tags
+		tagSelections = data.tags.map { GoalFormTagSelection(name: $0.name) }
 
 		initialSnapshot = currentSnapshot
 	}
@@ -71,15 +71,15 @@ final class GoalFormState {
 		currentSnapshot != initialSnapshot
 	}
 
-	func makeFormData() -> GoalFormData {
-		GoalFormData(
+	func makeGoalDraft() -> GoalDraft {
+		GoalDraft(
 			name: trimmedName,
 			details: details,
 			targetDate: schedule.formTargetDate,
 			reminder: schedule.formReminder,
 			progress: progress.makeProgress(timestamp: now()),
 			recurrence: schedule.recurrence,
-			tags: selectedTagSelections,
+			tags: selectedTagSelections.map { GoalTagDraft(name: $0.name) },
 		)
 	}
 

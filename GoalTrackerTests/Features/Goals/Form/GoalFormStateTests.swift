@@ -78,7 +78,7 @@ struct GoalFormStateTests {
 		]
 		let state = GoalFormState(
 			mode: .edit(
-				GoalFormData(
+				GoalDraft(
 					name: "Run 10 miles",
 					details: "Weekly long run",
 					targetDate: targetDate,
@@ -116,7 +116,7 @@ struct GoalFormStateTests {
 		let reminder = GoalReminder()
 		let state = GoalFormState(
 			mode: .edit(
-				GoalFormData(
+				GoalDraft(
 					name: "Run",
 					details: "",
 					reminder: reminder,
@@ -168,7 +168,7 @@ struct GoalFormStateTests {
 		state.name = "Read books"
 		state.progress.isProgressBased = true
 
-		let progress = try #require(state.makeFormData().progress.measurableProgress)
+		let progress = try #require(state.makeGoalDraft().progress.measurableProgress)
 
 		#expect(progress.targetValue == 1)
 		#expect(progress.step == 1)
@@ -178,7 +178,7 @@ struct GoalFormStateTests {
 	func `Edit mode allows saving complete measurable progress`() {
 		let state = GoalFormState(
 			mode: .edit(
-				GoalFormData(
+				GoalDraft(
 					name: "Read books",
 					details: "",
 					progress: .measurable(currentValue: 10, targetValue: 10),
@@ -190,7 +190,7 @@ struct GoalFormStateTests {
 	}
 
 	@Test
-	func `Form data includes target date only when target date is enabled`() {
+	func `Goal draft includes target date only when target date is enabled`() {
 		let targetDate = Date(timeIntervalSinceReferenceDate: 456)
 		let reminder = GoalReminder()
 		let state = GoalFormState(mode: .create)
@@ -199,13 +199,13 @@ struct GoalFormStateTests {
 		state.schedule.draftTargetDate = targetDate
 		state.schedule.reminder = reminder
 
-		#expect(state.makeFormData().targetDate == targetDate)
-		#expect(state.makeFormData().reminder == reminder)
+		#expect(state.makeGoalDraft().targetDate == targetDate)
+		#expect(state.makeGoalDraft().reminder == reminder)
 
 		state.schedule.hasTargetDate = false
 
-		#expect(state.makeFormData().targetDate == nil)
-		#expect(state.makeFormData().reminder == nil)
+		#expect(state.makeGoalDraft().targetDate == nil)
+		#expect(state.makeGoalDraft().reminder == nil)
 	}
 
 	@Test
@@ -220,7 +220,7 @@ struct GoalFormStateTests {
 
 		state.schedule.recurrence = GoalRecurrence(cadence: .daily)
 
-		let data = state.makeFormData()
+		let data = state.makeGoalDraft()
 		#expect(state.schedule.hasTargetDate == false)
 		#expect(state.schedule.reminder == reminder)
 		#expect(state.schedule.allowsTargetDate == false)
@@ -234,7 +234,7 @@ struct GoalFormStateTests {
 		let reminder = GoalReminder()
 		let state = GoalFormState(
 			mode: .edit(
-				GoalFormData(
+				GoalDraft(
 					name: "Run",
 					details: "",
 					targetDate: Date(timeIntervalSinceReferenceDate: 456),
@@ -245,7 +245,7 @@ struct GoalFormStateTests {
 			),
 		)
 
-		let data = state.makeFormData()
+		let data = state.makeGoalDraft()
 		#expect(state.schedule.hasTargetDate == false)
 		#expect(state.schedule.reminder == reminder)
 		#expect(state.schedule.allowsTargetDate == false)
@@ -289,7 +289,7 @@ struct GoalFormStateTests {
 		let reminder = GoalReminder()
 		let state = GoalFormState(
 			mode: .edit(
-				GoalFormData(
+				GoalDraft(
 					name: "File taxes",
 					details: "",
 					targetDate: Date(timeIntervalSinceReferenceDate: 456),
@@ -299,16 +299,16 @@ struct GoalFormStateTests {
 			),
 		)
 
-		#expect(state.makeFormData().reminder == reminder)
+		#expect(state.makeGoalDraft().reminder == reminder)
 	}
 
 	@Test
-	func `Form data trims name and preserves details for normalization`() {
+	func `Goal draft trims name and preserves details for normalization`() {
 		let state = GoalFormState(mode: .create)
 		state.name = "  Write draft  "
 		state.details = "   "
 
-		let data = state.makeFormData()
+		let data = state.makeGoalDraft()
 
 		#expect(data.name == "Write draft")
 		#expect(data.details == "   ")
@@ -316,14 +316,14 @@ struct GoalFormStateTests {
 	}
 
 	@Test
-	func `Form data preserves selected tags`() {
+	func `Goal draft preserves selected tags`() {
 		let tags = [
 			Tag(name: "Health"),
 			Tag(name: "Running")
 		]
 		let state = GoalFormState(
 			mode: .edit(
-				GoalFormData(
+				GoalDraft(
 					name: "Run",
 					details: "",
 					progress: .outcome(OutcomeProgress()),
@@ -332,20 +332,21 @@ struct GoalFormStateTests {
 			),
 		)
 
-		let data = state.makeFormData()
+		let data = state.makeGoalDraft()
 
+		#expect(state.tagSelections.map(\.isSelected) == [true, true])
 		#expect(data.tags.map(\.name) == ["Health", "Running"])
 	}
 
 	@Test
-	func `Form data ignores unselected tag selections`() {
+	func `Goal draft ignores unselected tag selections`() {
 		let state = GoalFormState(mode: .create)
 		state.tagSelections = [
 			GoalFormTagSelection(name: "Health"),
 			GoalFormTagSelection(name: "Running", isSelected: false)
 		]
 
-		let data = state.makeFormData()
+		let data = state.makeGoalDraft()
 
 		#expect(data.tags.map(\.name) == ["Health"])
 	}
@@ -362,23 +363,23 @@ struct GoalFormStateTests {
 	}
 
 	@Test
-	func `Form data preserves selected recurrence`() {
+	func `Goal draft preserves selected recurrence`() {
 		let state = GoalFormState(mode: .create)
 		state.name = "Read"
 		state.schedule.recurrence = GoalRecurrence(cadence: .daily)
 		state.schedule.reminder = GoalReminder()
 
-		let data = state.makeFormData()
+		let data = state.makeGoalDraft()
 
 		#expect(data.recurrence == GoalRecurrence(cadence: .daily))
 		#expect(data.reminder == GoalReminder())
 	}
 
 	@Test
-	func `Form data preserves never recurrence`() {
+	func `Goal draft preserves never recurrence`() {
 		let state = GoalFormState(
 			mode: .edit(
-				GoalFormData(
+				GoalDraft(
 					name: "Read",
 					details: "",
 					progress: .outcome(OutcomeProgress()),
@@ -388,7 +389,7 @@ struct GoalFormStateTests {
 		)
 		state.schedule.recurrence = nil
 
-		let data = state.makeFormData()
+		let data = state.makeGoalDraft()
 
 		#expect(data.recurrence == nil)
 	}
@@ -397,7 +398,7 @@ struct GoalFormStateTests {
 	func `Completed outcome edit remains completed in form data`() {
 		let state = GoalFormState(
 			mode: .edit(
-				GoalFormData(
+				GoalDraft(
 					name: "Book trip",
 					details: "",
 					progress: .outcome(OutcomeProgress.completed(timestamp: Date())),
@@ -405,7 +406,7 @@ struct GoalFormStateTests {
 			),
 		)
 
-		let data = state.makeFormData()
+		let data = state.makeGoalDraft()
 
 		#expect(data.progress.outcomeProgress != nil)
 		#expect(data.progress.isCompleted)

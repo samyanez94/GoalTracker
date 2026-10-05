@@ -305,7 +305,7 @@ struct GoalServiceTests {
 	}
 
 	@Test
-	func `Updating goal with form data sets recurrence`() async throws {
+	func `Updating goal with a draft sets recurrence`() async throws {
 		let container = try makeContainer()
 		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
 		insert(goal, into: container)
@@ -313,7 +313,7 @@ struct GoalServiceTests {
 
 		try service.updateGoal(
 			goal,
-			with: GoalFormData(
+			with: GoalDraft(
 				name: goal.name,
 				details: goal.details ?? "",
 				progress: goal.progress,
@@ -325,7 +325,7 @@ struct GoalServiceTests {
 	}
 
 	@Test
-	func `Updating goal with form data saves reminder`() async throws {
+	func `Updating goal with a draft saves reminder`() async throws {
 		let container = try makeContainer()
 		let targetDate = Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30)
 		let reminder = GoalReminder()
@@ -338,7 +338,7 @@ struct GoalServiceTests {
 
 		try service.updateGoal(
 			goal,
-			with: GoalFormData(
+			with: GoalDraft(
 				name: goal.name,
 				details: goal.details ?? "",
 				targetDate: targetDate,
@@ -351,7 +351,7 @@ struct GoalServiceTests {
 	}
 
 	@Test
-	func `Updating goal with form data clears recurrence`() async throws {
+	func `Updating goal with a draft clears recurrence`() async throws {
 		let container = try makeContainer()
 		let goal = makeGoal(
 			progress: .outcome(OutcomeProgress()),
@@ -362,7 +362,7 @@ struct GoalServiceTests {
 
 		try service.updateGoal(
 			goal,
-			with: GoalFormData(
+			with: GoalDraft(
 				name: goal.name,
 				details: goal.details ?? "",
 				progress: goal.progress,
@@ -756,14 +756,14 @@ struct GoalServiceTests {
 	}
 
 	@Test
-	func `Adding a goal with form data saves reminder`() async throws {
+	func `Adding a goal with a draft saves reminder`() async throws {
 		let container = try makeContainer()
 		let targetDate = Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 30)
 		let reminder = GoalReminder()
 		let service = makeService(in: container)
 
 		try service.addGoal(
-			with: GoalFormData(
+			with: GoalDraft(
 				name: "Read",
 				details: "",
 				targetDate: targetDate,
@@ -783,18 +783,18 @@ struct GoalServiceTests {
 	}
 
 	@Test
-	func `Adding a goal with draft form tags creates tags on save`() async throws {
+	func `Adding a goal with draft tags creates tags on save`() async throws {
 		let container = try makeContainer()
 		let service = makeService(in: container)
 
 		try service.addGoal(
-			with: GoalFormData(
+			with: GoalDraft(
 				name: "Run",
 				details: "",
 				progress: .outcome(OutcomeProgress()),
 				tags: [
-					GoalFormTagSelection(name: "Health"),
-					GoalFormTagSelection(name: "Running")
+					GoalTagDraft(name: "Health"),
+					GoalTagDraft(name: "Running")
 				],
 			),
 		)
@@ -810,7 +810,7 @@ struct GoalServiceTests {
 	}
 
 	@Test
-	func `Adding a goal with draft form tags reuses matching persisted tag`() async throws {
+	func `Adding a goal with draft tags reuses matching persisted tag`() async throws {
 		let container = try makeContainer()
 		let existingTag = Tag(name: "Health")
 		container.mainContext.insert(existingTag)
@@ -818,12 +818,12 @@ struct GoalServiceTests {
 		let service = makeService(in: container)
 
 		try service.addGoal(
-			with: GoalFormData(
+			with: GoalDraft(
 				name: "Run",
 				details: "",
 				progress: .outcome(OutcomeProgress()),
 				tags: [
-					GoalFormTagSelection(name: "health")
+					GoalTagDraft(name: "health")
 				],
 			),
 		)
@@ -840,7 +840,7 @@ struct GoalServiceTests {
 	}
 
 	@Test
-	func `Adding a goal with draft form tags rolls back draft tags on save failure`() async throws {
+	func `Adding a goal with draft tags rolls back draft tags on save failure`() async throws {
 		let container = try makeContainer()
 		let scheduler = FakeGoalReminderScheduler()
 		let service = GoalService(
@@ -853,12 +853,12 @@ struct GoalServiceTests {
 
 		#expect(throws: GoalService.SaveError.self) {
 			try service.addGoal(
-				with: GoalFormData(
+				with: GoalDraft(
 					name: "Run",
 					details: "",
 					progress: .outcome(OutcomeProgress()),
 					tags: [
-						GoalFormTagSelection(name: "Health")
+						GoalTagDraft(name: "Health")
 					],
 				),
 			)
@@ -871,7 +871,7 @@ struct GoalServiceTests {
 	}
 
 	@Test
-	func `Updating a goal with draft form tags creates new tags and deletes removed unused tags`() async throws {
+	func `Updating a goal with draft tags creates new tags and deletes removed unused tags`() async throws {
 		let container = try makeContainer()
 		let oldTag = Tag(name: "Old")
 		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
@@ -881,12 +881,12 @@ struct GoalServiceTests {
 
 		try service.updateGoal(
 			goal,
-			with: GoalFormData(
+			with: GoalDraft(
 				name: goal.name,
 				details: goal.details ?? "",
 				progress: goal.progress,
 				tags: [
-					GoalFormTagSelection(name: "New")
+					GoalTagDraft(name: "New")
 				],
 			),
 		)
@@ -907,12 +907,12 @@ struct GoalServiceTests {
 
 		try service.updateGoal(
 			goal,
-			with: GoalFormData(
+			with: GoalDraft(
 				name: goal.name,
 				details: goal.details ?? "",
 				progress: goal.progress,
 				tags: [
-					GoalFormTagSelection(name: "Retained")
+					GoalTagDraft(name: "Retained")
 				],
 			),
 		)
@@ -922,7 +922,7 @@ struct GoalServiceTests {
 	}
 
 	@Test
-	func `Updating a goal with draft form tags rolls back draft tags on save failure`() async throws {
+	func `Updating a goal with draft tags rolls back draft tags on save failure`() async throws {
 		let container = try makeContainer()
 		let oldTag = Tag(name: "Old")
 		let goal = makeGoal(progress: .outcome(OutcomeProgress()))
@@ -938,12 +938,12 @@ struct GoalServiceTests {
 		#expect(throws: GoalService.SaveError.self) {
 			try service.updateGoal(
 				goal,
-				with: GoalFormData(
+				with: GoalDraft(
 					name: goal.name,
 					details: goal.details ?? "",
 					progress: goal.progress,
 					tags: [
-						GoalFormTagSelection(name: "New")
+						GoalTagDraft(name: "New")
 					],
 				),
 			)
@@ -1074,6 +1074,29 @@ struct GoalServiceTests {
 		try service.deleteGoals([firstGoal, secondGoal])
 
 		#expect(Set(scheduler.canceledGoalIds) == [firstGoal.id, secondGoal.id])
+	}
+
+	@Test
+	func `Goal drafts ignore empty tags and reuse duplicate names`() async throws {
+		let container = try makeContainer()
+		let service = makeService(in: container)
+
+		try service.addGoal(
+			with: GoalDraft(
+				name: "Run",
+				details: "",
+				progress: .outcome(OutcomeProgress()),
+				tags: [
+					GoalTagDraft(name: " # "),
+					GoalTagDraft(name: "Health"),
+					GoalTagDraft(name: "health")
+				]
+			)
+		)
+
+		let goal = try #require(fetchGoals(in: container).first)
+		#expect((goal.tags ?? []).map(\.name) == ["Health"])
+		#expect(try fetchTags(in: container).count == 1)
 	}
 
 	private func makeContainer() throws -> ModelContainer {

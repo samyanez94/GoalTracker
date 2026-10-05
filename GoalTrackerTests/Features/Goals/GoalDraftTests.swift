@@ -1,5 +1,5 @@
 //
-//  GoalFormDataTests.swift
+//  GoalDraftTests.swift
 //  GoalTrackerTests
 //
 //  Created by Samuel Yanez on 5/13/26.
@@ -11,9 +11,9 @@ import Testing
 @testable import GoalTracker
 
 @MainActor
-struct GoalFormDataTests {
+struct GoalDraftTests {
 	@Test
-	func `Form data preserves reminders from goals`() {
+	func `Goal draft preserves reminders from goals`() {
 		let reminder = GoalReminder()
 		let goal = Goal(
 			name: "Test Goal",
@@ -23,18 +23,18 @@ struct GoalFormDataTests {
 			progress: .outcome(OutcomeProgress()),
 		)
 
-		let data = GoalFormData(goal: goal)
+		let data = GoalDraft(goal: goal)
 
 		#expect(data.reminder == reminder)
 	}
 
 	@Test
-	func `Empty form data has no reminder`() {
-		#expect(GoalFormData.empty.reminder == nil)
+	func `Empty goal draft has no reminder`() {
+		#expect(GoalDraft.empty.reminder == nil)
 	}
 
 	@Test
-	func `Form data maps goal tags to existing selections`() {
+	func `Goal draft maps goal tags to draft values`() {
 		let tag = Tag(name: "Health")
 		let goal = Goal(
 			name: "Test Goal",
@@ -44,7 +44,7 @@ struct GoalFormDataTests {
 		)
 		goal.tags = [tag]
 
-		let data = GoalFormData(goal: goal)
+		let data = GoalDraft(goal: goal)
 
 		#expect(data.tags.map(\.name) == ["Health"])
 		#expect(data.tags.map(\.normalizedName) == ["health"])

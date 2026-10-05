@@ -48,7 +48,7 @@ struct GoalRowView: View {
 		.sheet(isPresented: $isPresentingEditForm) {
 			NavigationStack {
 				GoalFormView(
-					mode: .edit(GoalFormData(goal: goal)),
+					mode: .edit(GoalDraft(goal: goal)),
 				) { data in
 					try goalService.updateGoal(goal, with: data)
 				}

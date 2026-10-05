@@ -15,7 +15,7 @@ enum GoalFormMode {
 	case create
 
 	/// Create a form with pre-filled values for editing.
-	case edit(GoalFormData)
+	case edit(GoalDraft)
 
 	var title: LocalizedStringResource {
 		switch self {
@@ -26,7 +26,7 @@ enum GoalFormMode {
 		}
 	}
 
-	var initialData: GoalFormData {
+	var initialDraft: GoalDraft {
 		switch self {
 		case .create:
 			.empty
@@ -58,11 +58,11 @@ struct GoalFormView: View {
 
 	private let mode: GoalFormMode
 
-	private let onSave: (GoalFormData) throws -> Void
+	private let onSave: (GoalDraft) throws -> Void
 
 	init(
 		mode: GoalFormMode,
-		onSave: @escaping (GoalFormData) throws -> Void,
+		onSave: @escaping (GoalDraft) throws -> Void,
 	) {
 		self.mode = mode
 		self.onSave = onSave
@@ -255,7 +255,7 @@ struct GoalFormView: View {
 			return
 		}
 		do {
-			try onSave(formState.makeFormData())
+			try onSave(formState.makeGoalDraft())
 			dismiss()
 		} catch {
 			saveFailure = formState.saveFailureKind
@@ -299,7 +299,7 @@ struct GoalFormView: View {
 	NavigationStack {
 		GoalFormView(
 			mode: .edit(
-				GoalFormData(
+				GoalDraft(
 					name: "Workout 10 times",
 					details: "Move a little every day.",
 					targetDate: Date(),

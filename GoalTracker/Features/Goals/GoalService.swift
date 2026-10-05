@@ -57,19 +57,19 @@ struct GoalService {
 		syncReminder(for: goal, requestsAuthorization: true)
 	}
 
-	/// Inserts a new goal into the model context using values collected by the goal form.
+	/// Inserts a new goal into the model context using a goal draft.
 	func addGoal(
-		with data: GoalFormData,
+		with draft: GoalDraft,
 	) throws {
-		let tags = try resolveTags(for: data.tags)
+		let tags = try resolveTags(for: draft.tags)
 		let goal = Goal(
-			name: data.name,
-			details: data.normalizedDetails,
-			targetDate: data.targetDate,
-			reminder: data.reminder,
+			name: draft.name,
+			details: draft.normalizedDetails,
+			targetDate: draft.targetDate,
+			reminder: draft.reminder,
 			createdAt: now(),
-			progress: data.progress,
-			recurrence: data.recurrence,
+			progress: draft.progress,
+			recurrence: draft.recurrence,
 		)
 		goal.tags = tags
 		try addGoal(goal)
@@ -120,21 +120,21 @@ struct GoalService {
 		syncReminder(for: goal, requestsAuthorization: true)
 	}
 
-	/// Updates a goal using values collected by the goal form.
+	/// Updates a goal using a goal draft.
 	func updateGoal(
 		_ goal: Goal,
-		with data: GoalFormData,
+		with draft: GoalDraft,
 	) throws {
-		let tags = try resolveTags(for: data.tags)
+		let tags = try resolveTags(for: draft.tags)
 		try updateGoal(
 			goal,
-			name: data.name,
-			details: data.normalizedDetails,
-			targetDate: data.targetDate,
-			reminder: data.reminder,
-			progress: data.progress,
+			name: draft.name,
+			details: draft.normalizedDetails,
+			targetDate: draft.targetDate,
+			reminder: draft.reminder,
+			progress: draft.progress,
 			updatesRecurrence: true,
-			recurrence: data.recurrence,
+			recurrence: draft.recurrence,
 			tags: tags,
 		)
 	}
@@ -349,27 +349,26 @@ struct GoalService {
 		}
 	}
 
-	private func resolveTags(for selections: [GoalFormTagSelection]) throws -> [Tag] {
+	private func resolveTags(for tagDrafts: [GoalTagDraft]) throws -> [Tag] {
 		let existingTags = try fetchTags()
 		var resolvedTagNames: Set<String> = []
-		return selections.compactMap { selection in
-			guard !selection.normalizedName.isEmpty,
-				selection.isSelected,
-				resolvedTagNames.insert(selection.normalizedName).inserted
+		return tagDrafts.compactMap { tagDraft in
+			guard !tagDraft.normalizedName.isEmpty,
+				resolvedTagNames.insert(tagDraft.normalizedName).inserted
 			else {
 				return nil
 			}
 			if let existingTag = existingTags.first(where: { tag in
-				tag.normalizedName == selection.normalizedName
+				tag.normalizedName == tagDraft.normalizedName
 			}) {
 				return existingTag
 			}
-			return newTag(from: selection)
+			return newTag(from: tagDraft)
 		}
 	}
 
-	private func newTag(from selection: GoalFormTagSelection) -> Tag {
-		let tag = Tag(name: selection.name)
+	private func newTag(from tagDraft: GoalTagDraft) -> Tag {
+		let tag = Tag(name: tagDraft.name)
 		modelContext.insert(tag)
 		return tag
 	}
