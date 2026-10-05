@@ -1,0 +1,279 @@
+//
+//  GoalNotificationScheduler.swift
+//  GoalTracker
+//
+//  Created by Samuel Yanez on 5/21/26.
+//
+
+import Foundation
+import UserNotifications
+
+// MARK: - GoalNotificationCenterClient
+
+/// The small notification-center surface GoalTracker needs for reminder scheduling.
+///
+/// Keeping this protocol narrow lets scheduler tests verify notification requests without talking to the process-wide `UNUserNotificationCenter`.
+@MainActor
+protocol GoalNotificationCenterClient {
+	/// Returns the app's current notification authorization state.
+	func authorizationStatus() async -> GoalNotificationAuthorizationStatus
+
+	/// Asks the user for notification authorization with the requested options.
+	func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool
+
+	/// Returns requests scheduled on this device.
+	func pendingNotificationRequests() async -> [UNNotificationRequest]
+
+	/// Adds a pending notification request.
+	func add(_ request: UNNotificationRequest) async throws
+
+	/// Removes pending notification requests for the provided identifiers.
+	func removePendingNotificationRequests(withIdentifiers identifiers: [String])
+}
+
+// MARK: - GoalNotificationAuthorizationStatus
+
+/// GoalTracker's simplified notification authorization states.
+enum GoalNotificationAuthorizationStatus {
+	case notDetermined
+	case denied
+	case authorized
+}
+
+// MARK: - GoalReminderScheduling
+
+/// The reminder scheduling behavior `GoalService` needs when goal state changes.
+@MainActor
+protocol GoalReminderScheduling {
+	/// Reconciles the pending reminder notification with the goal's current reminder state.
+	///
+	/// Returns an explicit scheduling outcome; notification-center failures throw.
+	@discardableResult
+	func syncReminder(
+		for state: GoalReminderSyncState,
+		requestsAuthorization: Bool,
+	) async throws -> GoalReminderSchedulingOutcome
+
+	/// Cancels pending reminder notifications for multiple goals.
+	func cancelReminders(for goalIds: [UUID])
+}
+
+// MARK: - UNUserNotificationCenter+GoalNotificationCenterClient
+
+extension UNUserNotificationCenter: GoalNotificationCenterClient {
+	func authorizationStatus() async -> GoalNotificationAuthorizationStatus {
+		switch await notificationSettings().authorizationStatus {
+		case .notDetermined:
+			.notDetermined
+		case .denied:
+			.denied
+		case .authorized, .provisional, .ephemeral:
+			.authorized
+		@unknown default:
+			.denied
+		}
+	}
+}
+
+// MARK: - GoalNotificationScheduler
+
+/// Schedules and cancels local notification reminders for goals.
+///
+/// This type owns notification request construction and authorization. It does not persist goals or decide when goal changes should trigger scheduling.
+@MainActor
+struct GoalNotificationScheduler: GoalReminderScheduling {
+	private static let notificationIdentifierPrefix = "goal-reminder"
+
+	private let notificationCenter: GoalNotificationCenterClient
+
+	private let calendar: Calendar
+
+	private let now: () -> Date
+
+	init(
+		notificationCenter: GoalNotificationCenterClient = UNUserNotificationCenter.current(),
+		calendar: Calendar = .current,
+		now: @escaping () -> Date = Date.init,
+	) {
+		self.notificationCenter = notificationCenter
+		self.calendar = calendar
+		self.now = now
+	}
+
+	/// Requests notification authorization only when the user has not answered yet.
+	///
+	/// - Returns: `true` when notifications are authorized after the check, otherwise `false`.
+	func requestAuthorizationIfNeeded() async throws -> Bool {
+		switch await notificationCenter.authorizationStatus() {
+		case .notDetermined:
+			try await notificationCenter.requestAuthorization(options: [.alert, .sound])
+		case .denied:
+			false
+		case .authorized:
+			true
+		}
+	}
+
+	/// Reconciles the pending reminder notification with the goal's current reminder state.
+	///
+	/// Existing pending reminders are replaced when a new request can be scheduled, or cancelled when the goal cannot produce a future reminder.
+	/// Returns an explicit scheduling outcome; notification-center failures throw.
+	@discardableResult
+	func syncReminder(
+		for state: GoalReminderSyncState,
+		requestsAuthorization: Bool,
+	) async throws -> GoalReminderSchedulingOutcome {
+		try Task.checkCancellation()
+		let initialDate = now()
+		guard
+			reminderSchedule(
+				state: state,
+				currentDate: initialDate,
+			) != nil
+		else {
+			cancelReminder(for: state.goalId)
+			return .notNeeded
+		}
+
+		if requestsAuthorization {
+			guard try await requestAuthorizationIfNeeded() else {
+				cancelReminder(for: state.goalId)
+				return .permissionDenied
+			}
+		} else if await notificationCenter.authorizationStatus() != .authorized {
+			cancelReminder(for: state.goalId)
+			return .permissionDenied
+		}
+
+		try Task.checkCancellation()
+		let currentDate = now()
+		guard
+			let schedule = reminderSchedule(
+				state: state,
+				currentDate: currentDate,
+			)
+		else {
+			cancelReminder(for: state.goalId)
+			return .notNeeded
+		}
+
+		try await scheduleReminder(schedule)
+		return .scheduled
+	}
+
+	private func reminderSchedule(
+		state: GoalReminderSyncState,
+		currentDate: Date,
+	) -> GoalReminderSchedule? {
+		GoalReminderSchedule.reminder(
+			state: state,
+			calendar: calendar,
+			currentDate: currentDate,
+		)
+	}
+
+	/// Compare the saved schedule and content with a pending request before replacing it.
+	func isReminderCurrent(for state: GoalReminderSyncState, request: UNNotificationRequest?) -> Bool {
+		guard let request,
+			let schedule = reminderSchedule(state: state, currentDate: now()),
+			let trigger = request.trigger as? UNCalendarNotificationTrigger
+		else { return false }
+		let content = notificationContent(for: schedule)
+		return request.identifier == reminderNotificationIdentifier(for: state.goalId)
+			&& trigger.dateComponents == schedule.triggerDateComponents
+			&& trigger.repeats == schedule.repeats
+			&& request.content.title == content.title
+			&& request.content.body == content.body
+			&& request.content.sound == content.sound
+			&& request.content.userInfo[GoalNotificationPayload.goalIdUserInfoKey] as? String == state.goalId.uuidString
+	}
+
+	/// Only identifiers owned by goal reminders participate in reconciliation.
+	func reminderGoalId(for identifier: String) -> UUID? {
+		let prefix = "\(Self.notificationIdentifierPrefix)-"
+		guard identifier.hasPrefix(prefix) else { return nil }
+		return UUID(uuidString: String(identifier.dropFirst(prefix.count)))
+	}
+
+	private func scheduleReminder(_ schedule: GoalReminderSchedule) async throws {
+		let content = notificationContent(for: schedule)
+		let trigger = UNCalendarNotificationTrigger(
+			dateMatching: schedule.triggerDateComponents,
+			repeats: schedule.repeats,
+		)
+		let request = UNNotificationRequest(
+			identifier: reminderNotificationIdentifier(for: schedule.goalId),
+			content: content,
+			trigger: trigger,
+		)
+		try await notificationCenter.add(request)
+	}
+
+	private func notificationContent(
+		for schedule: GoalReminderSchedule
+	) -> UNMutableNotificationContent {
+		UNMutableNotificationContent(
+			title: schedule.goalName,
+			body: notificationBody(for: schedule),
+			userInfo: [
+				GoalNotificationPayload.goalIdUserInfoKey: schedule.goalId.uuidString
+			],
+		)
+	}
+
+	private func notificationBody(
+		for schedule: GoalReminderSchedule
+	) -> LocalizedStringResource {
+		switch schedule.targetDescription {
+		case .date:
+			return LocalizedStringResource.notificationReminderDateBody
+		case .cadence(let cadence):
+			let targetDescription = String(localized: cadence.reminderTargetDescription)
+			return LocalizedStringResource.notificationReminderCadenceBody(targetDescription)
+		}
+	}
+
+	/// Cancels the pending reminder notification for a single goal.
+	func cancelReminder(for goalId: UUID) {
+		notificationCenter.removePendingNotificationRequests(
+			withIdentifiers: notificationIdentifiers(for: goalId),
+		)
+	}
+
+	/// Cancels pending reminder notifications for multiple goals.
+	func cancelReminders(for goalIds: [UUID]) {
+		notificationCenter.removePendingNotificationRequests(
+			withIdentifiers: goalIds.flatMap(notificationIdentifiers(for:)),
+		)
+	}
+
+	/// Returns the stable pending-notification identifier for a goal's reminder.
+	func reminderNotificationIdentifier(for goalId: UUID) -> String {
+		"\(Self.notificationIdentifierPrefix)-\(goalId.uuidString)"
+	}
+
+	private func notificationIdentifiers(for goalId: UUID) -> [String] {
+		[reminderNotificationIdentifier(for: goalId)]
+	}
+}
+
+// MARK: - GoalReminderSyncState
+
+/// Immutable goal reminder state safe to pass across asynchronous scheduling work.
+struct GoalReminderSyncState: Equatable {
+	let goalId: UUID
+	let goalName: String
+	let targetDate: Date?
+	let reminder: GoalReminder?
+	let progress: GoalProgress
+	let recurrence: GoalRecurrence?
+
+	init(goal: Goal) {
+		goalId = goal.id
+		goalName = goal.name
+		targetDate = goal.targetDate
+		reminder = goal.reminder
+		progress = goal.progress
+		recurrence = goal.recurrence
+	}
+}
