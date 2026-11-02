@@ -57,6 +57,17 @@ struct GoalTrackerV1FixtureTests {
 			#expect(goal.progress.events.map(\.id) == record.expectedEventIDs)
 			#expect(goal.progress.events.map(\.delta) == record.expectedEventDeltas)
 			#expect(goal.progress.events.map(\.timestamp) == record.expectedEventTimestamps)
+			#expect(goal.progress.measurableProgress?.targetValue == record.expectedTargetValue)
+			#expect(goal.progress.measurableProgress?.step == record.expectedStep)
+			#expect(goal.progress.measurableProgress?.unit?.id == record.expectedUnitID)
+			if record.expectedUnitID == "custom.fixture" {
+				let unit = try #require(goal.progress.measurableProgress?.unit)
+				#expect(unit.category == .custom)
+				#expect(unit.title == "Practice blocks")
+				#expect(unit.abbreviatedTitle == "blk")
+				#expect(unit.prefix == "~")
+				#expect(unit.suffix == "blk")
+			}
 			#expect(Set((goal.tags ?? []).map(\.id)) == Set(record.tagIDs))
 			#expect(goal.currentProgressValue(at: manifest.evaluationDate, calendar: ModelTestSupport.calendar) == record.expectedValue)
 			#expect(goal.isCompleted(at: manifest.evaluationDate, calendar: ModelTestSupport.calendar) == record.expectedCompleted)

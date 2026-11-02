@@ -35,7 +35,10 @@
       "recurrence": null,
       "expectedEventIDs": [],
       "expectedEventDeltas": [],
-      "expectedEventTimestamps": []
+      "expectedEventTimestamps": [],
+      "expectedTargetValue": null,
+      "expectedStep": null,
+      "expectedUnitID": null
     },
     {
       "id": "00000000-0000-0000-0000-000000000002",
@@ -90,7 +93,10 @@
         801964800.0,
         802051200.0,
         802137600.0
-      ]
+      ],
+      "expectedTargetValue": null,
+      "expectedStep": null,
+      "expectedUnitID": null
     },
     {
       "id": "00000000-0000-0000-0000-000000000003",
@@ -151,7 +157,10 @@
         801964800.0,
         801964800.0,
         802051200.0
-      ]
+      ],
+      "expectedTargetValue": 10,
+      "expectedStep": 2,
+      "expectedUnitID": "time.minutes"
     },
     {
       "id": "00000000-0000-0000-0000-000000000004",
@@ -212,7 +221,10 @@
         802688400.0,
         802774800.0,
         802778400.0
-      ]
+      ],
+      "expectedTargetValue": null,
+      "expectedStep": null,
+      "expectedUnitID": null
     },
     {
       "id": "00000000-0000-0000-0000-000000000005",
@@ -275,7 +287,10 @@
         801964800.0,
         802569600.0,
         803174400.0
-      ]
+      ],
+      "expectedTargetValue": 10,
+      "expectedStep": 1,
+      "expectedUnitID": null
     },
     {
       "id": "00000000-0000-0000-0000-000000000006",
@@ -2357,7 +2372,10 @@
         801964800.0,
         801964800.0,
         801964800.0
-      ]
+      ],
+      "expectedTargetValue": 100,
+      "expectedStep": 0.5,
+      "expectedUnitID": "custom.fixture"
     },
     {
       "id": "00000000-0000-0000-0000-000000000007",
@@ -2380,7 +2398,10 @@
       "recurrence": null,
       "expectedEventIDs": [],
       "expectedEventDeltas": [],
-      "expectedEventTimestamps": []
+      "expectedEventTimestamps": [],
+      "expectedTargetValue": 10,
+      "expectedStep": 1,
+      "expectedUnitID": null
     },
     {
       "id": "00000000-0000-0000-0000-000000000008",
@@ -2415,7 +2436,10 @@
       ],
       "expectedEventTimestamps": [
         801964800.0
-      ]
+      ],
+      "expectedTargetValue": 10,
+      "expectedStep": 1,
+      "expectedUnitID": null
     }
   ]
 }

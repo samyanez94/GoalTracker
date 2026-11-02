@@ -10,7 +10,7 @@ enum V1FixtureStore {
 		let configuration = ModelConfiguration(schema: schema, url: url, cloudKitDatabase: .none)
 		return try ModelContainer(
 			for: schema,
-			migrationPlan: GoalTrackerMigrationPlan.self,
+			// This helper opens the frozen V1 baseline, not the app's evolving migration path.
 			configurations: [configuration],
 		)
 	}

@@ -16,6 +16,9 @@ struct V1FixtureGoalRecord: Decodable {
 	let expectedEventIDs: [UUID]
 	let expectedEventDeltas: [Double]
 	let expectedEventTimestamps: [Date]
+	let expectedTargetValue: Double?
+	let expectedStep: Double?
+	let expectedUnitID: String?
 	let expectedValue: Double
 	let expectedCompleted: Bool
 	let expectedStreak: Int?
